@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 2:03 PM.
+ * This file was last modified at 3/12/21, 5:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,6 +13,8 @@ internal class Cpu(private val gb: GameBoy) {
 
     var pc: Short = 0
     var sp: Short = 0
+    var ime = false
+    var halt = false
     val regs = Array<Byte>(Reg.values().size) { 0 }
 
     fun nextInstruction(): Inst {
@@ -22,22 +24,14 @@ internal class Cpu(private val gb: GameBoy) {
         return inst
     }
 
-    fun jmpRelative(by: Int) {
+    fun jmpRelative(by: Int): Boolean {
         pc = (pc + by).toShort()
+        return true
     }
 
-    fun jmpAbsolute(to: Int) {
+    fun jmpAbsolute(to: Int): Boolean {
         pc = to.toShort()
-    }
-
-    fun brRelative(cond: Boolean, by: Int): Boolean {
-        if (cond) jmpRelative(by)
-        return cond
-    }
-
-    fun brAbsolute(cond: Boolean, to: Int): Boolean {
-        if (cond) jmpAbsolute(to)
-        return cond
+        return true
     }
 
     fun flag(flag: Flag) = flagVal(flag) == 1
@@ -63,6 +57,7 @@ internal enum class DReg(val low: Reg, val high: Reg) {
     BC(Reg.B, Reg.C),
     DE(Reg.D, Reg.E),
     HL(Reg.H, Reg.L),
+    AF(Reg.A, Reg.F)
 }
 
 internal enum class Flag(val position: Int) {

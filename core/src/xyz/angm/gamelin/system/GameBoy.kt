@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 2:53 PM.
+ * This file was last modified at 3/12/21, 4:50 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,6 +18,9 @@ class GameBoy {
         println("Took ${inst.cycles} for instruction ${inst.name} at 0x${cpu.pc.toString(16)}")
     }
 
+    // -----------------------------------
+    // Reading of memory/values
+    // -----------------------------------
     internal fun read(addr: Short): Int {
         return when (addr) {
             else -> {
@@ -49,6 +52,9 @@ class GameBoy {
         return ret.toShort()
     }
 
+    // -----------------------------------
+    // Writing of memory/values
+    // -----------------------------------
     internal fun write(addr: Short, value: Byte): GameBoy {
         when (addr) {
             else -> log.warn { "Encountered write to invalid address 0x${addr.toString(16)}, value 0x${value}" }
@@ -71,10 +77,18 @@ class GameBoy {
         write(reg.low, value.toByte())
     }
 
+    internal fun write16(location: Short, value: Int) {
+        write(location, value)
+        write(location + 1, value ushr 8)
+    }
+
     internal fun writeSP(value: Int) {
         cpu.sp = value.toShort()
     }
 
+    // -----------------------------------
+    // Math/ALU
+    // -----------------------------------
     internal fun alu(a: Int, b: Int, neg: Int): Int {
         val result = a + b
         val truncResult = result.toByte()
@@ -91,6 +105,34 @@ class GameBoy {
         val res = alu(a and 0xFF, b and 0xFF, neg) + alu(a and 0xFF00, b and 0xFF00, neg)
         cpu.flag(Flag.Zero, zero)
         return res
+    }
+
+    // -----------------------------------
+    // Stack Pointer operations
+    // -----------------------------------
+    fun popS(): Int {
+        val value = read16(cpu.sp)
+        cpu.sp = (cpu.sp + 2).toShort()
+        return value
+    }
+
+    fun pushS(value: Int) {
+        cpu.sp = (cpu.sp - 2).toShort()
+        write16(cpu.sp, value)
+    }
+
+    // -----------------------------------
+    // Control Flow
+    // -----------------------------------
+    fun call(): Boolean {
+        pushS(cpu.pc + 3) // Call opcodes are 3 bytes long
+        cpu.pc = read16(cpu.pc + 1).toShort()
+        return true
+    }
+
+    fun ret(): Boolean {
+        cpu.pc = popS().toShort()
+        return true
     }
 
     companion object {

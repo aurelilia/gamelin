@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 4:20 PM.
+ * This file was last modified at 3/12/21, 5:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -34,6 +34,7 @@ object InstSet {
 }
 
 private fun fillSet() = InstSet.apply {
+    val bcdehl = arrayOf(BC, DE, HL)
     val bdh = arrayOf(B, D, H)
     val cela = arrayOf(C, E, L, A)
 
@@ -42,10 +43,10 @@ private fun fillSet() = InstSet.apply {
     // -----------------------------------
     op[0x00] = Inst(1, 1, "NOP") { }
     op[0x10] = Inst(1, 1, "STOP") { throw InterruptedException("RIP") }
-    op[0x20] = null
-    op[0x30] = null
+    op[0x20] = BrInst(2, 2, 3, "JR NZ, s8") { if (!cpu.flag(Zero)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
+    op[0x30] = BrInst(2, 2, 3, "JR NC, s8") { if (!cpu.flag(Carry)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
 
-    DReg.values().forEachIndexed { i, r -> op[0x01 + (i shl 4)] = Inst(3, 3, "LD $r, d16") { write16(r, read16(cpu.pc + 1)) } }
+    bcdehl.forEachIndexed { i, r -> op[0x01 + (i shl 4)] = Inst(3, 3, "LD $r, d16") { write16(r, read16(cpu.pc + 1)) } }
     op[0x31] = Inst(3, 3, "LD SP, d16") { writeSP(read(cpu.pc + 1)) }
 
     op[0x02] = Inst(1, 2, "LD (BC), A") { write(read16(BC), read(A)) }
@@ -53,7 +54,7 @@ private fun fillSet() = InstSet.apply {
     op[0x22] = Inst(1, 2, "LD (HL+), A") { write(read16Modify(HL, +1), read(A)) }
     op[0x32] = Inst(1, 2, "LD (HL-), A") { write(read16Modify(HL, -1), read(A)) }
 
-    DReg.values().forEachIndexed { i, r -> op[0x03 + (i shl 4)] = Inst(1, 2, "INC $r") { write16(r, read16(r) + 1) } }
+    bcdehl.forEachIndexed { i, r -> op[0x03 + (i shl 4)] = Inst(1, 2, "INC $r") { write16(r, read16(r) + 1) } }
     op[0x33] = Inst(1, 2, "INC SP") { writeSP(cpu.sp + 1) }
 
     bdh.forEachIndexed { i, r -> op[0x04 + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, alu(read(r), 1, neg = 0)) } }
@@ -100,10 +101,10 @@ private fun fillSet() = InstSet.apply {
         write(addr + 1, cpu.sp.toInt() ushr 8)
     }
     op[0x18] = Inst(2, 3, "JR s8", incPC = false) { cpu.jmpRelative(read(cpu.pc + 1)) }
-    op[0x28] = BrInst(2, 2, 3, "JR Z, s8") { cpu.brRelative(Zero.isSet(read(F)), read(cpu.pc + 1)) }
-    op[0x38] = BrInst(2, 2, 3, "JR C, s8") { cpu.brRelative(Carry.isSet(read(F)), read(cpu.pc + 1)) }
+    op[0x28] = BrInst(2, 2, 3, "JR Z, s8") { if (cpu.flag(Zero)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
+    op[0x38] = BrInst(2, 2, 3, "JR C, s8") { if (cpu.flag(Carry)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
 
-    DReg.values().forEachIndexed { i, r -> op[0x09 + (i shl 4)] = Inst(1, 2, "ADD HL, $r") { write16(HL, alu16(read16(r), read16(HL), neg = 0)) } }
+    bcdehl.forEachIndexed { i, r -> op[0x09 + (i shl 4)] = Inst(1, 2, "ADD HL, $r") { write16(HL, alu16(read16(r), read16(HL), neg = 0)) } }
     op[0x39] = Inst(1, 2, "ADD HL, SP") { write16(HL, alu16(readSP(), read16(HL), neg = 0)) }
 
     op[0x0A] = Inst(1, 2, "LD A, (BC)") { write(A, read(read16(BC))) }
@@ -111,7 +112,7 @@ private fun fillSet() = InstSet.apply {
     op[0x2A] = Inst(1, 2, "LD A, (HL+)") { write(A, read(read16Modify(HL, +1))) }
     op[0x3A] = Inst(1, 2, "LD A, (HL-)") { write(A, read(read16Modify(HL, -1))) }
 
-    DReg.values().forEachIndexed { i, r -> op[0x0B + (i shl 4)] = Inst(1, 2, "DEC $r") { write16(r, read16(r) - 1) } }
+    bcdehl.forEachIndexed { i, r -> op[0x0B + (i shl 4)] = Inst(1, 2, "DEC $r") { write16(r, read16(r) - 1) } }
     op[0x3B] = Inst(1, 2, "DEC SP") { writeSP(readSP() - 1) }
 
     cela.forEachIndexed { i, r -> op[0x0C + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, alu(read(r), 1, neg = 0)) } }
@@ -156,7 +157,7 @@ private fun fillSet() = InstSet.apply {
     for (from in regs) {
         op[idx++] = Inst(1, 2, "LD (HL), $from") { write(read16(HL), read(from)) }
     }
-    op[idx++] = null // TODO: HALT
+    op[idx++] = Inst(1, 1, "HALT") { cpu.halt = true }
     op[idx++] = Inst(1, 2, "LD (HL), A") { write(read16(HL), read(A)) }
     for (from in regs) {
         op[idx++] = Inst(1, 1, "LD A, $from") { write(A, read(from)) }
@@ -166,7 +167,7 @@ private fun fillSet() = InstSet.apply {
     assert(idx == 0x80)
 
     // -----------------------------------
-    // 0x80 - 0xCF
+    // 0x80 - 0xBF
     // -----------------------------------
     val maths = arrayOf<Pair<String, GameBoy.(Int) -> Unit>>(
         "ADD" to { write(A, alu(read(A), it, neg = 0)) },
@@ -198,5 +199,68 @@ private fun fillSet() = InstSet.apply {
         op[idx++] = Inst(1, 2, "$name A, (HL)") { exec(this, read(read16(HL))) }
         op[idx++] = Inst(1, 1, "$name A, A") { exec(this, read(A)) }
     }
+
+    // -----------------------------------
+    // 0xC0 - 0xFF
+    // -----------------------------------
+    op[0xC0] = BrInst(1, 2, 5, "RET NZ") { if (!cpu.flag(Zero)) ret() else false }
+    op[0xD0] = BrInst(1, 2, 5, "RET NC") { if (!cpu.flag(Carry)) ret() else false }
+    op[0xE0] = Inst(2, 3, "LD (a8), A") { write(0xFF00 + read(cpu.pc + 1), read(A)) }
+    op[0xF0] = Inst(2, 3, "LD A, (a8)") { write(A, read(0xFF00 + read(cpu.pc + 1))) }
+
+    DReg.values().forEachIndexed { i, r -> op[0xC1 + (i shl 4)] = Inst(1, 3, "POP $r") { write16(r, popS()) } }
+
+    op[0xC2] = BrInst(3, 3, 4, "JP NZ, a16") { if (!cpu.flag(Zero)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
+    op[0xD2] = BrInst(3, 3, 4, "JP NC, a16") { if (!cpu.flag(Carry)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
+    op[0xE2] = Inst(1, 2, "LD (C), A") { write(0xFF00 + read(C), read(A)) }
+    op[0xF2] = Inst(1, 2, "LD A, (C)") { write(A, read(0xFF00 + read(C))) }
+
+    op[0xC3] = Inst(3, 4, "JP a16", incPC = false) { cpu.pc = read16(cpu.pc + 1).toShort() }
+    op[0xF3] = Inst(1, 1, "DI") { cpu.ime = false }
+
+    op[0xC4] = BrInst(3, 3, 6, "CALL NZ, a16") { if (!cpu.flag(Zero)) call() else false }
+    op[0xD4] = BrInst(3, 3, 6, "CALL NC, a16") { if (!cpu.flag(Carry)) call() else false }
+
+    DReg.values().forEachIndexed { i, r -> op[0xC5 + (i shl 4)] = Inst(1, 4, "PUSH $r") { pushS(read16(r)) } }
+
+    idx = 0xC6
+    for (kind in maths) {
+        val name = kind.first
+        val exec = kind.second
+        op[idx] = Inst(2, 2, "$name A, d8") { exec(this, read(cpu.pc + 1)) }
+        idx += 8
+    }
+
+    for (rstIdx in 0 until 8) {
+        op[0xC7 + (rstIdx * 8)] = Inst(1, 4, "RST $rstIdx") {
+            pushS(cpu.pc.toInt())
+            cpu.pc = (rstIdx * 8).toShort()
+        }
+    }
+
+    op[0xC8] = BrInst(1, 2, 5, "RET Z") { if (cpu.flag(Zero)) ret() else false }
+    op[0xD8] = BrInst(1, 2, 5, "RET C") { if (cpu.flag(Carry)) ret() else false }
+    op[0xE8] = Inst(2, 4, "ADD SP, s8") { cpu.sp = (cpu.sp + read(cpu.pc + 1)).toShort() } // TODO: signed? carry?
+    op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, cpu.sp + read(cpu.pc + 1)) } // TODO: signed? carry?
+
+    op[0xC9] = Inst(1, 4, "RET") { ret() }
+    op[0xD9] = Inst(1, 4, "RETI") {
+        cpu.ime = true
+        ret()
+    }
+    op[0xE9] = Inst(1, 1, "JP HL") { cpu.pc = read16(HL).toShort() }
+    op[0xF9] = Inst(1, 1, "LD SP, HL") { cpu.sp = read16(HL).toShort() }
+
+    op[0xCA] = BrInst(3, 3, 4, "JP Z, a16") { if (cpu.flag(Zero)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
+    op[0xDA] = BrInst(3, 3, 4, "JP C, a16") { if (cpu.flag(Carry)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
+    op[0xEA] = Inst(3, 4, "LD (a16), A") { write(read16(cpu.pc + 1), read(A)) }
+    op[0xFA] = Inst(3, 4, "LD A, (a16)") { write(A, read(read16(cpu.pc + 1))) }
+
+    op[0xFB] = Inst(1, 1, "EI") { cpu.ime = true }
+
+    op[0xCC] = BrInst(3, 3, 6, "CALL Z, a16") { if (cpu.flag(Zero)) call() else false }
+    op[0xDC] = BrInst(3, 3, 6, "CALL C, a16") { if (cpu.flag(Carry)) call() else false }
+
+    op[0xCD] = Inst(3, 6, "CALL a16") { call() }
 }
 
