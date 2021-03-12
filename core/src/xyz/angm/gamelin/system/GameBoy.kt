@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 1:38 PM.
+ * This file was last modified at 3/12/21, 2:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -29,7 +29,7 @@ class GameBoy {
 
     internal fun read(addr: Int) = read(addr.toShort())
     internal fun read(reg: Reg) = cpu.regs[reg.idx].toInt()
-    internal fun read(reg: DReg) = (read(reg.low) + (read(reg.high) shl 8))
+    internal fun read16(reg: DReg) = (read(reg.low) + (read(reg.high) shl 8))
 
     internal fun read16(addr: Short): Int {
         val ls = read(addr)
@@ -39,11 +39,13 @@ class GameBoy {
 
     internal fun read16(addr: Int) = read16(addr.toShort())
 
-    /** Read the given register and return it's value;
+    internal fun readSP() = cpu.sp.toInt()
+
+    /** Read the given d-register and return it's value;
      * also write (value + mod) to the register. */
-    internal fun readModify(reg: DReg, mod: Short): Short {
+    internal fun read16Modify(reg: DReg, mod: Short): Short {
         val ret = (read(reg.low) + (read(reg.high) shl 8))
-        write(reg, ret + mod)
+        write16(reg, ret + mod)
         return ret.toShort()
     }
 
@@ -56,6 +58,7 @@ class GameBoy {
 
     internal fun write(addr: Int, value: Int) = write(addr.toShort(), value.toByte())
     internal fun write(addr: Short, value: Int) = write(addr, value.toByte())
+    internal fun write(addr: Int, value: Short) = write(addr.toShort(), value.toByte())
 
     internal fun write(reg: Reg, value: Byte) {
         cpu.regs[reg.idx] = value
@@ -63,7 +66,7 @@ class GameBoy {
 
     internal fun write(reg: Reg, value: Int) = write(reg, value.toByte())
 
-    internal fun write(reg: DReg, value: Int) {
+    internal fun write16(reg: DReg, value: Int) {
         write(reg.high, (value ushr 8).toByte())
         write(reg.low, value.toByte())
     }
@@ -81,7 +84,11 @@ class GameBoy {
     }
 
     internal fun alu16(a: Int, b: Int, neg: Int): Int {
-        return alu(a and 0xFF, b and 0xFF, neg) + alu(a and 0xFF00, b and 0xFF00, neg)
+        // Zero flag does NOT get affected by 16-bit math for some reason, thanks Sharp
+        val zero = cpu.flagVal(Flag.Zero)
+        val res = alu(a and 0xFF, b and 0xFF, neg) + alu(a and 0xFF00, b and 0xFF00, neg)
+        cpu.flag(Flag.Zero, zero)
+        return res
     }
 
     companion object {

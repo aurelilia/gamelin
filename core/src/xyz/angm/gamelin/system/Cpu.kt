@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 1:36 PM.
+ * This file was last modified at 3/12/21, 2:03 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,11 +18,30 @@ internal class Cpu(private val gb: GameBoy) {
     fun nextInstruction(): Inst {
         val inst = InstSet.instOf(gb.read(pc), gb.read(pc + 1))
         inst.execute(gb)
-        pc = (pc + inst.size).toShort()
+        if (inst.incPC) pc = (pc + inst.size).toShort()
         return inst
     }
 
-    fun flag(flag: Flag) = ((regs[Reg.F.idx].toInt() ushr flag.position) and 1) == 1
+    fun jmpRelative(by: Int) {
+        pc = (pc + by).toShort()
+    }
+
+    fun jmpAbsolute(to: Int) {
+        pc = to.toShort()
+    }
+
+    fun brRelative(cond: Boolean, by: Int): Boolean {
+        if (cond) jmpRelative(by)
+        return cond
+    }
+
+    fun brAbsolute(cond: Boolean, to: Int): Boolean {
+        if (cond) jmpAbsolute(to)
+        return cond
+    }
+
+    fun flag(flag: Flag) = flagVal(flag) == 1
+    fun flagVal(flag: Flag) = ((regs[Reg.F.idx].toInt() ushr flag.position) and 1)
 
     fun flag(flag: Flag, value: Int) {
         regs[Reg.F.idx] = ((regs[Reg.F.idx] and flag.invMask.toByte()) + flag.from(value)).toByte()

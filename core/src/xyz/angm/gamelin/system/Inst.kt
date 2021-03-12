@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 1:37 PM.
+ * This file was last modified at 3/12/21, 2:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -11,9 +11,12 @@ import xyz.angm.gamelin.system.DReg.*
 import xyz.angm.gamelin.system.Flag.*
 import xyz.angm.gamelin.system.Reg.*
 
-class Inst(val size: Short, val cycles: Int, val name: String, val execute: GameBoy.() -> Unit)
+internal open class Inst(val size: Short, val cycles: Int, val name: String, val incPC: Boolean = true, val execute: GameBoy.() -> Unit)
 
-object InstSet {
+internal class BrInst(size: Short, cycles: Int, val cyclesWithBranch: Int, name: String, execute: GameBoy.() -> Boolean) :
+    Inst(size, cycles, name, true, { execute() })
+
+internal object InstSet {
 
     internal val op = arrayOfNulls<Inst>(Byte.MAX_VALUE.toInt())
     internal val extOp = arrayOfNulls<Inst>(Byte.MAX_VALUE.toInt())
@@ -31,41 +34,36 @@ object InstSet {
 }
 
 private fun fillSet() = InstSet.apply {
+    val bdh = arrayOf(B, D, H)
+    val cela = arrayOf(C, E, L, A)
+
+    // -----------------------------------
     // 0x00 - 0x3F
+    // -----------------------------------
     op[0x00] = Inst(1, 1, "NOP") { }
     op[0x10] = Inst(1, 1, "STOP") { throw InterruptedException("RIP") }
     op[0x20] = null
     op[0x30] = null
 
-    op[0x01] = Inst(3, 3, "LD BC, d16") { write(BC, read16(cpu.pc + 1)) }
-    op[0x11] = Inst(3, 3, "LD DE, d16") { write(DE, read16(cpu.pc + 1)) }
-    op[0x21] = Inst(3, 3, "LD HL, d16") { write(HL, read16(cpu.pc + 1)) }
+    DReg.values().forEachIndexed { i, r -> op[0x01 + i shl 4] = Inst(3, 3, "LD $r, d16") { write16(r, read16(cpu.pc + 1)) } }
     op[0x31] = Inst(3, 3, "LD SP, d16") { writeSP(read(cpu.pc + 1)) }
 
-    op[0x02] = Inst(1, 2, "LD (BC), A") { write(read(BC), read(A)) }
-    op[0x12] = Inst(1, 2, "LD (DE), A") { write(read(DE), read(A)) }
-    op[0x22] = Inst(1, 2, "LD (HL+), A") { write(readModify(HL, +1), read(A)) }
-    op[0x32] = Inst(1, 2, "LD (HL-), A") { write(readModify(HL, -1), read(A)) }
+    op[0x02] = Inst(1, 2, "LD (BC), A") { write(read16(BC), read(A)) }
+    op[0x12] = Inst(1, 2, "LD (DE), A") { write(read16(DE), read(A)) }
+    op[0x22] = Inst(1, 2, "LD (HL+), A") { write(read16Modify(HL, +1), read(A)) }
+    op[0x32] = Inst(1, 2, "LD (HL-), A") { write(read16Modify(HL, -1), read(A)) }
 
-    op[0x03] = Inst(1, 2, "INC BC") { write(BC, read(BC) + 1) }
-    op[0x13] = Inst(1, 2, "INC DE") { write(DE, read(DE) + 1) }
-    op[0x23] = Inst(1, 2, "INC HL") { write(HL, read(HL) + 1) }
+    DReg.values().forEachIndexed { i, r -> op[i shl 4 + 0x03] = Inst(1, 2, "INC $r") { write16(r, read16(r) + 1) } }
     op[0x33] = Inst(1, 2, "INC SP") { writeSP(cpu.sp + 1) }
 
-    op[0x04] = Inst(1, 1, "INC B") { write(B, alu(read(B), 1, neg = 0)) }
-    op[0x14] = Inst(1, 1, "INC D") { write(D, alu(read(D), 1, neg = 0)) }
-    op[0x24] = Inst(1, 1, "INC H") { write(H, alu(read(H), 1, neg = 0)) }
-    op[0x34] = Inst(1, 3, "INC (HL)") { write(read(HL), alu(read(read(HL)), 1, neg = 0)) }
+    bdh.forEachIndexed { i, r -> op[0x04 + i shl 4] = Inst(1, 1, "INC $r") { write(r, alu(read(r), 1, neg = 0)) } }
+    op[0x34] = Inst(1, 3, "INC (HL)") { write(read16(HL), alu(read(read16(HL)), 1, neg = 0)) }
 
-    op[0x05] = Inst(1, 1, "DEC B") { write(B, alu(read(B), -1, neg = 1)) }
-    op[0x15] = Inst(1, 1, "DEC D") { write(D, alu(read(D), -1, neg = 1)) }
-    op[0x25] = Inst(1, 1, "DEC H") { write(H, alu(read(H), -1, neg = 1)) }
-    op[0x35] = Inst(1, 3, "DEC (HL)") { write(read(HL), alu(read(read(HL)), -1, neg = 1)) }
+    bdh.forEachIndexed { i, r -> op[0x05 + i shl 4] = Inst(1, 1, "DEC $r") { write(r, alu(read(r), -1, neg = 1)) } }
+    op[0x35] = Inst(1, 3, "DEC (HL)") { write(read16(HL), alu(read(read16(HL)), -1, neg = 1)) }
 
-    op[0x06] = Inst(2, 2, "LD B, d8") { write(B, read(cpu.pc + 1)) }
-    op[0x16] = Inst(2, 2, "LD D, d8") { write(D, read(cpu.pc + 1)) }
-    op[0x26] = Inst(2, 2, "LD H, d8") { write(H, read(cpu.pc + 1)) }
-    op[0x36] = Inst(1, 3, "LD (HL), d8") { write(read(HL), read(cpu.pc + 1)) }
+    bdh.forEachIndexed { i, r -> op[0x06 + i shl 4] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
+    op[0x36] = Inst(1, 3, "LD (HL), d8") { write(read16(HL), read(cpu.pc + 1)) }
 
     op[0x07] = Inst(1, 1, "RLCA") {
         val a = read(A)
@@ -95,4 +93,54 @@ private fun fillSet() = InstSet.apply {
         cpu.flag(HalfCarry, 0)
     }
     op[0x37] = Inst(1, 1, "SCF") { write(F, (read(F) and Zero.mask) + 0b00010000) }
+
+    op[0x08] = Inst(3, 5, "LD (a16), SP") {
+        val addr = read16(cpu.pc + 1)
+        write(addr, cpu.sp)
+        write(addr + 1, cpu.sp.toInt() ushr 8)
+    }
+    op[0x18] = Inst(2, 3, "JR s8", incPC = false) { cpu.jmpRelative(read(cpu.pc + 1)) }
+    op[0x28] = BrInst(2, 2, 3, "JR Z, s8") { cpu.brRelative(Zero.isSet(read(F)), read(cpu.pc + 1)) }
+    op[0x28] = BrInst(2, 2, 3, "JR C, s8") { cpu.brRelative(Carry.isSet(read(F)), read(cpu.pc + 1)) }
+
+    DReg.values().forEachIndexed { i, r -> op[0x09 + i shl 4] = Inst(1, 2, "ADD HL, $r") { write16(HL, alu16(read16(r), read16(HL), neg = 0)) } }
+    op[0x39] = Inst(1, 2, "ADD HL, SP") { write16(HL, alu16(readSP(), read16(HL), neg = 0)) }
+
+    op[0x0A] = Inst(1, 2, "LD A, (BC)") { write(A, read(read16(BC))) }
+    op[0x1A] = Inst(1, 2, "LD A, (DE)") { write(A, read(read16(DE))) }
+    op[0x2A] = Inst(1, 2, "LD A, (HL+)") { write(A, read(read16Modify(HL, +1))) }
+    op[0x3A] = Inst(1, 2, "LD A, (HL-)") { write(A, read(read16Modify(HL, -1))) }
+
+    DReg.values().forEachIndexed { i, r -> op[0x0B + i shl 4] = Inst(1, 2, "DEC $r") { write16(r, read16(r) - 1) } }
+    op[0x3B] = Inst(1, 2, "DEC SP") { writeSP(readSP() - 1) }
+
+    cela.forEachIndexed { i, r -> op[0x0C + i shl 4] = Inst(1, 1, "INC $r") { write(r, alu(read(r), 1, neg = 0)) } }
+    cela.forEachIndexed { i, r -> op[0x0D + i shl 4] = Inst(1, 1, "DEC $r") { write(r, alu(read(r), -1, neg = 1)) } }
+    cela.forEachIndexed { i, r -> op[0x0E + i shl 4] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
+
+    op[0x0F] = Inst(1, 1, "RRCA") {
+        val a = read(A)
+        write(A, (a shr 1) + (a shl 7))
+        write(F, Carry.from(a shl 7))
+    }
+    op[0x1F] = Inst(1, 1, "RRA") {
+        val a = read(A)
+        write(A, (a shr 1) + Carry.get(read(F)) shl 7)
+        write(F, Carry.from(a and 1))
+    }
+    op[0x2F] = Inst(1, 1, "CPL") {
+        cpu.flag(Negative, 1)
+        cpu.flag(HalfCarry, 1)
+        write(A, read(A) xor 0xFF)
+    }
+    op[0x3F] = Inst(1, 1, "CCF") {
+        cpu.flag(Negative, 0)
+        cpu.flag(HalfCarry, 0)
+        cpu.flag(Carry, cpu.flagVal(Carry))
+    }
+
+    // -----------------------------------
+    // 0x40 - 0x7F
+    // -----------------------------------
 }
+
