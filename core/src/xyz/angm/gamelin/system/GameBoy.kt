@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 6:58 PM.
+ * This file was last modified at 3/12/21, 8:28 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,25 +9,29 @@ package xyz.angm.gamelin.system
 
 import mu.KotlinLogging
 import xyz.angm.gamelin.bit
+import xyz.angm.gamelin.int
 import xyz.angm.gamelin.rotLeft
 import xyz.angm.gamelin.rotRight
 
-class GameBoy {
+class GameBoy(game: ByteArray) {
 
     internal val cpu = Cpu(this)
-    internal val mmu = MMU()
+    internal val mmu = MMU(this, game)
 
     fun advance() {
+        val pc = cpu.pc
         val inst = cpu.nextInstruction()
-        println("Took ${inst.cycles} for instruction ${inst.name} at 0x${cpu.pc.toString(16)}")
+        println("Took ${inst.cycles} for instruction ${inst.name} at 0x${pc.toString(16)}")
     }
+
+    fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))
 
     // -----------------------------------
     // Reading of memory/values
     // -----------------------------------
-    internal fun read(addr: Short) = mmu.read(addr).toInt()
+    internal fun read(addr: Short) = mmu.read(addr).int() and 0xFF
     internal fun read(addr: Int) = read(addr.toShort())
-    internal fun read(reg: Reg) = cpu.regs[reg.idx].toInt()
+    internal fun read(reg: Reg) = cpu.regs[reg.idx].int()
     internal fun read16(reg: DReg) = (read(reg.low) + (read(reg.high) shl 8))
 
     internal fun read16(addr: Short): Int {
@@ -38,7 +42,7 @@ class GameBoy {
 
     internal fun read16(addr: Int) = read16(addr.toShort())
 
-    internal fun readSP() = cpu.sp.toInt()
+    internal fun readSP() = cpu.sp.int()
 
     /** Read the given d-register and return it's value;
      * also write (value + mod) to the register. */
@@ -87,7 +91,7 @@ class GameBoy {
         cpu.flag(Flag.Negative, neg)
         cpu.flag(Flag.HalfCarry, ((a and 0xf) + (b and 0xf) and 0x10))
         cpu.flag(Flag.Carry, if (result > 255 || result < 0) 1 else 0)
-        return truncResult.toInt()
+        return truncResult.int()
     }
 
     internal fun alu16(a: Int, b: Int, neg: Int): Int {
@@ -123,32 +127,32 @@ class GameBoy {
     }
 
     fun sla(value: Byte): Byte {
-        val result = (value.toInt() and 0xFF) shl 1
+        val result = (value.int() and 0xFF) shl 1
         write(Reg.F, Flag.Carry.from(value.bit(7)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
     fun sra(value: Byte): Byte {
-        val result = ((((value.toInt() and 0xFF) ushr 1) and 0x7F).toByte() + value) and 0x80
+        val result = ((((value.int() and 0xFF) ushr 1) and 0x7F).toByte() + value) and 0x80
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
     fun swap(value: Byte): Byte {
-        val upper = value.toInt() shr 4
-        val lower = (value.toInt() and 0xF) shl 4
+        val upper = value.int() shr 4
+        val lower = (value.int() and 0xF) shl 4
         write(Reg.F, if ((upper + lower) == 0) Flag.Zero.mask else 0)
         return (lower + upper).toByte()
     }
 
     fun srl(value: Byte): Byte {
-        val result = (value.toInt() and 0xFF) shr 1
+        val result = (value.int() and 0xFF) shr 1
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) 1 else 0)
         return result.toByte()
     }
 
     fun bit(value: Byte, bit: Int): Byte {
-        val value = (value.toInt() and (1 shl bit)) shr bit
+        val value = (value.int() and (1 shl bit)) shr bit
         write(Reg.F, if (cpu.flag(Flag.Carry)) Flag.Carry.mask else 0 + Flag.HalfCarry.mask + if (value == 0) Flag.Zero.mask else 0)
         return value.toByte()
     }
@@ -170,10 +174,20 @@ class GameBoy {
     // -----------------------------------
     // Control Flow
     // -----------------------------------
-    fun call(): Boolean {
-        pushS(cpu.pc + 3) // Call opcodes are 3 bytes long
+    fun jr(): Boolean {
+        // All JR instructions are 2 bytes long
+        cpu.pc = (cpu.pc + read(cpu.pc + 1).toByte() + 2).toShort()
+        return true
+    }
+
+    fun jp(): Boolean {
         cpu.pc = read16(cpu.pc + 1).toShort()
         return true
+    }
+
+    fun call(): Boolean {
+        pushS(cpu.pc + 3) // Call opcodes are 3 bytes long
+        return jp()
     }
 
     fun ret(): Boolean {

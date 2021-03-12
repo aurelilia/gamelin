@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 5:39 PM.
+ * This file was last modified at 3/12/21, 8:33 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,6 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.InstSet
+import xyz.angm.gamelin.system.Reg
+import xyz.angm.gamelin.windows.DebuggerWindow
 import xyz.angm.gamelin.windows.InstructionSetWindow
 import kotlin.system.exitProcess
 
@@ -21,21 +23,24 @@ import kotlin.system.exitProcess
 open class Gamelin : ApplicationAdapter() {
 
     private lateinit var stage: Stage
-    private val gb = GameBoy()
+    private lateinit var gb: GameBoy
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
+        gb = GameBoy(Gdx.files.local("tetris.gb").readBytes())
         VisUI.load()
         Gdx.input.inputProcessor = stage
         stage.addActor(InstructionSetWindow("Base Instruction Set", InstSet.op))
         stage.addActor(InstructionSetWindow("Extended Instruction Set", InstSet.ep))
+        stage.addActor(DebuggerWindow(gb))
     }
 
     override fun render() {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
-        // gb.advance()
+        gb.advance()
+        println(gb.read(Reg.B))
         stage.act(Gdx.graphics.deltaTime)
         stage.draw()
     }

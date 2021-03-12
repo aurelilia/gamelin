@@ -1,12 +1,13 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 5:18 PM.
+ * This file was last modified at 3/12/21, 8:28 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system
 
+import xyz.angm.gamelin.int
 import kotlin.experimental.and
 
 internal class Cpu(private val gb: GameBoy) {
@@ -15,27 +16,23 @@ internal class Cpu(private val gb: GameBoy) {
     var sp: Short = 0
     var ime = false
     var halt = false
-    val regs = Array<Byte>(Reg.values().size) { 0 }
+    val regs = ByteArray(Reg.values().size)
 
     fun nextInstruction(): Inst {
-        val inst = InstSet.instOf(gb.read(pc), gb.read(pc + 1))
-        inst.execute(gb)
-        if (inst.incPC) pc = (pc + inst.size).toShort()
+        val inst = gb.getNextInst()
+
+        when (inst) {
+            is BrInst -> if (!inst.executeBr(gb)) pc = (pc + inst.size).toShort()
+            else -> {
+                inst.execute(gb)
+                if (inst.incPC) pc = (pc + inst.size).toShort()
+            }
+        }
         return inst
     }
 
-    fun jmpRelative(by: Int): Boolean {
-        pc = (pc + by).toShort()
-        return true
-    }
-
-    fun jmpAbsolute(to: Int): Boolean {
-        pc = to.toShort()
-        return true
-    }
-
     fun flag(flag: Flag) = flagVal(flag) == 1
-    fun flagVal(flag: Flag) = ((regs[Reg.F.idx].toInt() ushr flag.position) and 1)
+    fun flagVal(flag: Flag) = ((regs[Reg.F.idx].int() ushr flag.position) and 1)
 
     fun flag(flag: Flag, value: Int) {
         regs[Reg.F.idx] = ((regs[Reg.F.idx] and flag.invMask.toByte()) + flag.from(value)).toByte()

@@ -1,20 +1,21 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 6:23 PM.
+ * This file was last modified at 3/12/21, 8:30 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system
 
+import xyz.angm.gamelin.int
 import xyz.angm.gamelin.system.DReg.*
 import xyz.angm.gamelin.system.Flag.*
 import xyz.angm.gamelin.system.Reg.*
 
 open class Inst(val size: Short, val cycles: Int, val name: String, val incPC: Boolean = true, val execute: GameBoy.() -> Unit)
 
-class BrInst(size: Short, cycles: Int, val cyclesWithBranch: Int, name: String, execute: GameBoy.() -> Boolean) :
-    Inst(size, cycles, name, true, { execute() })
+class BrInst(size: Short, cycles: Int, val cyclesWithBranch: Int, name: String, val executeBr: GameBoy.() -> Boolean) :
+    Inst(size, cycles, name, true, { executeBr() })
 
 object InstSet {
 
@@ -44,11 +45,11 @@ private fun fillSet() = InstSet.apply {
     // -----------------------------------
     op[0x00] = Inst(1, 1, "NOP") { }
     op[0x10] = Inst(1, 1, "STOP") { throw InterruptedException("RIP") }
-    op[0x20] = BrInst(2, 2, 3, "JR NZ, s8") { if (!cpu.flag(Zero)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
-    op[0x30] = BrInst(2, 2, 3, "JR NC, s8") { if (!cpu.flag(Carry)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
+    op[0x20] = BrInst(2, 2, 3, "JR NZ, s8") { if (!cpu.flag(Zero)) jr() else false }
+    op[0x30] = BrInst(2, 2, 3, "JR NC, s8") { if (!cpu.flag(Carry)) jr() else false }
 
     bcdehl.forEachIndexed { i, r -> op[0x01 + (i shl 4)] = Inst(3, 3, "LD $r, d16") { write16(r, read16(cpu.pc + 1)) } }
-    op[0x31] = Inst(3, 3, "LD SP, d16") { writeSP(read(cpu.pc + 1)) }
+    op[0x31] = Inst(3, 3, "LD SP, d16") { writeSP(read16(cpu.pc + 1)) }
 
     op[0x02] = Inst(1, 2, "LD (BC), A") { write(read16(BC), read(A)) }
     op[0x12] = Inst(1, 2, "LD (DE), A") { write(read16(DE), read(A)) }
@@ -91,11 +92,11 @@ private fun fillSet() = InstSet.apply {
     op[0x08] = Inst(3, 5, "LD (a16), SP") {
         val addr = read16(cpu.pc + 1)
         write(addr, cpu.sp)
-        write(addr + 1, cpu.sp.toInt() ushr 8)
+        write(addr + 1, cpu.sp.int() ushr 8)
     }
-    op[0x18] = Inst(2, 3, "JR s8", incPC = false) { cpu.jmpRelative(read(cpu.pc + 1)) }
-    op[0x28] = BrInst(2, 2, 3, "JR Z, s8") { if (cpu.flag(Zero)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
-    op[0x38] = BrInst(2, 2, 3, "JR C, s8") { if (cpu.flag(Carry)) cpu.jmpRelative(read(cpu.pc + 1)) else false }
+    op[0x18] = Inst(2, 3, "JR s8", incPC = false) { jr() }
+    op[0x28] = BrInst(2, 2, 3, "JR Z, s8") { if (cpu.flag(Zero)) jr() else false }
+    op[0x38] = BrInst(2, 2, 3, "JR C, s8") { if (cpu.flag(Carry)) jr() else false }
 
     bcdehl.forEachIndexed { i, r -> op[0x09 + (i shl 4)] = Inst(1, 2, "ADD HL, $r") { write16(HL, alu16(read16(r), read16(HL), neg = 0)) } }
     op[0x39] = Inst(1, 2, "ADD HL, SP") { write16(HL, alu16(readSP(), read16(HL), neg = 0)) }
@@ -195,8 +196,8 @@ private fun fillSet() = InstSet.apply {
 
     DReg.values().forEachIndexed { i, r -> op[0xC1 + (i shl 4)] = Inst(1, 3, "POP $r") { write16(r, popS()) } }
 
-    op[0xC2] = BrInst(3, 3, 4, "JP NZ, a16") { if (!cpu.flag(Zero)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
-    op[0xD2] = BrInst(3, 3, 4, "JP NC, a16") { if (!cpu.flag(Carry)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
+    op[0xC2] = BrInst(3, 3, 4, "JP NZ, a16") { if (!cpu.flag(Zero)) jp() else false }
+    op[0xD2] = BrInst(3, 3, 4, "JP NC, a16") { if (!cpu.flag(Carry)) jp() else false }
     op[0xE2] = Inst(1, 2, "LD (C), A") { write(0xFF00 + read(C), read(A)) }
     op[0xF2] = Inst(1, 2, "LD A, (C)") { write(A, read(0xFF00 + read(C))) }
 
@@ -218,7 +219,7 @@ private fun fillSet() = InstSet.apply {
 
     for (rstIdx in 0 until 8) {
         op[0xC7 + (rstIdx * 8)] = Inst(1, 4, "RST $rstIdx") {
-            pushS(cpu.pc.toInt())
+            pushS(cpu.pc.int())
             cpu.pc = (rstIdx * 8).toShort()
         }
     }
@@ -228,7 +229,7 @@ private fun fillSet() = InstSet.apply {
     op[0xE8] = Inst(2, 4, "ADD SP, s8") { cpu.sp = (cpu.sp + read(cpu.pc + 1)).toShort() }  // TODO: signed? carry?
     op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, cpu.sp + read(cpu.pc + 1)) }    // TODO: signed? carry?
 
-    op[0xC9] = Inst(1, 4, "RET") { ret() }
+    op[0xC9] = Inst(1, 4, "RET", incPC = false) { ret() }
     op[0xD9] = Inst(1, 4, "RETI") {
         cpu.ime = true
         ret()
@@ -236,8 +237,8 @@ private fun fillSet() = InstSet.apply {
     op[0xE9] = Inst(1, 1, "JP HL") { cpu.pc = read16(HL).toShort() }
     op[0xF9] = Inst(1, 1, "LD SP, HL") { cpu.sp = read16(HL).toShort() }
 
-    op[0xCA] = BrInst(3, 3, 4, "JP Z, a16") { if (cpu.flag(Zero)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
-    op[0xDA] = BrInst(3, 3, 4, "JP C, a16") { if (cpu.flag(Carry)) cpu.jmpAbsolute(read16(cpu.pc + 1)) else false }
+    op[0xCA] = BrInst(3, 3, 4, "JP Z, a16") { if (cpu.flag(Zero)) jp() else false }
+    op[0xDA] = BrInst(3, 3, 4, "JP C, a16") { if (cpu.flag(Carry)) jp() else false }
     op[0xEA] = Inst(3, 4, "LD (a16), A") { write(read16(cpu.pc + 1), read(A)) }
     op[0xFA] = Inst(3, 4, "LD A, (a16)") { write(A, read(read16(cpu.pc + 1))) }
 
@@ -262,7 +263,7 @@ private fun fillExt() = InstSet.apply {
     )
     val bitInst = arrayOf<Pair<String, GameBoy.(Byte, Int) -> Byte>>(
         "BIT" to GameBoy::bit,
-        "RES" to { b, i -> (b.toInt() xor (1 shl i)).toByte() },
+        "RES" to { b, i -> (b.int() xor (1 shl i)).toByte() },
         "SET" to { b, i -> (b + (1 shl i)).toByte() }
     )
 
