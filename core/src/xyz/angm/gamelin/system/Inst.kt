@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 2:27 PM.
+ * This file was last modified at 3/12/21, 2:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -142,5 +142,26 @@ private fun fillSet() = InstSet.apply {
     // -----------------------------------
     // 0x40 - 0x7F
     // -----------------------------------
+    val regs = arrayOf(B, C, D, E, H, L)
+    var idx = 0x40
+    for (reg in regs) {
+        for (from in regs) {
+            op[idx++] = Inst(1, 1, "LD $reg, $from") { write(reg, read(from)) }
+        }
+        op[idx++] = Inst(1, 2, "LD $reg, (HL)") { write(reg, read(read16(HL))) }
+        op[idx++] = Inst(1, 1, "LD $reg, A") { write(reg, read(A)) }
+    }
+    assert(idx == 0x70)
+
+    for (from in regs) {
+        op[idx++] = Inst(1, 2, "LD (HL), $from") { write(read16(HL), read(from)) }
+    }
+    op[idx++] = null // TODO: HALT
+    op[idx++] = Inst(1, 2, "LD (HL), A") { write(read16(HL), read(A)) }
+    for (from in regs) {
+        op[idx++] = Inst(1, 1, "LD A, $from") { write(A, read(from)) }
+    }
+    op[idx++] = Inst(1, 1, "LD A, (HL)") { write(A, read(read16(HL))) }
+    op[idx] = Inst(1, 1, "LD A, A") { write(A, read(A)) }
 }
 
