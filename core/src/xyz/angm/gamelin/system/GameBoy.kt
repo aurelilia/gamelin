@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 6:32 PM.
+ * This file was last modified at 3/12/21, 6:58 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,6 +15,7 @@ import xyz.angm.gamelin.rotRight
 class GameBoy {
 
     internal val cpu = Cpu(this)
+    internal val mmu = MMU()
 
     fun advance() {
         val inst = cpu.nextInstruction()
@@ -24,15 +25,7 @@ class GameBoy {
     // -----------------------------------
     // Reading of memory/values
     // -----------------------------------
-    internal fun read(addr: Short): Int {
-        return when (addr) {
-            else -> {
-                log.warn { "Encountered read from invalid address 0x${addr.toString(16)}, returning 0x0" }
-                0
-            }
-        }
-    }
-
+    internal fun read(addr: Short) = mmu.read(addr).toInt()
     internal fun read(addr: Int) = read(addr.toShort())
     internal fun read(reg: Reg) = cpu.regs[reg.idx].toInt()
     internal fun read16(reg: DReg) = (read(reg.low) + (read(reg.high) shl 8))
@@ -58,13 +51,7 @@ class GameBoy {
     // -----------------------------------
     // Writing of memory/values
     // -----------------------------------
-    internal fun write(addr: Short, value: Byte): GameBoy {
-        when (addr) {
-            else -> log.warn { "Encountered write to invalid address 0x${addr.toString(16)}, value 0x${value}" }
-        }
-        return this
-    }
-
+    internal fun write(addr: Short, value: Byte) = mmu.write(addr, value)
     internal fun write(addr: Int, value: Int) = write(addr.toShort(), value.toByte())
     internal fun write(addr: Short, value: Int) = write(addr, value.toByte())
     internal fun write(addr: Int, value: Short) = write(addr.toShort(), value.toByte())
