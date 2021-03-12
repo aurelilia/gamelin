@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 9:13 PM.
+ * This file was last modified at 3/12/21, 10:23 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,7 @@ import kotlin.experimental.and
 
 internal class CPU(private val gb: GameBoy) {
 
-    var pc: Short = 0
+    var pc: Short = 0x100
     var sp: Short = 0
     var ime = false
     var halt = false

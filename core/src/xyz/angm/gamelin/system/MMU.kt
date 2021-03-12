@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 7:22 PM.
+ * This file was last modified at 3/12/21, 10:23 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -37,7 +37,7 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
     val spriteRam = ByteArray(160) // FE00-FE9F
     val mmIO = ByteArray(128) // FF00-FF7F TODO maybe not here...
     val zram = ByteArray(128) // FF80-FFFF
-    private var inBios = true
+    private var inBios = false
 
     internal fun read(addr: Short): Byte {
         return when (val a = addr.int()) {
