@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 4:50 PM.
+ * This file was last modified at 3/12/21, 6:32 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,6 +8,9 @@
 package xyz.angm.gamelin.system
 
 import mu.KotlinLogging
+import xyz.angm.gamelin.bit
+import xyz.angm.gamelin.rotLeft
+import xyz.angm.gamelin.rotRight
 
 class GameBoy {
 
@@ -65,6 +68,7 @@ class GameBoy {
     internal fun write(addr: Int, value: Int) = write(addr.toShort(), value.toByte())
     internal fun write(addr: Short, value: Int) = write(addr, value.toByte())
     internal fun write(addr: Int, value: Short) = write(addr.toShort(), value.toByte())
+    internal fun write(addr: Int, value: Byte) = write(addr.toShort(), value)
 
     internal fun write(reg: Reg, value: Byte) {
         cpu.regs[reg.idx] = value
@@ -105,6 +109,61 @@ class GameBoy {
         val res = alu(a and 0xFF, b and 0xFF, neg) + alu(a and 0xFF00, b and 0xFF00, neg)
         cpu.flag(Flag.Zero, zero)
         return res
+    }
+
+    fun rlc(value: Byte, maybeSetZ: Boolean): Byte {
+        val result = value.rotLeft(1)
+        write(Reg.F, Flag.Carry.from(value.bit(7)) + if (maybeSetZ && result == 0.toByte()) Flag.Zero.mask else 0)
+        return result
+    }
+
+    fun rrc(value: Byte, maybeSetZ: Boolean): Byte {
+        val result = value.rotRight(1)
+        write(Reg.F, Flag.Carry.from(value.bit(0)) + if (maybeSetZ && result == 0.toByte()) Flag.Zero.mask else 0)
+        return result
+    }
+
+    fun rl(value: Byte, maybeSetZ: Boolean): Byte {
+        val result = value.rotLeft(1) + cpu.flagVal(Flag.Carry)
+        write(Reg.F, Flag.Carry.from(value.bit(7)) + if (maybeSetZ && result == 0) Flag.Zero.mask else 0)
+        return result.toByte()
+    }
+
+    fun rr(value: Byte, maybeSetZ: Boolean): Byte {
+        val result = value.rotRight(1) + (cpu.flagVal(Flag.Carry) shl 7)
+        write(Reg.F, Flag.Carry.from(value.bit(0)) + if (maybeSetZ && result == 0) Flag.Zero.mask else 0)
+        return result.toByte()
+    }
+
+    fun sla(value: Byte): Byte {
+        val result = (value.toInt() and 0xFF) shl 1
+        write(Reg.F, Flag.Carry.from(value.bit(7)) + if (result == 0) Flag.Zero.mask else 0)
+        return result.toByte()
+    }
+
+    fun sra(value: Byte): Byte {
+        val result = ((((value.toInt() and 0xFF) ushr 1) and 0x7F).toByte() + value) and 0x80
+        write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) Flag.Zero.mask else 0)
+        return result.toByte()
+    }
+
+    fun swap(value: Byte): Byte {
+        val upper = value.toInt() shr 4
+        val lower = (value.toInt() and 0xF) shl 4
+        write(Reg.F, if ((upper + lower) == 0) Flag.Zero.mask else 0)
+        return (lower + upper).toByte()
+    }
+
+    fun srl(value: Byte): Byte {
+        val result = (value.toInt() and 0xFF) shr 1
+        write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) 1 else 0)
+        return result.toByte()
+    }
+
+    fun bit(value: Byte, bit: Int): Byte {
+        val value = (value.toInt() and (1 shl bit)) shr bit
+        write(Reg.F, if (cpu.flag(Flag.Carry)) Flag.Carry.mask else 0 + Flag.HalfCarry.mask + if (value == 0) Flag.Zero.mask else 0)
+        return value.toByte()
     }
 
     // -----------------------------------

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 4:17 PM.
+ * This file was last modified at 3/12/21, 5:39 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
 import xyz.angm.gamelin.system.GameBoy
+import xyz.angm.gamelin.system.InstSet
 import xyz.angm.gamelin.windows.InstructionSetWindow
 import kotlin.system.exitProcess
 
@@ -26,7 +27,8 @@ open class Gamelin : ApplicationAdapter() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
         VisUI.load()
         Gdx.input.inputProcessor = stage
-        stage.addActor(InstructionSetWindow())
+        stage.addActor(InstructionSetWindow("Base Instruction Set", InstSet.op))
+        stage.addActor(InstructionSetWindow("Extended Instruction Set", InstSet.ep))
     }
 
     override fun render() {

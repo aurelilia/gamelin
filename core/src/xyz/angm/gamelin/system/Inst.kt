@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 5:18 PM.
+ * This file was last modified at 3/12/21, 6:23 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,15 +19,16 @@ class BrInst(size: Short, cycles: Int, val cyclesWithBranch: Int, name: String, 
 object InstSet {
 
     val op = arrayOfNulls<Inst>(256)
-    val extOp = arrayOfNulls<Inst>(256)
+    val ep = arrayOfNulls<Inst>(256)
 
     init {
         fillSet()
+        fillExt()
     }
 
     fun instOf(first: Int, second: Int): Inst {
         return when (first) {
-            0xCB -> extOp[second]!!
+            0xCB -> ep[second]!!
             else -> op[first]!!
         }
     }
@@ -66,16 +67,8 @@ private fun fillSet() = InstSet.apply {
     bdh.forEachIndexed { i, r -> op[0x06 + (i shl 4)] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
     op[0x36] = Inst(1, 3, "LD (HL), d8") { write(read16(HL), read(cpu.pc + 1)) }
 
-    op[0x07] = Inst(1, 1, "RLCA") {
-        val a = read(A)
-        write(A, (a shl 1) + (a ushr 7))
-        write(F, Carry.from(a ushr 7))
-    }
-    op[0x17] = Inst(1, 1, "RLA") {
-        val a = read(A)
-        write(A, (a shl 1) + Carry.get(read(F)))
-        write(F, Carry.from(a ushr 7))
-    }
+    op[0x07] = Inst(1, 1, "RLCA") { write(A, rlc(read(A).toByte(), false)) }
+    op[0x17] = Inst(1, 1, "RLA") { write(A, rl(read(A).toByte(), false)) }
     op[0x27] = Inst(1, 1, "DAA") {
         var a = read(A)
         val f = read(F)
@@ -119,16 +112,8 @@ private fun fillSet() = InstSet.apply {
     cela.forEachIndexed { i, r -> op[0x0D + (i shl 4)] = Inst(1, 1, "DEC $r") { write(r, alu(read(r), -1, neg = 1)) } }
     cela.forEachIndexed { i, r -> op[0x0E + (i shl 4)] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
 
-    op[0x0F] = Inst(1, 1, "RRCA") {
-        val a = read(A)
-        write(A, (a shr 1) + (a shl 7))
-        write(F, Carry.from(a shl 7))
-    }
-    op[0x1F] = Inst(1, 1, "RRA") {
-        val a = read(A)
-        write(A, (a shr 1) + Carry.get(read(F)) shl 7)
-        write(F, Carry.from(a and 1))
-    }
+    op[0x0F] = Inst(1, 1, "RRCA") { write(A, rrc(read(A).toByte(), false)) }
+    op[0x1F] = Inst(1, 1, "RRA") { write(A, rr(read(A).toByte(), false)) }
     op[0x2F] = Inst(1, 1, "CPL") {
         cpu.flag(Negative, 1)
         cpu.flag(HalfCarry, 1)
@@ -240,8 +225,8 @@ private fun fillSet() = InstSet.apply {
 
     op[0xC8] = BrInst(1, 2, 5, "RET Z") { if (cpu.flag(Zero)) ret() else false }
     op[0xD8] = BrInst(1, 2, 5, "RET C") { if (cpu.flag(Carry)) ret() else false }
-    op[0xE8] = Inst(2, 4, "ADD SP, s8") { cpu.sp = (cpu.sp + read(cpu.pc + 1)).toShort() } // TODO: signed? carry?
-    op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, cpu.sp + read(cpu.pc + 1)) } // TODO: signed? carry?
+    op[0xE8] = Inst(2, 4, "ADD SP, s8") { cpu.sp = (cpu.sp + read(cpu.pc + 1)).toShort() }  // TODO: signed? carry?
+    op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, cpu.sp + read(cpu.pc + 1)) }    // TODO: signed? carry?
 
     op[0xC9] = Inst(1, 4, "RET") { ret() }
     op[0xD9] = Inst(1, 4, "RETI") {
@@ -264,3 +249,40 @@ private fun fillSet() = InstSet.apply {
     op[0xCD] = Inst(3, 6, "CALL a16") { call() }
 }
 
+private fun fillExt() = InstSet.apply {
+    val regInst = arrayOf<Pair<String, GameBoy.(Byte) -> Byte>>(
+        "RLC" to { rlc(it, true) },
+        "RRC" to { rrc(it, true) },
+        "RL" to { rl(it, true) },
+        "RR" to { rr(it, true) },
+        "SLA" to GameBoy::sla,
+        "SRA" to GameBoy::sra,
+        "SWAP" to GameBoy::swap,
+        "SRL" to GameBoy::srl
+    )
+    val bitInst = arrayOf<Pair<String, GameBoy.(Byte, Int) -> Byte>>(
+        "BIT" to GameBoy::bit,
+        "RES" to { b, i -> (b.toInt() xor (1 shl i)).toByte() },
+        "SET" to { b, i -> (b + (1 shl i)).toByte() }
+    )
+
+    val regs = arrayOf(B, C, D, E, H, L)
+    var idx = 0x0
+    for (inst in regInst) {
+        val name = inst.first
+        val exec = inst.second
+        for (reg in regs) ep[idx++] = Inst(2, 2, "$name $reg") { write(reg, exec(read(reg).toByte())) }
+        ep[idx++] = Inst(2, 2, "$name (HL)") { write(read(read16(HL)), exec(read(read16(HL)).toByte())) }
+        ep[idx++] = Inst(2, 2, "$name A") { write(A, exec(read(A).toByte())) }
+    }
+
+    for (inst in bitInst) {
+        val name = inst.first
+        val exec = inst.second
+        for (bit in 0 until 8) {
+            for (reg in regs) ep[idx++] = Inst(2, 2, "$name $bit, $reg") { write(reg, exec(read(reg).toByte(), bit)) }
+            ep[idx++] = Inst(2, 2, "$name $bit, (HL)") { write(read(read16(HL)), exec(read(read16(HL)).toByte(), bit)) }
+            ep[idx++] = Inst(2, 2, "$name $bit, A") { write(A, exec(read(A).toByte(), bit)) }
+        }
+    }
+}
