@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 7:08 PM.
+ * This file was last modified at 3/12/21, 9:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,3 +13,23 @@ fun Byte.rotLeft(dist: Int): Byte = ((this.int() shl dist) or (this.int() ushr (
 
 fun Byte.int() = this.toInt() and 0xFF
 fun Short.int() = this.toInt() and 0xFFFF
+
+fun <T> dbg(v: T, msg: String = "DBG"): T {
+    println("$msg: $v")
+    return v
+}
+
+fun dbg(v: Short, msg: String = "DBG"): Short {
+    println("$msg: ${v.toString(16)}")
+    return v
+}
+
+fun dbg(v: Byte, msg: String = "DBG"): Byte {
+    println("$msg: ${v.toString(16)}")
+    return v
+}
+
+fun dbg(v: Int, msg: String = "DBG"): Int {
+    println("$msg: ${v.toString(16)}")
+    return v
+}

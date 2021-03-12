@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 7:36 PM.
+ * This file was last modified at 3/12/21, 8:34 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -33,6 +33,9 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
             row()
             visLabel("Memory at PC (0x${gb.cpu.pc.toString(16)}): ")
             for (by in 0 until 5) visLabel("0x${gb.read(gb.cpu.pc + by).toString(16)}  ")
+            row()
+            visLabel("Stack area: ")
+            for (mem in 0xFFEF until 0xFFFF) visLabel("0x${gb.read(mem).toString(16)}  ")
             row()
             visLabel("Flags: ")
             row()

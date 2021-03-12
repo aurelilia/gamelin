@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 8:33 PM.
+ * This file was last modified at 3/12/21, 8:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -39,8 +39,9 @@ open class Gamelin : ApplicationAdapter() {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
-        gb.advance()
+        for (i in 0 until 500) gb.advance()
         println(gb.read(Reg.B))
+
         stage.act(Gdx.graphics.deltaTime)
         stage.draw()
     }

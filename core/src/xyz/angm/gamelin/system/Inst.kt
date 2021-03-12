@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 8:30 PM.
+ * This file was last modified at 3/12/21, 8:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -247,7 +247,7 @@ private fun fillSet() = InstSet.apply {
     op[0xCC] = BrInst(3, 3, 6, "CALL Z, a16") { if (cpu.flag(Zero)) call() else false }
     op[0xDC] = BrInst(3, 3, 6, "CALL C, a16") { if (cpu.flag(Carry)) call() else false }
 
-    op[0xCD] = Inst(3, 6, "CALL a16") { call() }
+    op[0xCD] = Inst(3, 6, "CALL a16", incPC = false) { call() }
 }
 
 private fun fillExt() = InstSet.apply {
