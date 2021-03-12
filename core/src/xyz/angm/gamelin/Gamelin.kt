@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 8:52 PM.
+ * This file was last modified at 3/12/21, 9:44 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,6 +16,7 @@ import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.InstSet
 import xyz.angm.gamelin.system.Reg
 import xyz.angm.gamelin.windows.DebuggerWindow
+import xyz.angm.gamelin.windows.GameBoyWindow
 import xyz.angm.gamelin.windows.InstructionSetWindow
 import kotlin.system.exitProcess
 
@@ -33,6 +34,7 @@ open class Gamelin : ApplicationAdapter() {
         stage.addActor(InstructionSetWindow("Base Instruction Set", InstSet.op))
         stage.addActor(InstructionSetWindow("Extended Instruction Set", InstSet.ep))
         stage.addActor(DebuggerWindow(gb))
+        stage.addActor(GameBoyWindow(gb))
     }
 
     override fun render() {

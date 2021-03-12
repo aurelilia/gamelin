@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 8:28 PM.
+ * This file was last modified at 3/12/21, 9:11 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,12 +15,15 @@ import xyz.angm.gamelin.rotRight
 
 class GameBoy(game: ByteArray) {
 
-    internal val cpu = Cpu(this)
+    internal val cpu = CPU(this)
+    internal val gpu = GPU(this)
     internal val mmu = MMU(this, game)
+    internal var clock = 0
 
     fun advance() {
         val pc = cpu.pc
         val inst = cpu.nextInstruction()
+        clock += inst.cycles
         println("Took ${inst.cycles} for instruction ${inst.name} at 0x${pc.toString(16)}")
     }
 

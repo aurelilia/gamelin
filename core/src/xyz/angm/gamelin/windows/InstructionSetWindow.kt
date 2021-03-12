@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 5:22 PM.
+ * This file was last modified at 3/12/21, 9:44 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,5 +24,6 @@ class InstructionSetWindow(name: String, set: Array<Inst?>) : VisWindow(name) {
             if ((--idx % 16) == 0) row()
         }
         pack()
+        addCloseButton()
     }
 }

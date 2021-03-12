@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 8:28 PM.
+ * This file was last modified at 3/12/21, 9:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,7 +10,7 @@ package xyz.angm.gamelin.system
 import xyz.angm.gamelin.int
 import kotlin.experimental.and
 
-internal class Cpu(private val gb: GameBoy) {
+internal class CPU(private val gb: GameBoy) {
 
     var pc: Short = 0
     var sp: Short = 0
@@ -28,6 +28,8 @@ internal class Cpu(private val gb: GameBoy) {
                 if (inst.incPC) pc = (pc + inst.size).toShort()
             }
         }
+
+        gb.gpu.step(tCycles = inst.cycles * 4)
         return inst
     }
 
