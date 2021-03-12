@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 2:42 PM.
+ * This file was last modified at 3/12/21, 2:56 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -162,6 +162,41 @@ private fun fillSet() = InstSet.apply {
         op[idx++] = Inst(1, 1, "LD A, $from") { write(A, read(from)) }
     }
     op[idx++] = Inst(1, 1, "LD A, (HL)") { write(A, read(read16(HL))) }
-    op[idx] = Inst(1, 1, "LD A, A") { write(A, read(A)) }
+    op[idx++] = Inst(1, 1, "LD A, A") { write(A, read(A)) }
+    assert(idx == 0x80)
+
+    // -----------------------------------
+    // 0x80 - 0xCF
+    // -----------------------------------
+    val maths = arrayOf<Pair<String, GameBoy.(Int) -> Unit>>(
+        "ADD" to { write(A, alu(read(A), it, neg = 0)) },
+        "ADC" to { write(A, alu(read(A), it + Carry.get(read(F)), neg = 0)) }, // TODO: correct? idk about carry
+        "SUB" to { write(A, alu(read(A), -it, neg = 1)) },
+        "SBC" to { write(A, alu(read(A), -(it + Carry.get(read(F))), neg = 1)) }, // TODO: correct? idk about carry
+        "AND" to {
+            write(A, read(A) and it)
+            write(F, Zero.from(read(A)) + HalfCarry.from(1))
+        },
+        "XOR" to {
+            write(A, read(A) xor it)
+            write(F, Zero.from(read(A)))
+        },
+        "OR" to {
+            write(A, read(A) or it)
+            write(F, Zero.from(read(A)))
+        },
+        "CP" to { alu(read(A), it, neg = 1) },
+    )
+
+    for (kind in maths) {
+        val name = kind.first
+        val exec = kind.second
+
+        for (from in regs) {
+            op[idx++] = Inst(1, 1, "$name A, $from") { exec(this, read(from)) }
+        }
+        op[idx++] = Inst(1, 2, "$name A, (HL)") { exec(this, read(read16(HL))) }
+        op[idx++] = Inst(1, 1, "$name A, A") { exec(this, read(A)) }
+    }
 }
 

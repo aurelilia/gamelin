@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 2:27 PM.
+ * This file was last modified at 3/12/21, 2:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -77,10 +77,12 @@ class GameBoy {
 
     internal fun alu(a: Int, b: Int, neg: Int): Int {
         val result = a + b
-        cpu.flag(Flag.Zero, if (result == 0) 1 else 0)
+        val truncResult = result.toByte()
+        cpu.flag(Flag.Zero, if (truncResult == 0.toByte()) 1 else 0)
         cpu.flag(Flag.Negative, neg)
         cpu.flag(Flag.HalfCarry, ((a and 0xf) + (b and 0xf) and 0x10))
-        return result
+        cpu.flag(Flag.Carry, if (result > 255 || result < 0) 1 else 0)
+        return truncResult.toInt()
     }
 
     internal fun alu16(a: Int, b: Int, neg: Int): Int {
