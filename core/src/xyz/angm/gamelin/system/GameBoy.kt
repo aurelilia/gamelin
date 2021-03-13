@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 1:48 AM.
+ * This file was last modified at 3/13/21, 4:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -20,11 +20,12 @@ class GameBoy(game: ByteArray) {
     internal val mmu = MMU(this, game)
     internal var clock = 0
 
-    fun advance() {
+    fun advance(force: Boolean = false) {
+        if (cpu.halt && !force) return
         val pc = cpu.pc
         val inst = cpu.nextInstruction()
         clock += inst.cycles
-        println("Took ${inst.cycles} for instruction ${inst.name} at 0x${pc.toString(16)}")
+        // println("Took ${inst.cycles} for instruction ${inst.name} at ${pc.hex16()}")
     }
 
     fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))!!
@@ -97,12 +98,13 @@ class GameBoy(game: ByteArray) {
         return truncResult.int()
     }
 
-    internal fun alu16(a: Int, b: Int, neg: Int): Int {
-        // Zero flag does NOT get affected by 16-bit math for some reason, thanks Sharp
-        val zero = cpu.flagVal(Flag.Zero)
-        val res = alu(a and 0xFF, b and 0xFF, neg) + alu(a and 0xFF00, b and 0xFF00, neg)
-        cpu.flag(Flag.Zero, zero)
-        return res
+    internal fun add16HL(other: Int) {
+        val hl = read16(DReg.HL)
+        val result = hl + other
+        cpu.flag(Flag.Negative, 0)
+        cpu.flag(Flag.HalfCarry, (hl and 0xFFF) + (other and 0xFFF) and 0x1000)
+        cpu.flag(Flag.Carry, (hl and 0xFFFF) + (other and 0xFFFF) and 0x10000)
+        write16(DReg.HL, result)
     }
 
     fun rlc(value: Byte, maybeSetZ: Boolean): Byte {

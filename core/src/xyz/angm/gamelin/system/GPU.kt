@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 3:32 AM.
+ * This file was last modified at 3/13/21, 4:59 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,8 +13,7 @@ import xyz.angm.gamelin.system.GPUMode.*
 
 class GPU(private val gb: GameBoy) {
 
-    val renderer = TileRenderer(gb, 20, 18)
-    val bgMapRenderer = TileRenderer(gb, 32, 32)
+    val renderer = TileRenderer(gb, 20, 18, 4f)
 
     private var mode = OAMScan
     private var modeclock = 0
@@ -67,7 +66,8 @@ class GPU(private val gb: GameBoy) {
     }
 
     fun bgIdxTileDataAddr(idx: Int): Int {
-        val tileIdx = gb.read(bgMapAddr + idx.toByte())
+        val tileIdx = gb.read(bgMapAddr + idx)
+        // print("idx: $idx adddr: ${(bgMapAddr + idx).hex16()} tile: $tileIdx FF40: ${gb.read(0xFF40).hex16()} ADDR: ")
         return bgTileDataAddr(tileIdx)
     }
 

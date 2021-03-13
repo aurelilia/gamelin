@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 1:48 AM.
+ * This file was last modified at 3/13/21, 4:12 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -98,8 +98,8 @@ private fun fillSet() = InstSet.apply {
     op[0x28] = BrInst(2, 2, 3, "JR Z, s8") { if (cpu.flag(Zero)) jr() else false }
     op[0x38] = BrInst(2, 2, 3, "JR C, s8") { if (cpu.flag(Carry)) jr() else false }
 
-    bcdehl.forEachIndexed { i, r -> op[0x09 + (i shl 4)] = Inst(1, 2, "ADD HL, $r") { write16(HL, alu16(read16(r), read16(HL), neg = 0)) } }
-    op[0x39] = Inst(1, 2, "ADD HL, SP") { write16(HL, alu16(readSP(), read16(HL), neg = 0)) }
+    bcdehl.forEachIndexed { i, r -> op[0x09 + (i shl 4)] = Inst(1, 2, "ADD HL, $r") { add16HL(read16(r)) } }
+    op[0x39] = Inst(1, 2, "ADD HL, SP") { add16HL(readSP()) }
 
     op[0x0A] = Inst(1, 2, "LD A, (BC)") { write(A, read(read16(BC))) }
     op[0x1A] = Inst(1, 2, "LD A, (DE)") { write(A, read(read16(DE))) }
@@ -157,9 +157,9 @@ private fun fillSet() = InstSet.apply {
     // -----------------------------------
     val maths = arrayOf<Pair<String, GameBoy.(Int) -> Unit>>(
         "ADD" to { write(A, alu(read(A), it, neg = 0)) },
-        "ADC" to { write(A, alu(read(A), it + Carry.get(read(F)), neg = 0)) }, // TODO: correct? idk about carry
+        "ADC" to { write(A, alu(read(A), it + Carry.get(read(F)), neg = 0)) },
         "SUB" to { write(A, alu(read(A), -it, neg = 1)) },
-        "SBC" to { write(A, alu(read(A), -(it + Carry.get(read(F))), neg = 1)) }, // TODO: correct? idk about carry
+        "SBC" to { write(A, alu(read(A), -(it + Carry.get(read(F))), neg = 1)) },
         "AND" to {
             write(A, read(A) and it)
             write(F, (Zero.from(read(A)) xor Zero.mask) + HalfCarry.from(1))

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 2:50 AM.
+ * This file was last modified at 3/13/21, 4:58 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,16 +16,15 @@ import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.GameBoy
 
 const val TILE_SIZE = 8
-private const val SCALE = 4f
 private val colors = arrayOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY, Color.BLACK)
 
-class TileRenderer(private val gb: GameBoy, width: Int, height: Int) : Actor() {
+class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Float) : Actor() {
 
     private val pixmap = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
     private var lastTex = Texture(pixmap)
 
     init {
-        setSize(TILE_SIZE * width * (SCALE / 2), TILE_SIZE * height * (SCALE / 2))
+        setSize(TILE_SIZE * width * scale, TILE_SIZE * height * scale)
     }
 
     fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
@@ -44,7 +43,7 @@ class TileRenderer(private val gb: GameBoy, width: Int, height: Int) : Actor() {
 
     override fun draw(batch: Batch, parentAlpha: Float) {
         val tex = Texture(pixmap)
-        batch.draw(tex, x, y - height, width * 2, height * 2)
+        batch.draw(tex, x, y, width, height)
         lastTex.dispose()
         lastTex = tex
     }
