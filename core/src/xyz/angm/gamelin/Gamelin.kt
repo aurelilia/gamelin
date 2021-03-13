@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 10:22 PM.
+ * This file was last modified at 3/13/21, 2:03 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.InstSet
-import xyz.angm.gamelin.system.Reg
 import xyz.angm.gamelin.windows.DebuggerWindow
 import xyz.angm.gamelin.windows.GameBoyWindow
 import xyz.angm.gamelin.windows.InstructionSetWindow
@@ -28,7 +27,7 @@ open class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        gb = GameBoy(Gdx.files.local("06-ld r,r.gb").readBytes())
+        gb = GameBoy(Gdx.files.local("opus5.gb").readBytes())
         VisUI.load()
         Gdx.input.inputProcessor = stage
         stage.addActor(InstructionSetWindow("Base Instruction Set", InstSet.op))
@@ -42,7 +41,6 @@ open class Gamelin : ApplicationAdapter() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
         for (i in 0 until 500) gb.advance()
-        println(gb.read(Reg.B))
 
         stage.act(Gdx.graphics.deltaTime)
         stage.draw()

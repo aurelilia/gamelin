@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 9:11 PM.
+ * This file was last modified at 3/13/21, 1:48 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -27,7 +27,7 @@ class GameBoy(game: ByteArray) {
         println("Took ${inst.cycles} for instruction ${inst.name} at 0x${pc.toString(16)}")
     }
 
-    fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))
+    fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))!!
 
     // -----------------------------------
     // Reading of memory/values
@@ -35,7 +35,7 @@ class GameBoy(game: ByteArray) {
     internal fun read(addr: Short) = mmu.read(addr).int() and 0xFF
     internal fun read(addr: Int) = read(addr.toShort())
     internal fun read(reg: Reg) = cpu.regs[reg.idx].int()
-    internal fun read16(reg: DReg) = (read(reg.low) + (read(reg.high) shl 8))
+    internal fun read16(reg: DReg) = (read(reg.low) or (read(reg.high) shl 8))
 
     internal fun read16(addr: Short): Int {
         val ls = read(addr)
@@ -92,7 +92,7 @@ class GameBoy(game: ByteArray) {
         val truncResult = result.toByte()
         cpu.flag(Flag.Zero, if (truncResult == 0.toByte()) 1 else 0)
         cpu.flag(Flag.Negative, neg)
-        cpu.flag(Flag.HalfCarry, ((a and 0xf) + (b and 0xf) and 0x10))
+        cpu.flag(Flag.HalfCarry, ((a and 0xF) + (b and 0xF) and 0x10))
         cpu.flag(Flag.Carry, if (result > 255 || result < 0) 1 else 0)
         return truncResult.int()
     }
@@ -158,6 +158,11 @@ class GameBoy(game: ByteArray) {
         val value = (value.int() and (1 shl bit)) shr bit
         write(Reg.F, if (cpu.flag(Flag.Carry)) Flag.Carry.mask else 0 + Flag.HalfCarry.mask + if (value == 0) Flag.Zero.mask else 0)
         return value.toByte()
+    }
+
+    fun zFlagOnly(value: Int) {
+        if (value == 0) write(Reg.F, Flag.Zero.mask)
+        else write(Reg.F, 0)
     }
 
     // -----------------------------------

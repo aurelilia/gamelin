@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 10:23 PM.
+ * This file was last modified at 3/13/21, 1:11 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -52,7 +52,7 @@ internal enum class Reg(val idx: Int) {
     L(7),
 }
 
-internal enum class DReg(val low: Reg, val high: Reg) {
+internal enum class DReg(val high: Reg, val low: Reg) {
     BC(Reg.B, Reg.C),
     DE(Reg.D, Reg.E),
     HL(Reg.H, Reg.L),

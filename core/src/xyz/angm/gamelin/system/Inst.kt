@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 8:46 PM.
+ * This file was last modified at 3/13/21, 1:48 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -27,10 +27,10 @@ object InstSet {
         fillExt()
     }
 
-    fun instOf(first: Int, second: Int): Inst {
+    fun instOf(first: Int, second: Int): Inst? {
         return when (first) {
-            0xCB -> ep[second]!!
-            else -> op[first]!!
+            0xCB -> ep[second]
+            else -> op[first]
         }
     }
 }
@@ -162,15 +162,15 @@ private fun fillSet() = InstSet.apply {
         "SBC" to { write(A, alu(read(A), -(it + Carry.get(read(F))), neg = 1)) }, // TODO: correct? idk about carry
         "AND" to {
             write(A, read(A) and it)
-            write(F, Zero.from(read(A)) + HalfCarry.from(1))
+            write(F, (Zero.from(read(A)) xor Zero.mask) + HalfCarry.from(1))
         },
         "XOR" to {
             write(A, read(A) xor it)
-            write(F, Zero.from(read(A)))
+            zFlagOnly(read(A))
         },
         "OR" to {
             write(A, read(A) or it)
-            write(F, Zero.from(read(A)))
+            zFlagOnly(read(A))
         },
         "CP" to { alu(read(A), it, neg = 1) },
     )
