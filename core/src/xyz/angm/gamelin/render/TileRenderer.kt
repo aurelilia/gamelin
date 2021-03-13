@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 4:58 PM.
+ * This file was last modified at 3/13/21, 7:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -34,11 +34,15 @@ class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Floa
 
             for (pixel in 0 until TILE_SIZE) {
                 val colorIdx = (high.isBit(7 - pixel) shl 1) + low.isBit(7 - pixel)
-                val color = colors[colorMap(colorIdx)]
-                pixmap.setColor(color)
-                pixmap.drawPixel((posX * 8) + pixel, (posY * 8) + line)
+                drawPixel((posX * 8) + pixel, (posY * 8) + line, colorMap(colorIdx))
             }
         }
+    }
+
+    fun drawPixel(x: Int, y: Int, colorIdx: Int) {
+        val color = colors[colorIdx]
+        pixmap.setColor(color)
+        pixmap.drawPixel(x, y)
     }
 
     override fun draw(batch: Batch, parentAlpha: Float) {

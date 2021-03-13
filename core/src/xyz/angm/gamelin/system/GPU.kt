@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 4:59 PM.
+ * This file was last modified at 3/13/21, 7:35 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -20,7 +20,8 @@ class GPU(private val gb: GameBoy) {
     private var line = 0
 
     private val scrollX get() = gb.read(0xFF43)
-    private val scrollY get() = gb.read(0xFF42)
+    private val scrollY get() = gb.read(0xFF42) + (20 * 8)
+    private val adjLine get() = (scrollY + line) and 0xFF
 
     private val bgPalette get() = gb.read(0xFF47)
     private val bgMapAddr get() = if (gb.read(0xFF40).isBit(3) == 0) 0x9800 else 0x9C00
@@ -58,16 +59,30 @@ class GPU(private val gb: GameBoy) {
     }
 
     private fun renderLine() {
-        // TODO: Line renderer...
-        for (tile in 0x8000 until 0x9000 step 0x10) {
-            val tileIdx = (tile - 0x8000) / 0x10
-            renderer.drawTile(tileIdx % 0x10, tileIdx / 0x10, tile) { it }
+        var tileX = scrollX and 7
+        var tileY = adjLine and 7
+        var tileAddr = bgMapAddr + ((adjLine / 8) * 0x20) + (scrollX ushr 3)
+        var tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
+        var high = gb.read(tileDataAddr).toByte()
+        var low = gb.read(tileDataAddr + 1).toByte()
+
+        for (tileIdxAddr in 0 until 160) {
+            val colorIdx = (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX)
+            renderer.drawPixel(tileIdxAddr, line, colorIdx) // TODO BG palette
+
+            if (++tileX == 8) {
+                tileX = 0
+                tileAddr++
+                tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
+                high = gb.read(tileDataAddr).toByte()
+                low = gb.read(tileDataAddr + 1).toByte()
+            }
         }
     }
 
     fun bgIdxTileDataAddr(idx: Int): Int {
         val tileIdx = gb.read(bgMapAddr + idx)
-        // print("idx: $idx adddr: ${(bgMapAddr + idx).hex16()} tile: $tileIdx FF40: ${gb.read(0xFF40).hex16()} ADDR: ")
+        // println("idx: $idx adddr: ${(bgMapAddr + idx).hex16()} tile: $tileIdx FF40: ${gb.read(0xFF40).hex16()}")
         return bgTileDataAddr(tileIdx)
     }
 
