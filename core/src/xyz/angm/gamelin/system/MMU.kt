@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 10:23 PM.
+ * This file was last modified at 3/13/21, 3:28 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,7 +35,7 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
     val extRam = ByteArray(8_192) // A000-BFFF
     val ram = ByteArray(8_192) // C000-DFFF
     val spriteRam = ByteArray(160) // FE00-FE9F
-    val mmIO = ByteArray(128) // FF00-FF7F TODO maybe not here...
+    val mmIO = ByteArray(128) // FF00-FF7F
     val zram = ByteArray(128) // FF80-FFFF
     private var inBios = false
 

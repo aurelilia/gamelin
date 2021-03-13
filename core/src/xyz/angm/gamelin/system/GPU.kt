@@ -1,18 +1,20 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 2:52 AM.
+ * This file was last modified at 3/13/21, 3:32 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system
 
+import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.render.TileRenderer
 import xyz.angm.gamelin.system.GPUMode.*
 
 class GPU(private val gb: GameBoy) {
 
     val renderer = TileRenderer(gb, 20, 18)
+    val bgMapRenderer = TileRenderer(gb, 32, 32)
 
     private var mode = OAMScan
     private var modeclock = 0
@@ -20,7 +22,10 @@ class GPU(private val gb: GameBoy) {
 
     private val scrollX get() = gb.read(0xFF43)
     private val scrollY get() = gb.read(0xFF42)
+
     private val bgPalette get() = gb.read(0xFF47)
+    private val bgMapAddr get() = if (gb.read(0xFF40).isBit(3) == 0) 0x9800 else 0x9C00
+    private val windowMapAddr get() = if (gb.read(0xFF40).isBit(6) == 0) 0x9800 else 0x9C00
 
     fun step(tCycles: Int) {
         modeclock += tCycles
@@ -59,6 +64,16 @@ class GPU(private val gb: GameBoy) {
             val tileIdx = (tile - 0x8000) / 0x10
             renderer.drawTile(tileIdx % 0x10, tileIdx / 0x10, tile) { it }
         }
+    }
+
+    fun bgIdxTileDataAddr(idx: Int): Int {
+        val tileIdx = gb.read(bgMapAddr + idx.toByte())
+        return bgTileDataAddr(tileIdx)
+    }
+
+    private fun bgTileDataAddr(idx: Int): Int {
+        return if (gb.read(0xFF40).isBit(4) == 1) 0x8000 + (idx * 0x10)
+        else 0x9000 + (idx.toByte() * 0x10)
     }
 }
 

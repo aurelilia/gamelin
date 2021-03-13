@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 2:43 AM.
+ * This file was last modified at 3/13/21, 3:16 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
 import xyz.angm.gamelin.system.GameBoy
+import xyz.angm.gamelin.windows.BGMapViewer
 import xyz.angm.gamelin.windows.DebuggerWindow
 import xyz.angm.gamelin.windows.GameBoyWindow
 import xyz.angm.gamelin.windows.VRAMViewer
@@ -33,6 +34,7 @@ open class Gamelin : ApplicationAdapter() {
         stage.addActor(DebuggerWindow(gb))
         stage.addActor(GameBoyWindow(gb))
         stage.addActor(VRAMViewer(gb))
+        stage.addActor(BGMapViewer(gb))
     }
 
     override fun render() {

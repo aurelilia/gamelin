@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 1:54 AM.
+ * This file was last modified at 3/13/21, 3:27 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -69,6 +69,8 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                         }
                         visLabel(out)
                     }
+                    var out = "FF40: ${gb.read(0xFF40).hex8()} "
+                    visLabel(out)
                 }
                 it.height(300f).width(500f).expandX()
             }
