@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 4:54 PM.
+ * This file was last modified at 3/13/21, 5:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,10 +13,7 @@ import ktx.actors.onClick
 import ktx.scene2d.horizontalGroup
 import ktx.scene2d.scene2d
 import ktx.scene2d.verticalGroup
-import ktx.scene2d.vis.KVisTable
-import ktx.scene2d.vis.visLabel
-import ktx.scene2d.vis.visScrollPane
-import ktx.scene2d.vis.visTextButton
+import ktx.scene2d.vis.*
 import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
@@ -29,6 +26,7 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
 
     private val tab = KVisTable(true)
     private var active = true
+    private var sinceUpdate = 0f
 
     init {
         add(tab).pad(10f)
@@ -38,8 +36,12 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
 
     override fun act(delta: Float) {
         super.act(delta)
-        if (active) refresh()
-        active = !gb.cpu.halt
+        sinceUpdate += delta
+        if (active && sinceUpdate > 0.5f) {
+            refresh()
+            sinceUpdate = 0f
+            active = !gb.cpu.halt
+        }
     }
 
     private fun refresh() {
@@ -49,6 +51,14 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
             defaults().left().pad(0f)
 
             visLabel("Next Instruction: ${next.name} (size: ${next.size})    PC: ${gb.cpu.pc.hex16()}")
+            row()
+            visCheckBox("Halted") {
+                isChecked = gb.cpu.halt
+                onClick {
+                    gb.cpu.halt = !gb.cpu.halt
+                    refresh()
+                }
+            }
             row()
 
             visScrollPane {
