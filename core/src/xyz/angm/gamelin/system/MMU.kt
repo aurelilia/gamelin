@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:11 PM.
+ * This file was last modified at 3/13/21, 9:12 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -31,15 +31,15 @@ private val bios = arrayOf(
     0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50
 ).map { it.toByte() }
 
-class MMU(private val gb: GameBoy, rom: ByteArray) {
+class MMU(private val gb: GameBoy, private val rom: ByteArray) {
 
-    val rom = rom // 0000-7FFF TODO bank switching
-    val vram = ByteArray(8_192) // 8000-9FFF
-    val extRam = ByteArray(8_192) // A000-BFFF
-    val ram = ByteArray(8_192) // C000-DFFF
-    val spriteRam = ByteArray(160) // FE00-FE9F
-    val mmIO = ByteArray(128) // FF00-FF7F
-    val zram = ByteArray(128) // FF80-FFFF
+    // ROM: 0000-7FFF TODO bank switching
+    private val vram = ByteArray(8_192) // 8000-9FFF
+    private val extRam = ByteArray(8_192) // A000-BFFF
+    private val ram = ByteArray(8_192) // C000-DFFF
+    private val spriteRam = ByteArray(160) // FE00-FE9F
+    private val mmIO = ByteArray(128) // FF00-FF7F
+    private val zram = ByteArray(128) // FF80-FFFF
     private var inBios = false
 
     internal fun read(addr: Short): Byte {

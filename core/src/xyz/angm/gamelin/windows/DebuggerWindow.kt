@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:48 PM.
+ * This file was last modified at 3/13/21, 9:15 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -82,15 +82,16 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
             visScrollPane {
                 actor = scene2d.verticalGroup {
                     left()
-                    for (row in 0x8000 until 0xA000 step 16) {
+                    val addRow = { row: Int ->
                         var out = "VRAM:${row.hex16()} "
                         for (by in 0 until 16) {
                             out += "${gb.read(row + by).hex8()} "
                         }
                         visLabel(out)
                     }
-                    var out = "FF40: ${gb.read(0xFF40).hex8()} "
-                    visLabel(out)
+
+                    for (row in 0x8000 until 0xA000 step 16) addRow(row)
+                    addRow(0xFF40)
                 }
                 it.height(300f).width(500f).expandX()
             }

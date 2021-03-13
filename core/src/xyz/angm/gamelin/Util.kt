@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:09 PM.
+ * This file was last modified at 3/13/21, 9:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,23 +19,3 @@ fun Int.isBit(bit: Int) = ((this and (1 shl bit)) shr bit) == 1
 
 fun Number.hex8() = String.format("0x%02X", this)
 fun Number.hex16() = String.format("0x%04X", this)
-
-fun <T> dbg(v: T, msg: String = "DBG"): T {
-    println("$msg: $v")
-    return v
-}
-
-fun dbg(v: Short, msg: String = "DBG"): Short {
-    println("$msg: ${v.toString(16)}")
-    return v
-}
-
-fun dbg(v: Byte, msg: String = "DBG"): Byte {
-    println("$msg: ${v.toString(16)}")
-    return v
-}
-
-fun dbg(v: Int, msg: String = "DBG"): Int {
-    println("$msg: ${v.toString(16)}")
-    return v
-}
