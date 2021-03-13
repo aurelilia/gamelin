@@ -1,14 +1,17 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 3:28 AM.
+ * This file was last modified at 3/13/21, 8:04 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system
 
+import xyz.angm.gamelin.hex16
+import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
 
+private const val INVALID_READ = 0xFF.toByte()
 private val bios = arrayOf(
     0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,
     0x11, 0x3E, 0x80, 0x32, 0xE2, 0x0C, 0x3E, 0xF3, 0xE2, 0x32, 0x3E, 0x77, 0x77, 0x3E, 0xFC, 0xE0,
@@ -41,6 +44,29 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
 
     internal fun read(addr: Short): Byte {
         return when (val a = addr.int()) {
+            // Cannot read from:
+            // FF47: PPU Background Palette
+            0xFF47 -> {
+                GameBoy.log.info { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}." }
+                INVALID_READ
+            }
+
+            else -> readAny(addr)
+        }
+    }
+
+    internal fun write(addr: Short, value: Byte) {
+        when (val a = addr.int()) {
+            // Cannot write to:
+            // 0000-7FFF: *RO*M
+            // FF44: Current PPU scan line
+            in 0x0000..0x7FFF, 0xFF44 -> GameBoy.log.info { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored." }
+            else -> writeAny(addr, value)
+        }
+    }
+
+    internal fun readAny(addr: Short): Byte {
+        return when (val a = addr.int()) {
             in 0x0000..0x7FFF -> {
                 if (inBios) {
                     if (addr < 0x0100) return bios[a]
@@ -60,7 +86,7 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
         }
     }
 
-    internal fun write(addr: Short, value: Byte) {
+    internal fun writeAny(addr: Short, value: Byte) {
         when (val a = addr.int()) {
             in 0x0000..0x7FFF -> rom[a] = value
             in 0x8000..0x9FFF -> vram[a and 0x1FFF] = value

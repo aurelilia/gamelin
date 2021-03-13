@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 4:12 PM.
+ * This file was last modified at 3/13/21, 7:55 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -53,8 +53,8 @@ private fun fillSet() = InstSet.apply {
 
     op[0x02] = Inst(1, 2, "LD (BC), A") { write(read16(BC), read(A)) }
     op[0x12] = Inst(1, 2, "LD (DE), A") { write(read16(DE), read(A)) }
-    op[0x22] = Inst(1, 2, "LD (HL+), A") { write(read16Modify(HL, +1), read(A)) }
-    op[0x32] = Inst(1, 2, "LD (HL-), A") { write(read16Modify(HL, -1), read(A)) }
+    op[0x22] = Inst(1, 2, "LD (HL+), A") { write(modRetHL(+1), read(A)) }
+    op[0x32] = Inst(1, 2, "LD (HL-), A") { write(modRetHL(-1), read(A)) }
 
     bcdehl.forEachIndexed { i, r -> op[0x03 + (i shl 4)] = Inst(1, 2, "INC $r") { write16(r, read16(r) + 1) } }
     op[0x33] = Inst(1, 2, "INC SP") { writeSP(cpu.sp + 1) }
@@ -103,8 +103,8 @@ private fun fillSet() = InstSet.apply {
 
     op[0x0A] = Inst(1, 2, "LD A, (BC)") { write(A, read(read16(BC))) }
     op[0x1A] = Inst(1, 2, "LD A, (DE)") { write(A, read(read16(DE))) }
-    op[0x2A] = Inst(1, 2, "LD A, (HL+)") { write(A, read(read16Modify(HL, +1))) }
-    op[0x3A] = Inst(1, 2, "LD A, (HL-)") { write(A, read(read16Modify(HL, -1))) }
+    op[0x2A] = Inst(1, 2, "LD A, (HL+)") { write(A, read(modRetHL(+1))) }
+    op[0x3A] = Inst(1, 2, "LD A, (HL-)") { write(A, read(modRetHL(-1))) }
 
     bcdehl.forEachIndexed { i, r -> op[0x0B + (i shl 4)] = Inst(1, 2, "DEC $r") { write16(r, read16(r) - 1) } }
     op[0x3B] = Inst(1, 2, "DEC SP") { writeSP(readSP() - 1) }

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 4:49 PM.
+ * This file was last modified at 3/13/21, 8:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,8 +17,8 @@ class GameBoy(game: ByteArray) {
 
     internal val cpu = CPU(this)
     internal val gpu = GPU(this)
-    internal val mmu = MMU(this, game)
-    internal var clock = 0
+    private val mmu = MMU(this, game)
+    private var clock = 0
 
     fun advance(force: Boolean = false) {
         if (cpu.halt && !force) return
@@ -33,54 +33,41 @@ class GameBoy(game: ByteArray) {
     // -----------------------------------
     // Reading of memory/values
     // -----------------------------------
-    internal fun read(addr: Short) = mmu.read(addr).int() and 0xFF
+    internal fun read(addr: Short) = mmu.read(addr).int()
     internal fun read(addr: Int) = read(addr.toShort())
     internal fun read(reg: Reg) = cpu.regs[reg.idx].int()
     internal fun read16(reg: DReg) = (read(reg.low) or (read(reg.high) shl 8))
+    internal fun readAny(addr: Int) = mmu.readAny(addr.toShort()).int()
 
-    internal fun read16(addr: Short): Int {
+    private fun read16(addr: Short): Int {
         val ls = read(addr)
         val hs = read(addr + 1)
         return ((hs shl 8) or ls)
     }
 
     internal fun read16(addr: Int) = read16(addr.toShort())
-
     internal fun readSP() = cpu.sp.int()
-
-    /** Read the given d-register and return it's value;
-     * also write (value + mod) to the register. */
-    internal fun read16Modify(reg: DReg, mod: Short): Short {
-        val ret = (read(reg.low) + (read(reg.high) shl 8))
-        write16(reg, ret + mod)
-        return ret.toShort()
-    }
 
     // -----------------------------------
     // Writing of memory/values
     // -----------------------------------
-    internal fun write(addr: Short, value: Byte) = mmu.write(addr, value)
+    private fun write(addr: Short, value: Byte) = mmu.write(addr, value)
     internal fun write(addr: Int, value: Int) = write(addr.toShort(), value.toByte())
     internal fun write(addr: Short, value: Int) = write(addr, value.toByte())
     internal fun write(addr: Int, value: Short) = write(addr.toShort(), value.toByte())
     internal fun write(addr: Int, value: Byte) = write(addr.toShort(), value)
-
-    internal fun write(reg: Reg, value: Byte) {
-        cpu.regs[reg.idx] = value
-    }
-
+    internal fun write(reg: Reg, value: Byte) = cpu.regs.set(reg.idx, value)
     internal fun write(reg: Reg, value: Int) = write(reg, value.toByte())
+    internal fun writeAny(addr: Int, value: Int) = mmu.writeAny(addr.toShort(), value.toByte())
 
     internal fun write16(reg: DReg, value: Int) {
         write(reg.high, (value ushr 8).toByte())
         write(reg.low, value.toByte())
     }
-
     internal fun write16(location: Short, value: Int) {
         write(location, value)
         write(location + 1, value ushr 8)
     }
-
     internal fun writeSP(value: Int) {
         cpu.sp = value.toShort()
     }
@@ -105,6 +92,12 @@ class GameBoy(game: ByteArray) {
         cpu.flag(Flag.HalfCarry, (hl and 0xFFF) + (other and 0xFFF) and 0x1000)
         cpu.flag(Flag.Carry, (hl and 0xFFFF) + (other and 0xFFFF) and 0x10000)
         write16(DReg.HL, result)
+    }
+
+    internal fun modRetHL(mod: Short): Short {
+        val ret = read16(DReg.HL)
+        write16(DReg.HL, ret + mod)
+        return ret.toShort()
     }
 
     fun rlc(value: Byte, maybeSetZ: Boolean): Byte {
@@ -205,7 +198,7 @@ class GameBoy(game: ByteArray) {
         return true
     }
 
-    companion object {
-        private val log = KotlinLogging.logger { }
+    internal companion object {
+        val log = KotlinLogging.logger { }
     }
 }

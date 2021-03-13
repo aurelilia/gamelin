@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 7:41 PM.
+ * This file was last modified at 3/13/21, 8:04 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,15 +17,19 @@ class GPU(private val gb: GameBoy) {
 
     private var mode = OAMScan
     private var modeclock = 0
-    private var line = 0
+    private var line
+        get() = gb.read(0xFF44)
+        set(value) = gb.writeAny(0xFF44, value)
+
+    private val control get() = gb.read(0xFF40)
 
     private val scrollX get() = gb.read(0xFF43)
     private val scrollY get() = gb.read(0xFF42) + (20 * 8)
-    private val adjLine get() = (scrollY + line) and 0xFF
+    private val bgMapLine get() = (scrollY + line) and 0xFF
 
-    private val bgPalette get() = gb.read(0xFF47)
-    private val bgMapAddr get() = if (gb.read(0xFF40).isBit(3) == 0) 0x9800 else 0x9C00
-    private val windowMapAddr get() = if (gb.read(0xFF40).isBit(6) == 0) 0x9800 else 0x9C00
+    private val bgPalette get() = gb.readAny(0xFF47)
+    private val bgMapAddr get() = if (control.isBit(3) == 0) 0x9800 else 0x9C00
+    private val windowMapAddr get() = if (control.isBit(6) == 0) 0x9800 else 0x9C00
 
     fun step(tCycles: Int) {
         modeclock += tCycles
@@ -60,8 +64,8 @@ class GPU(private val gb: GameBoy) {
 
     private fun renderLine() {
         var tileX = scrollX and 7
-        var tileY = adjLine and 7
-        var tileAddr = bgMapAddr + ((adjLine / 8) * 0x20) + (scrollX ushr 3)
+        val tileY = bgMapLine and 7
+        var tileAddr = bgMapAddr + ((bgMapLine / 8) * 0x20) + (scrollX ushr 3)
         var tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
         var high = gb.read(tileDataAddr).toByte()
         var low = gb.read(tileDataAddr + 1).toByte()
