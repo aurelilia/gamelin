@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:27 PM.
+ * This file was last modified at 3/13/21, 10:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,15 +24,18 @@ class GPU(private val gb: GameBoy) {
     private val control get() = gb.read(0xFF40)
     private val displayEnable get() = control.isBit(7)
     private val bgEnable get() = control.isBit(0)
-    private val spriteEnable get() = control.isBit(1)
+    private val objEnable get() = control.isBit(1)
     private val windowEnable get() = control.isBit(5)
-    private val bigSpriteMode get() = control.isBit(2)
+    private val bigObjMode get() = control.isBit(2)
 
     private val scrollX get() = gb.read(0xFF43)
     private val scrollY get() = gb.read(0xFF42)
     private val bgMapLine get() = (scrollY + line) and 0xFF
 
-    private val bgPalette get() = gb.readAny(0xFF47)
+    private val bgPalette get() = gb.read(0xFF47)
+    private val objPalette1 get() = gb.read(0xFF48)
+    private val objPalette2 get() = gb.read(0xFF49)
+
     private val bgMapAddr get() = if (!control.isBit(3)) 0x9800 else 0x9C00
     private val windowMapAddr get() = if (!control.isBit(6)) 0x9800 else 0x9C00
 
@@ -71,7 +74,7 @@ class GPU(private val gb: GameBoy) {
         if (!displayEnable) return
         if (bgEnable) renderBG()
         if (windowEnable) renderWindow()
-        if (spriteEnable) renderSprites()
+        if (objEnable) renderObjs()
     }
 
     private fun renderBG() {
@@ -96,11 +99,32 @@ class GPU(private val gb: GameBoy) {
         }
     }
 
-    private fun renderWindow() {
-        // TODO
+    // TODO: 8x16 sprite mode
+    private fun renderObjs() {
+        for (loc in 0xFE00 until 0xFEA0 step 4) {
+            Sprite.dat = gb.read16(loc) + (gb.read16(loc + 2) shl 16)
+            renderObj()
+        }
     }
 
-    private fun renderSprites() {
+    private fun renderObj() = Sprite.run {
+        if (!(y <= line && (y + 8) > line)) return // Not on this line
+        val palette = if (altPalette) objPalette1 else objPalette2
+        val tileY = if (yFlip) 7 - (line - y) else line - y
+
+        val tileDataAddr = objTileOffset(tilenum) + (tileY * 2)
+        val high = gb.read(tileDataAddr).toByte()
+        val low = gb.read(tileDataAddr + 1).toByte()
+
+        for (tileX in 0 until 8) {
+            val colorIdx = if (xFlip) (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX) else (high.isBit(tileX) shl 1) + low.isBit(tileX)
+            val screenX = x + tileX
+            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || renderer.isClear(screenX, line)))
+                renderer.drawPixel(screenX, line, getColorIdx(palette, colorIdx))
+        }
+    }
+
+    private fun renderWindow() {
         // TODO
     }
 
@@ -115,9 +139,25 @@ class GPU(private val gb: GameBoy) {
         else 0x9000 + (idx.toByte() * 0x10)
     }
 
-    private fun getBGColorIdx(color: Int) = (bgPalette ushr (color * 2)) and 0b11
+    private fun objTileOffset(idx: Int) = 0x8000 + (idx * 0x10)
+
+    private fun getBGColorIdx(color: Int) = getColorIdx(bgPalette, color)
+
+    private fun getColorIdx(palette: Int, color: Int) = (palette ushr (color * 2)) and 0b11
 }
 
 private enum class GPUMode {
     HBlank, VBlank, OAMScan, Render
+}
+
+private object Sprite {
+    var dat = 0
+    val x get() = ((dat ushr 8) and 0xFF) - 8
+    val y get() = (dat and 0xFF) - 16
+    val tilenum get() = (dat ushr 16) and 0xFF
+    val options get() = (dat ushr 24) and 0xFF
+    val altPalette get() = options.isBit(4)
+    val xFlip get() = options.isBit(5)
+    val yFlip get() = options.isBit(6)
+    val priority get() = !options.isBit(7)
 }

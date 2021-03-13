@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:46 PM.
+ * This file was last modified at 3/13/21, 10:24 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -49,7 +49,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             // Cannot read from:
             // FF46: DMA Transfer
             // FF18, FF1D: Sound Channels
-            0xFF18, 0xFF46, 0xFF1D -> {
+            0xFF18, 0xFF1D -> {
                 GameBoy.log.debug { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
                 INVALID_READ
             }
