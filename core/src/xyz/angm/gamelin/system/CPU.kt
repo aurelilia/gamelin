@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:15 PM.
+ * This file was last modified at 3/13/21, 11:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -21,7 +21,7 @@ internal class CPU(private val gb: GameBoy) {
 
     fun nextInstruction(): Inst {
         val inst = gb.getNextInst()
-        val cyclesTaken = when (inst) {
+        var cyclesTaken = when (inst) {
             is BrInst -> {
                 if (inst.executeBr(gb)) inst.cyclesWithBranch
                 else {
@@ -36,8 +36,23 @@ internal class CPU(private val gb: GameBoy) {
             }
         }
 
+        cyclesTaken += checkInterrupts()
         gb.gpu.step(tCycles = cyclesTaken * 4)
         return inst
+    }
+
+    private fun checkInterrupts(): Int {
+        if (!ime) return 0
+        for (interrupt in Interrupt.values()) {
+            if (interrupt.isSet(gb.read(Interrupt.IE)) && interrupt.isSet(gb.read(Interrupt.IF))) {
+                gb.write(Interrupt.IF, gb.read(Interrupt.IF) xor (1 shl interrupt.position))
+                ime = false
+                gb.pushS(pc.int())
+                pc = interrupt.handlerAddr
+                return 3
+            }
+        }
+        return 0
     }
 
     fun flag(flag: Flag) = flagVal(flag) == 1
@@ -78,4 +93,19 @@ internal enum class Flag(val position: Int) {
     fun get(reg: Int) = (reg and mask) shr position
     fun isSet(reg: Int) = reg.isBit(position)
     fun from(value: Int) = (if (value != 0) 1 else 0) shl position
+}
+
+internal enum class Interrupt(val position: Int, val handlerAddr: Short) {
+    VBlank(0, 0x0040),
+    HBlank(1, 0x0048),
+    Timer(2, 0x0050),
+    Serial(3, 0x0058),
+    Keyboard(4, 0x0060);
+
+    fun isSet(reg: Int) = reg.isBit(position)
+
+    companion object {
+        const val IF = 0xFF0F
+        const val IE = 0xFFFF
+    }
 }

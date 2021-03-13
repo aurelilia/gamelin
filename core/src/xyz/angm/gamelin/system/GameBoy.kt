@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:27 PM.
+ * This file was last modified at 3/13/21, 11:07 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -213,6 +213,13 @@ class GameBoy(game: ByteArray) {
     fun ret(): Boolean {
         cpu.pc = popS().toShort()
         return true
+    }
+
+    // -----------------------------------
+    // Interrupts
+    // -----------------------------------
+    internal fun requestInterrupt(interrupt: Interrupt) {
+        write(Interrupt.IF, read(Interrupt.IF) + (1 shl interrupt.position))
     }
 
     internal companion object {

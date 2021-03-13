@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 10:27 PM.
+ * This file was last modified at 3/13/21, 11:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -50,13 +50,17 @@ class GPU(private val gb: GameBoy) {
             mode == Render && modeclock >= 172 -> {
                 modeclock = 0
                 mode = HBlank
+                gb.requestInterrupt(Interrupt.HBlank)
                 renderLine()
             }
 
             mode == HBlank && modeclock >= 204 -> {
                 modeclock = 0
                 line++
-                mode = if (line == 143) VBlank else OAMScan
+                mode = if (line == 143) {
+                    gb.requestInterrupt(Interrupt.VBlank)
+                    VBlank
+                } else OAMScan
             }
 
             mode == VBlank && modeclock >= 456 -> {
