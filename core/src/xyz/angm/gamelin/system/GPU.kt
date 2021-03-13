@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 10:13 PM.
+ * This file was last modified at 3/13/21, 2:13 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
-import xyz.angm.gamelin.bit
+import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.GPUMode.*
 
 private const val SCALE = 4f
@@ -69,9 +69,9 @@ class GPU(private val gb: GameBoy) : Actor() {
     }
 
     private fun renderLine() {
-        for (tile in 0x8000 until 0x9000 step 16) {
-            val tileIdx = (tile - 0x8000) / 16
-            renderTile(tileIdx % 16, tileIdx / 16, tile)
+        for (tile in 0x8000 until 0x9000 step 0x10) {
+            val tileIdx = (tile - 0x8000) / 0x10
+            renderTile(tileIdx % 0x10, tileIdx / 0x10, tile)
         }
     }
 
@@ -81,7 +81,7 @@ class GPU(private val gb: GameBoy) : Actor() {
             val low = gb.read(tilePtr + (line * 2) + 1).toByte()
 
             for (pixel in 0 until 8) {
-                val colorIdx = (high.bit(pixel) shl 1) + low.bit(pixel)
+                val colorIdx = (high.isBit(7 - pixel) shl 1) + low.isBit(7 - pixel)
                 val color = getBGColor(colorIdx)
                 framebuffer.setColor(color)
                 framebuffer.drawPixel((posX * 8) + pixel, (posY * 8) + line)
