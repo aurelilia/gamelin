@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:02 PM.
+ * This file was last modified at 3/13/21, 9:11 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -56,6 +56,13 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
     }
 
     internal fun write(addr: Short, value: Byte) {
+        // 0x01FE is a special register written to by the BIOS to remove
+        // the BIOS from memory
+        if (addr.int() == 0x01FE && inBios) {
+            inBios = false
+            return
+        }
+
         when (val a = addr.int()) {
             // Cannot write to:
             // 0000-7FFF: *RO*M
@@ -68,11 +75,8 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
     internal fun readAny(addr: Short): Byte {
         return when (val a = addr.int()) {
             in 0x0000..0x7FFF -> {
-                if (inBios) {
-                    if (addr < 0x0100) return bios[a]
-                    else if (gb.cpu.pc == 0x0100.toShort()) inBios = false
-                }
-                rom[a]
+                if (inBios && addr < 0x0100) bios[a]
+                else rom[a]
             }
             in 0x8000..0x9FFF -> vram[a and 0x1FFF]
             in 0xA000..0xBFFF -> extRam[a and 0x1FFF]
