@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 1:11 AM.
+ * This file was last modified at 3/13/21, 8:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,6 +8,7 @@
 package xyz.angm.gamelin.system
 
 import xyz.angm.gamelin.int
+import xyz.angm.gamelin.isBit
 import kotlin.experimental.and
 
 internal class CPU(private val gb: GameBoy) {
@@ -69,6 +70,6 @@ internal enum class Flag(val position: Int) {
     val invMask get() = (1 shl position) xor 0xFF
 
     fun get(reg: Int) = (reg and mask) shr position
-    fun isSet(reg: Int) = ((reg and mask) shr position) != 0
+    fun isSet(reg: Int) = reg.isBit(position)
     fun from(value: Int) = (if (value != 0) 1 else 0) shl position
 }

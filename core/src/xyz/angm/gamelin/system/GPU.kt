@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:04 PM.
+ * This file was last modified at 3/13/21, 8:11 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,14 +22,19 @@ class GPU(private val gb: GameBoy) {
         set(value) = gb.writeAny(0xFF44, value)
 
     private val control get() = gb.read(0xFF40)
+    private val displayEnable get() = control.isBit(7)
+    private val bgEnable get() = control.isBit(0)
+    private val spriteEnable get() = control.isBit(1)
+    private val windowEnable get() = control.isBit(5)
+    private val bigSpriteMode get() = control.isBit(2)
 
     private val scrollX get() = gb.read(0xFF43)
     private val scrollY get() = gb.read(0xFF42) + (20 * 8)
     private val bgMapLine get() = (scrollY + line) and 0xFF
 
     private val bgPalette get() = gb.readAny(0xFF47)
-    private val bgMapAddr get() = if (control.isBit(3) == 0) 0x9800 else 0x9C00
-    private val windowMapAddr get() = if (control.isBit(6) == 0) 0x9800 else 0x9C00
+    private val bgMapAddr get() = if (!control.isBit(3)) 0x9800 else 0x9C00
+    private val windowMapAddr get() = if (!control.isBit(6)) 0x9800 else 0x9C00
 
     fun step(tCycles: Int) {
         modeclock += tCycles
@@ -63,6 +68,13 @@ class GPU(private val gb: GameBoy) {
     }
 
     private fun renderLine() {
+        if (!displayEnable) return
+        if (bgEnable) renderBG()
+        if (windowEnable) renderWindow()
+        if (spriteEnable) renderSprites()
+    }
+
+    private fun renderBG() {
         var tileX = scrollX and 7
         val tileY = bgMapLine and 7
         var tileAddr = bgMapAddr + ((bgMapLine / 8) * 0x20) + (scrollX ushr 3)
@@ -84,6 +96,14 @@ class GPU(private val gb: GameBoy) {
         }
     }
 
+    private fun renderWindow() {
+        // TODO
+    }
+
+    private fun renderSprites() {
+        // TODO
+    }
+
     fun bgIdxTileDataAddr(idx: Int): Int {
         val tileIdx = gb.read(bgMapAddr + idx)
         // println("idx: $idx adddr: ${(bgMapAddr + idx).hex16()} tile: $tileIdx FF40: ${gb.read(0xFF40).hex16()}")
@@ -91,7 +111,7 @@ class GPU(private val gb: GameBoy) {
     }
 
     private fun bgTileDataAddr(idx: Int): Int {
-        return if (gb.read(0xFF40).isBit(4) == 1) 0x8000 + (idx * 0x10)
+        return if (gb.read(0xFF40).isBit(4)) 0x8000 + (idx * 0x10)
         else 0x9000 + (idx.toByte() * 0x10)
     }
 
