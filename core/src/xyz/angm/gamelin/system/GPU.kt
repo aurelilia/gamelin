@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 7:35 PM.
+ * This file was last modified at 3/13/21, 7:41 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -68,7 +68,7 @@ class GPU(private val gb: GameBoy) {
 
         for (tileIdxAddr in 0 until 160) {
             val colorIdx = (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX)
-            renderer.drawPixel(tileIdxAddr, line, colorIdx) // TODO BG palette
+            renderer.drawPixel(tileIdxAddr, line, getBGColorIdx(colorIdx))
 
             if (++tileX == 8) {
                 tileX = 0
@@ -90,6 +90,8 @@ class GPU(private val gb: GameBoy) {
         return if (gb.read(0xFF40).isBit(4) == 1) 0x8000 + (idx * 0x10)
         else 0x9000 + (idx.toByte() * 0x10)
     }
+
+    private fun getBGColorIdx(color: Int) = (bgPalette ushr (color * 2)) and 0b11
 }
 
 private enum class GPUMode {
