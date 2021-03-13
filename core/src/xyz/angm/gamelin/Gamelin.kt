@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:59 PM.
+ * This file was last modified at 3/13/21, 9:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -27,7 +27,7 @@ open class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        gb = GameBoy(Gdx.files.local("ttt.gb").readBytes())
+        gb = GameBoy(Gdx.files.local("roms/ttt.gb").readBytes())
         VisUI.load()
         Gdx.input.inputProcessor = stage
 
