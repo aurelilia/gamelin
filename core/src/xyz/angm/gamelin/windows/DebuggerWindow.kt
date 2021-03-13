@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 5:38 PM.
+ * This file was last modified at 3/13/21, 8:48 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -40,8 +40,8 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
         if (active && sinceUpdate > 0.5f) {
             refresh()
             sinceUpdate = 0f
-            active = !gb.cpu.halt
         }
+        active = !gb.cpu.halt
     }
 
     private fun refresh() {
@@ -107,13 +107,19 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                 visLabel("Regs: ")
                 for (reg in Reg.values()) visLabel("  $reg = ${gb.read(reg).hex8()}  ")
             }
-            visLabel("SP: 0x${gb.readSP().hex16()}")
+            visLabel("SP: ${gb.readSP().hex16()}")
             row()
 
-            visTextButton("Advance") {
-                onClick {
-                    gb.advance(force = true)
-                    refresh()
+            horizontalGroup {
+                visTextButton("Advance") {
+                    onClick {
+                        gb.advance(force = true)
+                        refresh()
+                    }
+                }
+
+                visTextButton("Force Update") {
+                    onClick { refresh() }
                 }
             }
         }

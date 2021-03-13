@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:04 PM.
+ * This file was last modified at 3/13/21, 9:02 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -47,7 +47,7 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
             // Cannot read from:
             // FF47: PPU Background Palette
             0xFF47 -> {
-                GameBoy.log.info { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}." }
+                GameBoy.log.info { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
                 INVALID_READ
             }
 
@@ -60,7 +60,7 @@ class MMU(private val gb: GameBoy, rom: ByteArray) {
             // Cannot write to:
             // 0000-7FFF: *RO*M
             // FF44: Current PPU scan line
-            in 0x0000..0x7FFF, 0xFF44 -> GameBoy.log.info { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored." }
+            in 0x0000..0x7FFF, 0xFF44 -> GameBoy.log.info { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
             else -> writeAny(addr, value)
         }
     }

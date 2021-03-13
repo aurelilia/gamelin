@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:05 PM.
+ * This file was last modified at 3/13/21, 9:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,6 +12,7 @@ import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.rotLeft
 import xyz.angm.gamelin.rotRight
+import kotlin.experimental.and
 
 class GameBoy(game: ByteArray) {
 
@@ -36,6 +37,7 @@ class GameBoy(game: ByteArray) {
     internal fun read(addr: Short) = mmu.read(addr).int()
     internal fun read(addr: Int) = read(addr.toShort())
     internal fun read(reg: Reg) = cpu.regs[reg.idx].int()
+    private fun readSigned(addr: Int) = mmu.read(addr.toShort()).toInt()
     internal fun read16(reg: DReg) = (read(reg.low) or (read(reg.high) shl 8))
     internal fun readAny(addr: Int) = mmu.readAny(addr.toShort()).int()
 
@@ -64,10 +66,12 @@ class GameBoy(game: ByteArray) {
         write(reg.high, (value ushr 8).toByte())
         write(reg.low, value.toByte())
     }
-    internal fun write16(location: Short, value: Int) {
+
+    private fun write16(location: Short, value: Int) {
         write(location, value)
         write(location + 1, value ushr 8)
     }
+
     internal fun writeSP(value: Int) {
         cpu.sp = value.toShort()
     }
@@ -75,7 +79,7 @@ class GameBoy(game: ByteArray) {
     // -----------------------------------
     // Math/ALU
     // -----------------------------------
-    internal fun alu(a: Int, b: Int, neg: Int): Int {
+    fun alu(a: Int, b: Int, neg: Int): Int {
         val result = a + b
         val truncResult = result.toByte()
         cpu.flag(Flag.Zero, if (truncResult == 0.toByte()) 1 else 0)
@@ -85,7 +89,7 @@ class GameBoy(game: ByteArray) {
         return truncResult.int()
     }
 
-    internal fun add16HL(other: Int) {
+    fun add16HL(other: Int) {
         val hl = read16(DReg.HL)
         val result = hl + other
         cpu.flag(Flag.Negative, 0)
@@ -94,10 +98,21 @@ class GameBoy(game: ByteArray) {
         write16(DReg.HL, result)
     }
 
-    internal fun modRetHL(mod: Short): Short {
+    fun modRetHL(mod: Short): Short {
         val ret = read16(DReg.HL)
         write16(DReg.HL, ret + mod)
         return ret.toShort()
+    }
+
+    // Thanks to https://stackoverflow.com/questions/5159603/gbz80-how-does-ld-hl-spe-affect-h-and-c-flags
+    // as well as kotcrab's xgbc emulator for showing me correct behavior for 0xE8 and 0xF8!
+    internal fun addSP(): Int {
+        val value = readSigned(cpu.pc + 1)
+        cpu.flag(Flag.Zero, 0)
+        cpu.flag(Flag.Negative, 0)
+        cpu.flag(Flag.HalfCarry, (cpu.sp and 0xF) + (value and 0xF) and 0x10)
+        cpu.flag(Flag.Carry, (cpu.sp and 0xFF) + (value and 0xFF) and 0x100)
+        return cpu.sp + value
     }
 
     fun rlc(value: Byte, maybeSetZ: Boolean): Byte {

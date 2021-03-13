@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 7:55 PM.
+ * This file was last modified at 3/13/21, 8:59 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -226,8 +226,8 @@ private fun fillSet() = InstSet.apply {
 
     op[0xC8] = BrInst(1, 2, 5, "RET Z") { if (cpu.flag(Zero)) ret() else false }
     op[0xD8] = BrInst(1, 2, 5, "RET C") { if (cpu.flag(Carry)) ret() else false }
-    op[0xE8] = Inst(2, 4, "ADD SP, s8") { cpu.sp = (cpu.sp + read(cpu.pc + 1)).toShort() }  // TODO: signed? carry?
-    op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, cpu.sp + read(cpu.pc + 1)) }    // TODO: signed? carry?
+    op[0xE8] = Inst(2, 4, "ADD SP, s8") { cpu.sp = addSP().toShort() }
+    op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, addSP()) }
 
     op[0xC9] = Inst(1, 4, "RET", incPC = false) { ret() }
     op[0xD9] = Inst(1, 4, "RETI") {

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:11 PM.
+ * This file was last modified at 3/13/21, 9:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -29,7 +29,7 @@ class GPU(private val gb: GameBoy) {
     private val bigSpriteMode get() = control.isBit(2)
 
     private val scrollX get() = gb.read(0xFF43)
-    private val scrollY get() = gb.read(0xFF42) + (20 * 8)
+    private val scrollY get() = gb.read(0xFF42)
     private val bgMapLine get() = (scrollY + line) and 0xFF
 
     private val bgPalette get() = gb.readAny(0xFF47)
