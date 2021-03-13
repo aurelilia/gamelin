@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:12 PM.
+ * This file was last modified at 3/13/21, 9:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -33,6 +33,8 @@ private val bios = arrayOf(
 
 class MMU(private val gb: GameBoy, private val rom: ByteArray) {
 
+    // Is there any real reason to have so many byte arrays instead
+    // of just one big one?
     // ROM: 0000-7FFF TODO bank switching
     private val vram = ByteArray(8_192) // 8000-9FFF
     private val extRam = ByteArray(8_192) // A000-BFFF
@@ -45,9 +47,10 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     internal fun read(addr: Short): Byte {
         return when (val a = addr.int()) {
             // Cannot read from:
-            // FF47: PPU Background Palette
-            0xFF47 -> {
-                GameBoy.log.info { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
+            // FF46: DMA Transfer
+            // FF18, FF1D: Sound Channels
+            0xFF18, 0xFF46, 0xFF1D -> {
+                GameBoy.log.debug { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
                 INVALID_READ
             }
 
@@ -67,7 +70,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             // Cannot write to:
             // 0000-7FFF: *RO*M
             // FF44: Current PPU scan line
-            in 0x0000..0x7FFF, 0xFF44 -> GameBoy.log.info { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
+            in 0x0000..0x7FFF, 0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
             else -> writeAny(addr, value)
         }
     }
@@ -84,7 +87,8 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             in 0xE000..0xFDFF -> ram[a and 0x1FFF]
             in 0xFE00..0xFE9F -> spriteRam[a and 0xFF]
             in 0xFEA0..0xFEFF -> 0
-            in 0xFF00..0xFF7F -> mmIO[a and 0x7F]
+            0xFF00 -> gb.keyboard.read()
+            in 0xFF01..0xFF7F -> mmIO[a and 0x7F]
             in 0xFF80..0xFFFF -> zram[a and 0x7F]
             else -> throw IndexOutOfBoundsException("what ${a.toString(16)}")
         }
@@ -99,7 +103,8 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             in 0xE000..0xFDFF -> ram[a and 0x1FFF] = value
             in 0xFE00..0xFE9F -> spriteRam[a and 0xFF] = value
             in 0xFEA0..0xFEFF -> Unit
-            in 0xFF00..0xFF7F -> mmIO[a and 0x7F] = value
+            0xFF00 -> gb.keyboard.write(value)
+            in 0xFF01..0xFF7F -> mmIO[a and 0x7F] = value
             in 0xFF80..0xFFFF -> zram[a and 0x7F] = value
             else -> throw IndexOutOfBoundsException("what ${a.toString(16)}")
         }

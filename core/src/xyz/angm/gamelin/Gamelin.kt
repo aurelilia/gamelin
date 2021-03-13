@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:17 PM.
+ * This file was last modified at 3/13/21, 9:47 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,6 +9,7 @@ package xyz.angm.gamelin
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
@@ -27,9 +28,13 @@ open class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        gb = GameBoy(Gdx.files.local("roms/ttt.gb").readBytes())
+        gb = GameBoy(Gdx.files.local("roms/opus5.gb").readBytes())
         VisUI.load()
-        Gdx.input.inputProcessor = stage
+
+        val multi = InputMultiplexer()
+        multi.addProcessor(gb.keyboard)
+        multi.addProcessor(stage)
+        Gdx.input.inputProcessor = multi
 
         stage.addActor(DebuggerWindow(gb))
         stage.addActor(GameBoyWindow(gb))

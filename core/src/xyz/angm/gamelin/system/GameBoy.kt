@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:05 PM.
+ * This file was last modified at 3/13/21, 9:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,6 +10,7 @@ package xyz.angm.gamelin.system
 import mu.KotlinLogging
 import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.int
+import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.rotLeft
 import xyz.angm.gamelin.rotRight
 import kotlin.experimental.and
@@ -18,6 +19,7 @@ class GameBoy(game: ByteArray) {
 
     internal val cpu = CPU(this)
     internal val gpu = GPU(this)
+    internal val keyboard = Keyboard()
     private val mmu = MMU(this, game)
     private var clock = 0
 
