@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 10:01 PM.
+ * This file was last modified at 3/13/21, 2:36 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,7 @@ import xyz.angm.gamelin.system.GameBoy
 
 class GameBoyWindow(gb: GameBoy) : VisWindow("GameBoy") {
     init {
-        add(gb.gpu)
+        add(gb.gpu.renderer)
         pack()
     }
 }

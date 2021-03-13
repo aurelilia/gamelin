@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 2:03 AM.
+ * This file was last modified at 3/13/21, 2:43 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,10 +13,9 @@ import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
 import xyz.angm.gamelin.system.GameBoy
-import xyz.angm.gamelin.system.InstSet
 import xyz.angm.gamelin.windows.DebuggerWindow
 import xyz.angm.gamelin.windows.GameBoyWindow
-import xyz.angm.gamelin.windows.InstructionSetWindow
+import xyz.angm.gamelin.windows.VRAMViewer
 import kotlin.system.exitProcess
 
 /** The emulator. */
@@ -30,10 +29,10 @@ open class Gamelin : ApplicationAdapter() {
         gb = GameBoy(Gdx.files.local("opus5.gb").readBytes())
         VisUI.load()
         Gdx.input.inputProcessor = stage
-        stage.addActor(InstructionSetWindow("Base Instruction Set", InstSet.op))
-        stage.addActor(InstructionSetWindow("Extended Instruction Set", InstSet.ep))
+
         stage.addActor(DebuggerWindow(gb))
         stage.addActor(GameBoyWindow(gb))
+        stage.addActor(VRAMViewer(gb))
     }
 
     override fun render() {
