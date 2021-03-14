@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 8:54 PM.
+ * This file was last modified at 3/14/21, 10:34 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -36,20 +36,22 @@ class BlarggTest : FunSpec({
         override fun dispose() {}
     }
 
-    for (dir in file("roms/test/blargg").list(FileFilter { it.isDirectory })) {
-        for (test in dir.list()) {
-            test("${dir.name()}/${test.name()}") {
-                val gb = GameBoy(test.readBytes(), debugger)
+    for (dir in file("roms/test/blargg").list(FileFilter { it.isDirectory && !it.name.contains("disabled") })) {
+        context(dir.name()) {
+            for (test in dir.list(FileFilter { it.extension == "gb" })) {
+                test(test.name()) {
+                    val gb = GameBoy(test.readBytes(), debugger)
 
-                for (i in 0 until TEST_TIMEOUT_SECONDS * 60) {
-                    gb.advanceDelta(1 / 60f)
-                    if (debugger.data.contains("Passed")) break
-                    else if (debugger.data.contains("Failed")) fail(debugger.finish())
+                    for (i in 0 until TEST_TIMEOUT_SECONDS * 60) {
+                        gb.advanceDelta(1 / 60f)
+                        if (debugger.data.contains("Passed")) break
+                        else if (debugger.data.contains("Failed")) fail(debugger.finish())
+                    }
+
+                    val res = debugger.finish()
+                    gb.dispose()
+                    res shouldContainIgnoringCase "Passed"
                 }
-
-                val res = debugger.finish()
-                gb.dispose()
-                res shouldContainIgnoringCase "Passed"
             }
         }
     }
