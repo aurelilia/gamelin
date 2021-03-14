@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 11:10 PM.
+ * This file was last modified at 3/14/21, 2:07 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -95,6 +95,7 @@ class GPU(private val gb: GameBoy) {
 
             if (++tileX == 8) {
                 tileX = 0
+                if ((tileAddr and 0x19) == 0x19) tileAddr -= 0x20
                 tileAddr++
                 tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
                 high = gb.read(tileDataAddr).toByte()

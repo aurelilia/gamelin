@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 1:37 AM.
+ * This file was last modified at 3/14/21, 2:16 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -47,6 +47,8 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     private var inBios = true
 
     internal fun read(addr: Short): Byte {
+        // Ensure BIOS gets disabled once it's done
+        if (gb.cpu.pc.int() == 0x100) inBios = false
         return when (val a = addr.int()) {
             // Cannot read from:
             // FF46: DMA Transfer
@@ -63,12 +65,6 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     internal fun write(addr: Short, value: Byte) {
         if (gb.debugger.writeBreakEnable && gb.debugger.writeBreak == addr.int()) {
             gb.debugger.emuHalt = true
-        }
-
-        // 0x01FE is a special register written to by the BIOS to remove
-        // the BIOS from memory
-        if (gb.cpu.pc.int() == 0x100) {
-            inBios = false
         }
 
         when (val a = addr.int()) {
