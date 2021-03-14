@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 10:18 PM.
+ * This file was last modified at 3/15/21, 12:42 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -55,7 +55,7 @@ internal class Timer(private val gb: GameBoy) {
             mainClock = 0
             if (counter == 255) {
                 counter = modulo
-                gb.requestInterrupt(Interrupt.Timer)
+                // gb.requestInterrupt(Interrupt.Timer)
             } else counter++
         }
     }

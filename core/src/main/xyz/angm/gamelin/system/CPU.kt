@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 9:36 PM.
+ * This file was last modified at 3/15/21, 12:42 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -105,7 +105,7 @@ internal enum class Flag(val position: Int) {
 internal enum class Interrupt(val position: Int, val handlerAddr: Short) {
     VBlank(0, 0x0040),
     HBlank(1, 0x0048),
-    Timer(2, 0x0050),
+    // Timer(2, 0x0050),
     Serial(3, 0x0058),
     Keyboard(4, 0x0060);
 

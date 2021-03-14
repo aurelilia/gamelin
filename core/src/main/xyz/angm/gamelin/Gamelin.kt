@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 10:41 PM.
+ * This file was last modified at 3/15/21, 12:42 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -29,7 +29,7 @@ open class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        gb = GameBoy(file("roms/tetris.gb").readBytes())
+        gb = GameBoy(file("roms/drmario.gb").readBytes())
         gb.debugger.emuHalt = true
         VisUI.load()
 
