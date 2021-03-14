@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 8:33 PM.
+ * This file was last modified at 3/14/21, 10:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -11,6 +11,7 @@ import ktx.assets.file
 import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
+import kotlin.experimental.and
 
 private const val INVALID_READ = 0xFF.toByte()
 private val bootix = file("bootix_dmg.bin").readBytes()
@@ -50,6 +51,13 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             // Cannot write to:
             // FF44: Current PPU scan line
             0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
+
+            // Special behavior for:
+            // FF04: Timer Divider: Reset it
+            // FF07: Timer Control: Only lower 3 bits are used
+            0xFF04 -> writeAny(addr, 0)
+            0xFF07 -> writeAny(addr, value and 7)
+
             else -> writeAny(addr, value)
         }
     }

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 9:07 PM.
+ * This file was last modified at 3/14/21, 10:15 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -26,12 +26,13 @@ class GameBoy(
     internal val ppu = PPU(this)
     internal val keyboard = Keyboard()
     internal val mmu = MMU(this, game)
-    internal var clock = 0
+    private val timer = Timer(this)
+    private var clock = 0
 
     fun advanceDelta(delta: Float) {
         if (debugger.emuHalt || cpu.halt) return
-        val target = clock + (CPU_CLOCK_SPEED * delta)
-        while (clock < target) advance()
+        val target = clock + (CLOCK_SPEED_HZ * delta)
+        while (clock < target && !cpu.halt) advance()
     }
 
     fun advance(force: Boolean = false) {
@@ -42,6 +43,16 @@ class GameBoy(
     }
 
     fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))!!
+
+    // -----------------------------------
+    // Timing
+    // -----------------------------------
+    internal fun advanceClock(mCycles: Int) {
+        val tCycles = mCycles * 4
+        ppu.step(tCycles)
+        timer.step(tCycles)
+        clock += tCycles
+    }
 
     // -----------------------------------
     // Reading of memory/values
