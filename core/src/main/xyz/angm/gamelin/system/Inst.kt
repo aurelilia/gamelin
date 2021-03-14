@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 9:12 PM.
+ * This file was last modified at 3/14/21, 9:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -283,7 +283,7 @@ private fun fillExt() = InstSet.apply {
         val exec = inst.second
         for (bit in 0 until 8) {
             for (reg in regs) ep[idx++] = Inst(2, 2, "$name $bit, $reg") { write(reg, exec(read(reg).toByte(), bit)) }
-            ep[idx++] = Inst(2, 2, "$name $bit, (HL)") { write(read(read16(HL)), exec(read(read16(HL)).toByte(), bit)) }
+            ep[idx++] = Inst(2, 4, "$name $bit, (HL)") { write(read16(HL), exec(read(read16(HL)).toByte(), bit)) }
             ep[idx++] = Inst(2, 2, "$name $bit, A") { write(A, exec(read(A).toByte(), bit)) }
         }
     }
