@@ -13,7 +13,7 @@ import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
 
 private const val INVALID_READ = 0xFF.toByte()
-private val bootix = file("assets/bootix_dmg.bin").readBytes()
+private val bootix = file("bootix_dmg.bin").readBytes()
 
 class MMU(private val gb: GameBoy, private val rom: ByteArray) {
 

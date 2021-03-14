@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 5:34 PM.
+ * This file was last modified at 3/14/21, 6:40 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,6 +13,7 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.kotcrab.vis.ui.VisUI
+import ktx.assets.file
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.windows.BGMapViewer
 import xyz.angm.gamelin.windows.DebuggerWindow
@@ -28,7 +29,7 @@ open class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        gb = GameBoy(Gdx.files.local("roms/09-op r,r.gb").readBytes())
+        gb = GameBoy(file("roms/09-op r,r.gb").readBytes())
         VisUI.load()
 
         val multi = InputMultiplexer()
