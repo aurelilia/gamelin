@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 5:20 PM.
+ * This file was last modified at 3/14/21, 6:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -99,7 +99,7 @@ internal enum class Flag(val position: Int) {
     val mask get() = 1 shl position
     val invMask get() = (1 shl position) xor 0xFF
 
-    fun get(reg: Int) = (reg and mask) shr position
+    fun get(reg: Int) = (reg and mask) ushr position
     fun isSet(reg: Int) = reg.isBit(position)
     fun from(value: Int) = (if (value != 0) 1 else 0) shl position
 }

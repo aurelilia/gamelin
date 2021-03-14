@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:01 PM.
+ * This file was last modified at 3/14/21, 6:14 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -80,21 +80,23 @@ class GameBoy(game: ByteArray) : Disposable {
     // -----------------------------------
     // Math/ALU
     // -----------------------------------
-    fun add(a: Int, b: Int, carry: Boolean = false): Int {
-        val result = a + b
+    // c is the value of the carry, only used by ADC
+    fun add(a: Int, b: Int, c: Int = 0, setCarry: Boolean = false): Int {
+        val result = a + b + c
         cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
         cpu.flag(Flag.Negative, 0)
-        cpu.flag(Flag.HalfCarry, ((a and 0xF) + (b and 0xF) and 0x10))
-        if (carry) cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
+        cpu.flag(Flag.HalfCarry, ((a and 0xF) + (b and 0xF) + c and 0x10))
+        if (setCarry) cpu.flag(Flag.Carry, (a and 0xFF) + (b and 0xFF) + c and 0x100)
         return result.toByte().int()
     }
 
-    fun sub(a: Int, b: Int, carry: Boolean = false): Int {
-        val result = a - b
+    // c is the value of the carry, only used by SBC
+    fun sub(a: Int, b: Int, c: Int = 0, setCarry: Boolean = false): Int {
+        val result = a - b - c
         cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
         cpu.flag(Flag.Negative, 1)
-        cpu.flag(Flag.HalfCarry, ((a and 0xF) - (b and 0xF) and 0x10))
-        if (carry) cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
+        cpu.flag(Flag.HalfCarry, ((a and 0xF) - (b and 0xF) - c and 0x10))
+        if (setCarry) cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) - c and 0x100)
         return result.toByte().int()
     }
 

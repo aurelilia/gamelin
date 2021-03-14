@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:04 PM.
+ * This file was last modified at 3/14/21, 6:14 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -156,10 +156,10 @@ private fun fillSet() = InstSet.apply {
     // 0x80 - 0xBF
     // -----------------------------------
     val maths = arrayOf<Pair<String, GameBoy.(Int) -> Unit>>(
-        "ADD" to { write(A, add(read(A), it, carry = false)) },
-        "ADC" to { write(A, add(read(A), it + Carry.get(read(F)), carry = false)) },
-        "SUB" to { write(A, sub(read(A), it, carry = true)) },
-        "SBC" to { write(A, sub(read(A), it + Carry.get(read(F)), carry = true)) },
+        "ADD" to { write(A, add(read(A), it, setCarry = true)) },
+        "ADC" to { write(A, add(read(A), it, cpu.flagVal(Carry), setCarry = true)) },
+        "SUB" to { write(A, sub(read(A), it, setCarry = true)) },
+        "SBC" to { write(A, sub(read(A), it, cpu.flagVal(Carry), setCarry = true)) },
         "AND" to {
             write(A, read(A) and it)
             write(F, (Zero.from(read(A)) xor Zero.mask) + HalfCarry.from(1))
@@ -172,7 +172,7 @@ private fun fillSet() = InstSet.apply {
             write(A, read(A) or it)
             zFlagOnly(read(A))
         },
-        "CP" to { sub(read(A), it, carry = true) },
+        "CP" to { sub(read(A), it, setCarry = true) },
     )
 
     for (kind in maths) {
