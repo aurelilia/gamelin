@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 2/10/21, 5:58 PM.
+ * This file was last modified at 3/14/21, 7:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -82,6 +82,12 @@ project(":desktop") {
 project(":core") {
     sourceSets.main.java.srcDirs = [ "src/main/" ]
     sourceSets.test.java.srcDirs = [ "src/test/" ]
+
+    test {
+        useJUnitPlatform()
+        workingDir = project.assetsDir
+    }
+
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
         api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
@@ -93,6 +99,10 @@ project(":core") {
         api "io.github.libktx:ktx-scene2d:$ktxVersion"
         api "io.github.libktx:ktx-vis-style:$ktxVersion"
         api "io.github.libktx:ktx-vis:$ktxVersion"
-        api "com.kotcrab.vis:vis-ui:1.4.10"
+        api "com.kotcrab.vis:vis-ui:1.4.11"
+
+        testImplementation 'io.kotest:kotest-runner-junit5:4.4.3'
+        testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+        testImplementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
     }
 }

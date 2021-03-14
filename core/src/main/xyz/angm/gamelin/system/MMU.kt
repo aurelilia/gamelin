@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:39 PM.
+ * This file was last modified at 3/14/21, 8:33 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -45,15 +45,11 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     }
 
     internal fun write(addr: Short, value: Byte) {
-        if (gb.debugger.writeBreakEnable && gb.debugger.writeBreak == addr.int()) {
-            gb.debugger.emuHalt = true
-        }
-
+        gb.debugger.writeOccured(addr, value)
         when (val a = addr.int()) {
             // Cannot write to:
-            // 0000-7FFF: *RO*M
             // FF44: Current PPU scan line
-            in 0x0000..0x7FFF, 0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
+            0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
             else -> writeAny(addr, value)
         }
     }

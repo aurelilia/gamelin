@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 4:28 PM.
+ * This file was last modified at 3/14/21, 9:07 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,13 +14,14 @@ import xyz.angm.gamelin.int
 import xyz.angm.gamelin.system.DReg
 import xyz.angm.gamelin.system.GameBoy
 
-class Debugger : Disposable {
+open class Debugger : Disposable {
 
+    var emuHalt = false
     var pcBreak = 0
     var pcBreakEnable = false
     var writeBreak = 0
     var writeBreakEnable = false
-    var emuHalt = true
+
     var loggingEnable = false
     private val logger = StringBuilder()
     private var pc = 0
@@ -54,5 +55,9 @@ class Debugger : Disposable {
             if (nopCount > 0) logger.appendLine("${pc.hex16()} NOP $nopCount TIMES")
             Gdx.files.local("gamelin.log").writeString(logger.toString(), false)
         }
+    }
+
+    open fun writeOccured(addr: Short, value: Byte) {
+        if (writeBreakEnable && writeBreak == addr.int()) emuHalt = true
     }
 }

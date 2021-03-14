@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:40 PM.
+ * This file was last modified at 3/14/21, 8:54 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -29,7 +29,8 @@ open class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        gb = GameBoy(file("roms/09-op r,r.gb").readBytes())
+        gb = GameBoy(file("roms/ttt.gb").readBytes())
+        gb.debugger.emuHalt = true
         VisUI.load()
 
         val multi = InputMultiplexer()
@@ -44,12 +45,12 @@ open class Gamelin : ApplicationAdapter() {
     }
 
     override fun render() {
+        val delta = Gdx.graphics.deltaTime
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
 
-        if (!gb.cpu.halt) for (i in 0 until 8000) gb.advance()
-
-        stage.act(Gdx.graphics.deltaTime)
+        gb.advanceDelta(delta)
+        stage.act(delta)
         stage.draw()
     }
 

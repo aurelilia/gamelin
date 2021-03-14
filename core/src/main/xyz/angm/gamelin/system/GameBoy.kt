@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:36 PM.
+ * This file was last modified at 3/14/21, 9:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,14 +14,25 @@ import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.interfaces.Keyboard
 import kotlin.experimental.and
 
-class GameBoy(game: ByteArray) : Disposable {
+private const val CLOCK_SPEED_HZ = 4194304
+private const val CPU_CLOCK_SPEED = CLOCK_SPEED_HZ / 4
 
-    internal val debugger = Debugger()
+class GameBoy(
+    game: ByteArray,
+    internal val debugger: Debugger = Debugger()
+) : Disposable {
+
     internal val cpu = CPU(this)
     internal val gpu = GPU(this)
     internal val keyboard = Keyboard()
     internal val mmu = MMU(this, game)
     internal var clock = 0
+
+    fun advanceDelta(delta: Float) {
+        if (debugger.emuHalt || cpu.halt) return
+        val target = clock + (CPU_CLOCK_SPEED * delta)
+        while (clock < target) advance()
+    }
 
     fun advance(force: Boolean = false) {
         if ((debugger.emuHalt || cpu.halt) && !force) return
