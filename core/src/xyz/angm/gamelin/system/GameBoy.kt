@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:14 PM.
+ * This file was last modified at 3/14/21, 6:36 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -151,13 +151,14 @@ class GameBoy(game: ByteArray) : Disposable {
     }
 
     fun sla(value: Byte): Byte {
-        val result = (value.int() and 0xFF) shl 1
+        val result = (value.int() shl 1) and 0xFF
         write(Reg.F, Flag.Carry.from(value.bit(7)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
     fun sra(value: Byte): Byte {
-        val result = ((((value.int() and 0xFF) ushr 1) and 0x7F).toByte() + value) and 0x80
+        val a = ((value.int() ushr 1) and 0xFF).toByte()
+        val result = a.setBit(7, value.isBit(7))
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
@@ -170,8 +171,8 @@ class GameBoy(game: ByteArray) : Disposable {
     }
 
     fun srl(value: Byte): Byte {
-        val result = (value.int() and 0xFF) shr 1
-        write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) 1 else 0)
+        val result = (value.int() shr 1) and 0xFF
+        write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
