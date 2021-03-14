@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 9:07 PM.
+ * This file was last modified at 3/14/21, 11:04 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,6 +10,8 @@ package xyz.angm.gamelin.system
 import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
+import xyz.angm.gamelin.isBit_
+import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.GPUMode.*
 
 class PPU(private val gb: GameBoy) : Disposable {
@@ -21,6 +23,12 @@ class PPU(private val gb: GameBoy) : Disposable {
     private var line
         get() = gb.read(0xFF44)
         set(value) = gb.writeAny(0xFF44, value)
+    private var lineCompare
+        get() = gb.read(0xFF45)
+        set(value) = gb.writeAny(0xFF45, value)
+    private var stat
+        get() = gb.read(0xFF41)
+        set(value) = gb.writeAny(0xFF41, value)
 
     private val control get() = gb.read(0xFF40)
     private val displayEnable get() = control.isBit(7)
@@ -42,35 +50,48 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     fun step(tCycles: Int) {
         modeclock += tCycles
-        when {
-            mode == OAMScan && modeclock >= 80 -> {
-                modeclock = 0
-                mode = Render
-            }
+        if (modeclock < mode.cycles) return
+        modeclock -= mode.cycles
 
-            mode == Render && modeclock >= 172 -> {
-                modeclock = 0
+        when (mode) {
+            OAMScan -> mode = Upload
+
+            Upload -> {
                 mode = HBlank
                 gb.requestInterrupt(Interrupt.HBlank)
                 renderLine()
             }
 
-            mode == HBlank && modeclock >= 204 -> {
-                modeclock = 0
+            HBlank -> {
                 line++
-                mode = if (line == 143) {
-                    gb.requestInterrupt(Interrupt.VBlank)
-                    VBlank
-                } else OAMScan
+                mode = if (line == 143) VBlank else OAMScan
             }
 
-            mode == VBlank && modeclock >= 456 -> {
-                modeclock = 0
+            VBlank -> {
+                if (line == 144) gb.requestInterrupt(Interrupt.VBlank)
                 line++
                 if (line > 153) {
                     mode = OAMScan
                     line = 0
                 }
+            }
+        }
+
+        // Shamelessly stolen from kotcrab's xgbc. Thank you, kotcrab!!
+        stat = stat.toByte().setBit(2, if (lineCompare == line) 1 else 0) and 0b11111100
+        when (mode) {
+            OAMScan -> {
+                stat = stat or 0b10
+                if (stat.toByte().isBit_(5)) gb.requestInterrupt(Interrupt.HBlank)
+            }
+            Upload -> stat = stat or 0b11
+            HBlank -> {
+                stat = stat or 0b00
+                if (stat.toByte().isBit_(3)) gb.requestInterrupt(Interrupt.HBlank)
+            }
+            VBlank -> {
+                stat = stat or 0b01
+                if (stat.toByte().isBit_(4)) gb.requestInterrupt(Interrupt.HBlank)
             }
         }
     }
@@ -153,8 +174,8 @@ class PPU(private val gb: GameBoy) : Disposable {
     override fun dispose() = renderer.dispose()
 }
 
-private enum class GPUMode {
-    HBlank, VBlank, OAMScan, Render
+private enum class GPUMode(val cycles: Int) {
+    HBlank(204), VBlank(456), OAMScan(80), Upload(172)
 }
 
 private object Sprite {

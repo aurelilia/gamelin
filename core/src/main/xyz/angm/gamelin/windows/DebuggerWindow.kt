@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 10:41 PM.
+ * This file was last modified at 3/14/21, 11:07 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -123,7 +123,7 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                 defaults().pad(5f).padRight(15f)
                 visTextButton("Advance") {
                     onClick {
-                        gb.advance(force = true)
+                        gb.advance()
                         refresh()
                     }
                 }

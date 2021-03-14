@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 12:34 AM.
+ * This file was last modified at 3/14/21, 11:03 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,6 +9,7 @@ package xyz.angm.gamelin
 
 fun Byte.bit(bit: Int) = this.int() and (1 shl bit)
 fun Byte.isBit(bit: Int) = (this.int() and (1 shl bit)) shr bit
+fun Byte.isBit_(bit: Int) = ((this.int() and (1 shl bit)) shr bit) == 1
 fun Byte.setBit(bit: Int, bitState: Int) = (this.int() and ((1 shl bit) xor 0xFF)) or (bitState shl bit)
 fun Byte.rotRight(dist: Int): Byte = ((this.int() ushr dist) or (this.int() shl (8 - dist))).toByte()
 fun Byte.rotLeft(dist: Int): Byte = ((this.int() shl dist) or (this.int() ushr (8 - dist))).toByte()
