@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 10:05 PM.
+ * This file was last modified at 3/14/21, 10:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,7 +24,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     private val vram = ByteArray(8_192) // 8000-9FFF
     private val extRam = ByteArray(8_192) // A000-BFFF
     private val ram = ByteArray(8_192) // C000-DFFF
-    private val spriteRam = ByteArray(160) // FE00-FE9F
+    private val oam = ByteArray(160) // FE00-FE9F
     private val mmIO = ByteArray(128) // FF00-FF7F
     private val zram = ByteArray(128) // FF80-FFFF
     internal var inBios = true
@@ -72,7 +72,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             in 0xA000..0xBFFF -> extRam[a and 0x1FFF]
             in 0xC000..0xDFFF -> ram[a and 0x1FFF]
             in 0xE000..0xFDFF -> ram[a and 0x1FFF]
-            in 0xFE00..0xFE9F -> spriteRam[a and 0xFF]
+            in 0xFE00..0xFE9F -> oam[a and 0xFF]
             in 0xFEA0..0xFEFF -> 0
             0xFF00 -> gb.keyboard.read()
             in 0xFF01..0xFF7F -> mmIO[a and 0x7F]
@@ -88,7 +88,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             in 0xA000..0xBFFF -> extRam[a and 0x1FFF] = value
             in 0xC000..0xDFFF -> ram[a and 0x1FFF] = value
             in 0xE000..0xFDFF -> ram[a and 0x1FFF] = value
-            in 0xFE00..0xFE9F -> spriteRam[a and 0xFF] = value
+            in 0xFE00..0xFE9F -> oam[a and 0xFF] = value
             in 0xFEA0..0xFEFF -> Unit
             0xFF00 -> gb.keyboard.write(value)
             in 0xFF01..0xFF7F -> mmIO[a and 0x7F] = value

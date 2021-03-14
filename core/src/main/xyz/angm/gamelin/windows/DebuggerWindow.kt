@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 5:02 PM.
+ * This file was last modified at 3/14/21, 10:41 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -88,8 +88,8 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
             visScrollPane {
                 actor = scene2d.visTable {
                     defaults().left().pad(0f).padLeft(2f).expandX()
-                    val addRow = { row: Int ->
-                        var out = "VRAM:${row.hex16()} "
+                    val addRow = { name: String, row: Int ->
+                        var out = "$name:${row.hex16()} "
                         for (by in 0 until 16) {
                             out += "${gb.read(row + by).hex8()} "
                         }
@@ -97,8 +97,9 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                         row()
                     }
 
-                    for (row in 0x8180 until 0xA000 step 16) addRow(row)
-                    addRow(0xFF40)
+                    for (row in 0xFE00 until 0xFEA0 step 16) addRow("OAM ", row)
+                    for (row in 0xFF00 until 0xFF80 step 16) addRow("MMIO", row)
+                    for (row in 0xFF80 until 0xFFFF step 16) addRow("HRAM", row)
                 }
                 setScrollingDisabled(true, false)
                 it.height(300f).width(750f).expandX().colspan(2)
