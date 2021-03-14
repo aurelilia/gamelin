@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 10:25 PM.
+ * This file was last modified at 3/15/21, 12:01 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,6 +35,6 @@ class Keyboard : InputAdapter() {
             res = res shl 1
             if (!Gdx.input.isKeyPressed(key)) res++
         }
-        return res
+        return res or column or 0b11000000
     }
 }
