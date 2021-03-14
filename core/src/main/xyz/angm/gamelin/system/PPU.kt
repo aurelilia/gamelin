@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 4:27 AM.
+ * This file was last modified at 3/14/21, 9:07 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,7 @@ import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.GPUMode.*
 
-class GPU(private val gb: GameBoy) : Disposable {
+class PPU(private val gb: GameBoy) : Disposable {
 
     val renderer = TileRenderer(gb, 20, 18, 4f)
 

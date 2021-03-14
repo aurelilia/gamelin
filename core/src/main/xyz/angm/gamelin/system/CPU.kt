@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:10 PM.
+ * This file was last modified at 3/14/21, 9:07 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -37,9 +37,9 @@ internal class CPU(private val gb: GameBoy) {
             }
         }
 
-        gb.gpu.step(tCycles = cyclesTaken * 4)
+        gb.ppu.step(tCycles = cyclesTaken * 4)
         val interCycles = checkInterrupts(ime)
-        gb.gpu.step(tCycles = interCycles * 4)
+        gb.ppu.step(tCycles = interCycles * 4)
         gb.clock += cyclesTaken + interCycles
     }
 

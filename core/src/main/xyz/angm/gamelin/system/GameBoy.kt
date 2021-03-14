@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 9:00 PM.
+ * This file was last modified at 3/14/21, 9:07 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,7 +23,7 @@ class GameBoy(
 ) : Disposable {
 
     internal val cpu = CPU(this)
-    internal val gpu = GPU(this)
+    internal val ppu = PPU(this)
     internal val keyboard = Keyboard()
     internal val mmu = MMU(this, game)
     internal var clock = 0
@@ -245,7 +245,7 @@ class GameBoy(
     }
 
     override fun dispose() {
-        gpu.dispose()
+        ppu.dispose()
         debugger.dispose()
     }
 
