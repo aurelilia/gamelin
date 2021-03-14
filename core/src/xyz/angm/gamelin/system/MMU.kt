@@ -1,12 +1,13 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 10:24 PM.
+ * This file was last modified at 3/14/21, 1:37 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system
 
+import ktx.assets.file
 import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
@@ -30,6 +31,7 @@ private val bios = arrayOf(
     0x21, 0x04, 0x01, 0x11, 0xA8, 0x00, 0x1A, 0x13, 0xBE, 0x20, 0xFE, 0x23, 0x7D, 0xFE, 0x34, 0x20,
     0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50
 ).map { it.toByte() }
+private val bootix = file("assets/bootix_dmg.bin").readBytes()
 
 class MMU(private val gb: GameBoy, private val rom: ByteArray) {
 
@@ -42,7 +44,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     private val spriteRam = ByteArray(160) // FE00-FE9F
     private val mmIO = ByteArray(128) // FF00-FF7F
     private val zram = ByteArray(128) // FF80-FFFF
-    private var inBios = false
+    private var inBios = true
 
     internal fun read(addr: Short): Byte {
         return when (val a = addr.int()) {
@@ -59,11 +61,14 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     }
 
     internal fun write(addr: Short, value: Byte) {
+        if (gb.debugger.writeBreakEnable && gb.debugger.writeBreak == addr.int()) {
+            gb.debugger.emuHalt = true
+        }
+
         // 0x01FE is a special register written to by the BIOS to remove
         // the BIOS from memory
-        if (addr.int() == 0x01FE && inBios) {
+        if (gb.cpu.pc.int() == 0x100) {
             inBios = false
-            return
         }
 
         when (val a = addr.int()) {
@@ -78,7 +83,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     internal fun readAny(addr: Short): Byte {
         return when (val a = addr.int()) {
             in 0x0000..0x7FFF -> {
-                if (inBios && addr < 0x0100) bios[a]
+                if (inBios && addr < 0x0100) bootix[a]
                 else rom[a]
             }
             in 0x8000..0x9FFF -> vram[a and 0x1FFF]

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 11:07 PM.
+ * This file was last modified at 3/14/21, 1:40 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,15 +8,14 @@
 package xyz.angm.gamelin.system
 
 import mu.KotlinLogging
-import xyz.angm.gamelin.bit
-import xyz.angm.gamelin.int
+import xyz.angm.gamelin.*
+import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.interfaces.Keyboard
-import xyz.angm.gamelin.rotLeft
-import xyz.angm.gamelin.rotRight
 import kotlin.experimental.and
 
 class GameBoy(game: ByteArray) {
 
+    internal val debugger = Debugger()
     internal val cpu = CPU(this)
     internal val gpu = GPU(this)
     internal val keyboard = Keyboard()
@@ -24,11 +23,10 @@ class GameBoy(game: ByteArray) {
     private var clock = 0
 
     fun advance(force: Boolean = false) {
-        if (cpu.halt && !force) return
-        val pc = cpu.pc
+        if ((debugger.emuHalt || cpu.halt) && !force) return
         val inst = cpu.nextInstruction()
         clock += inst.cycles
-        // println("Took ${inst.cycles} for instruction ${inst.name} at ${pc.hex16()}")
+        debugger.process(this)
     }
 
     fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))!!
@@ -81,14 +79,22 @@ class GameBoy(game: ByteArray) {
     // -----------------------------------
     // Math/ALU
     // -----------------------------------
-    fun alu(a: Int, b: Int, neg: Int): Int {
+    fun add(a: Int, b: Int): Int {
         val result = a + b
-        val truncResult = result.toByte()
-        cpu.flag(Flag.Zero, if (truncResult == 0.toByte()) 1 else 0)
-        cpu.flag(Flag.Negative, neg)
+        cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
+        cpu.flag(Flag.Negative, 0)
         cpu.flag(Flag.HalfCarry, ((a and 0xF) + (b and 0xF) and 0x10))
-        cpu.flag(Flag.Carry, if (result > 255 || result < 0) 1 else 0)
-        return truncResult.int()
+        cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
+        return result.toByte().int()
+    }
+
+    fun sub(a: Int, b: Int): Int {
+        val result = a - b
+        cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
+        cpu.flag(Flag.Negative, 1)
+        cpu.flag(Flag.HalfCarry, ((a and 0xF) - (b and 0xF) and 0x10))
+        cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
+        return result.toByte().int()
     }
 
     fun add16HL(other: Int) {
@@ -130,7 +136,7 @@ class GameBoy(game: ByteArray) {
     }
 
     fun rl(value: Byte, maybeSetZ: Boolean): Byte {
-        val result = value.rotLeft(1) + cpu.flagVal(Flag.Carry)
+        val result = value.rotLeft(1).setBit(0, cpu.flagVal(Flag.Carry))
         write(Reg.F, Flag.Carry.from(value.bit(7)) + if (maybeSetZ && result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
@@ -167,9 +173,10 @@ class GameBoy(game: ByteArray) {
     }
 
     fun bit(value: Byte, bit: Int): Byte {
-        val value = (value.int() and (1 shl bit)) shr bit
-        write(Reg.F, if (cpu.flag(Flag.Carry)) Flag.Carry.mask else 0 + Flag.HalfCarry.mask + if (value == 0) Flag.Zero.mask else 0)
-        return value.toByte()
+        cpu.flag(Flag.Zero, value.isBit(bit) xor 1)
+        cpu.flag(Flag.Negative, 0)
+        cpu.flag(Flag.HalfCarry, 1)
+        return value
     }
 
     fun zFlagOnly(value: Int) {

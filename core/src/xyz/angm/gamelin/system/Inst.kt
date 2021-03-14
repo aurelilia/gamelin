@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 8:59 PM.
+ * This file was last modified at 3/14/21, 1:36 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -59,11 +59,11 @@ private fun fillSet() = InstSet.apply {
     bcdehl.forEachIndexed { i, r -> op[0x03 + (i shl 4)] = Inst(1, 2, "INC $r") { write16(r, read16(r) + 1) } }
     op[0x33] = Inst(1, 2, "INC SP") { writeSP(cpu.sp + 1) }
 
-    bdh.forEachIndexed { i, r -> op[0x04 + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, alu(read(r), 1, neg = 0)) } }
-    op[0x34] = Inst(1, 3, "INC (HL)") { write(read16(HL), alu(read(read16(HL)), 1, neg = 0)) }
+    bdh.forEachIndexed { i, r -> op[0x04 + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, add(read(r), 1)) } }
+    op[0x34] = Inst(1, 3, "INC (HL)") { write(read16(HL), add(read(read16(HL)), 1)) }
 
-    bdh.forEachIndexed { i, r -> op[0x05 + (i shl 4)] = Inst(1, 1, "DEC $r") { write(r, alu(read(r), -1, neg = 1)) } }
-    op[0x35] = Inst(1, 3, "DEC (HL)") { write(read16(HL), alu(read(read16(HL)), -1, neg = 1)) }
+    bdh.forEachIndexed { i, r -> op[0x05 + (i shl 4)] = Inst(1, 1, "DEC $r") { write(r, sub(read(r), 1)) } }
+    op[0x35] = Inst(1, 3, "DEC (HL)") { write(read16(HL), sub(read(read16(HL)), 1)) }
 
     bdh.forEachIndexed { i, r -> op[0x06 + (i shl 4)] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
     op[0x36] = Inst(1, 3, "LD (HL), d8") { write(read16(HL), read(cpu.pc + 1)) }
@@ -74,18 +74,18 @@ private fun fillSet() = InstSet.apply {
         var a = read(A)
         val f = read(F)
         if (!Negative.isSet(f)) {
-            if (Carry.isSet(f) || a > 0x99) {
-                a += 0x60
-                cpu.flag(Carry, 1)
-            }
-            if (HalfCarry.isSet(f) || (a and 0x0f) > 0x09) a += 0x6
+            if (Carry.isSet(f) || a > 0x9F) a += 0x60
+            if (HalfCarry.isSet(f) || (a and 0x0F) > 0x09) a += 0x06
         } else {
-            if (Carry.isSet(f)) a += 0x60
-            if (HalfCarry.isSet(f)) a += 0x6
+            if (Carry.isSet(f)) a -= 0x60
+            if (HalfCarry.isSet(f)) a = (a - 0x06) and 0xFF
         }
-        write(A, a)
-        cpu.flag(Zero, if (a == 0) 1 else 0)
+
         cpu.flag(HalfCarry, 0)
+        cpu.flag(Zero, if ((a and 0xFF) == 0) 1 else 0)
+        cpu.flag(Carry, if ((a and 0x100) == 0x100) 1 else 0)
+
+        write(A, a and 0xFF)
     }
     op[0x37] = Inst(1, 1, "SCF") { write(F, (read(F) and Zero.mask) + 0b00010000) }
 
@@ -109,8 +109,8 @@ private fun fillSet() = InstSet.apply {
     bcdehl.forEachIndexed { i, r -> op[0x0B + (i shl 4)] = Inst(1, 2, "DEC $r") { write16(r, read16(r) - 1) } }
     op[0x3B] = Inst(1, 2, "DEC SP") { writeSP(readSP() - 1) }
 
-    cela.forEachIndexed { i, r -> op[0x0C + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, alu(read(r), 1, neg = 0)) } }
-    cela.forEachIndexed { i, r -> op[0x0D + (i shl 4)] = Inst(1, 1, "DEC $r") { write(r, alu(read(r), -1, neg = 1)) } }
+    cela.forEachIndexed { i, r -> op[0x0C + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, add(read(r), 1)) } }
+    cela.forEachIndexed { i, r -> op[0x0D + (i shl 4)] = Inst(1, 1, "DEC $r") { write(r, sub(read(r), 1)) } }
     cela.forEachIndexed { i, r -> op[0x0E + (i shl 4)] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
 
     op[0x0F] = Inst(1, 1, "RRCA") { write(A, rrc(read(A).toByte(), false)) }
@@ -156,10 +156,10 @@ private fun fillSet() = InstSet.apply {
     // 0x80 - 0xBF
     // -----------------------------------
     val maths = arrayOf<Pair<String, GameBoy.(Int) -> Unit>>(
-        "ADD" to { write(A, alu(read(A), it, neg = 0)) },
-        "ADC" to { write(A, alu(read(A), it + Carry.get(read(F)), neg = 0)) },
-        "SUB" to { write(A, alu(read(A), -it, neg = 1)) },
-        "SBC" to { write(A, alu(read(A), -(it + Carry.get(read(F))), neg = 1)) },
+        "ADD" to { write(A, add(read(A), it)) },
+        "ADC" to { write(A, add(read(A), it + Carry.get(read(F)))) },
+        "SUB" to { write(A, sub(read(A), it)) },
+        "SBC" to { write(A, sub(read(A), it + Carry.get(read(F)))) },
         "AND" to {
             write(A, read(A) and it)
             write(F, (Zero.from(read(A)) xor Zero.mask) + HalfCarry.from(1))
@@ -172,7 +172,7 @@ private fun fillSet() = InstSet.apply {
             write(A, read(A) or it)
             zFlagOnly(read(A))
         },
-        "CP" to { alu(read(A), it, neg = 1) },
+        "CP" to { sub(read(A), it) },
     )
 
     for (kind in maths) {

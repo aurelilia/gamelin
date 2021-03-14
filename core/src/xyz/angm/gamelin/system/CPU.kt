@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 11:17 PM.
+ * This file was last modified at 3/14/21, 1:00 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,7 +13,7 @@ import kotlin.experimental.and
 
 internal class CPU(private val gb: GameBoy) {
 
-    var pc: Short = 0x100
+    var pc: Short = 0
     var sp: Short = 0
     var ime = false
     var halt = false
@@ -45,6 +45,7 @@ internal class CPU(private val gb: GameBoy) {
         if (!ime) return 0
         for (interrupt in Interrupt.values()) {
             if (interrupt.isSet(gb.read(Interrupt.IE)) && interrupt.isSet(gb.read(Interrupt.IF))) {
+                halt = false
                 gb.write(Interrupt.IF, gb.read(Interrupt.IF) xor (1 shl interrupt.position))
                 ime = false
                 gb.pushS(pc.int())
