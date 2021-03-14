@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 6:14 PM.
+ * This file was last modified at 3/14/21, 9:12 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,6 +8,7 @@
 package xyz.angm.gamelin.system
 
 import xyz.angm.gamelin.int
+import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.DReg.*
 import xyz.angm.gamelin.system.Flag.*
 import xyz.angm.gamelin.system.Reg.*
@@ -263,8 +264,8 @@ private fun fillExt() = InstSet.apply {
     )
     val bitInst = arrayOf<Pair<String, GameBoy.(Byte, Int) -> Byte>>(
         "BIT" to GameBoy::bit,
-        "RES" to { b, i -> (b.int() xor (1 shl i)).toByte() },
-        "SET" to { b, i -> (b + (1 shl i)).toByte() }
+        "RES" to { b, i -> b.setBit(i, 0).toByte() },
+        "SET" to { b, i -> b.setBit(i, 1).toByte() }
     )
 
     val regs = arrayOf(B, C, D, E, H, L)
