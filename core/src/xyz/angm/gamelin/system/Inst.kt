@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 1:36 AM.
+ * This file was last modified at 3/14/21, 4:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -156,10 +156,10 @@ private fun fillSet() = InstSet.apply {
     // 0x80 - 0xBF
     // -----------------------------------
     val maths = arrayOf<Pair<String, GameBoy.(Int) -> Unit>>(
-        "ADD" to { write(A, add(read(A), it)) },
-        "ADC" to { write(A, add(read(A), it + Carry.get(read(F)))) },
-        "SUB" to { write(A, sub(read(A), it)) },
-        "SBC" to { write(A, sub(read(A), it + Carry.get(read(F)))) },
+        "ADD" to { write(A, add(read(A), it, carry = false)) },
+        "ADC" to { write(A, add(read(A), it + Carry.get(read(F)), carry = false)) },
+        "SUB" to { write(A, sub(read(A), it, carry = true)) },
+        "SBC" to { write(A, sub(read(A), it + Carry.get(read(F)), carry = true)) },
         "AND" to {
             write(A, read(A) and it)
             write(F, (Zero.from(read(A)) xor Zero.mask) + HalfCarry.from(1))
@@ -172,7 +172,7 @@ private fun fillSet() = InstSet.apply {
             write(A, read(A) or it)
             zFlagOnly(read(A))
         },
-        "CP" to { sub(read(A), it) },
+        "CP" to { sub(read(A), it, carry = true) },
     )
 
     for (kind in maths) {
@@ -218,8 +218,8 @@ private fun fillSet() = InstSet.apply {
     }
 
     for (rstIdx in 0 until 8) {
-        op[0xC7 + (rstIdx * 8)] = Inst(1, 4, "RST $rstIdx") {
-            pushS(cpu.pc.int())
+        op[0xC7 + (rstIdx * 8)] = Inst(1, 4, "RST $rstIdx", incPC = false) {
+            pushS(cpu.pc.int() + 1)
             cpu.pc = (rstIdx * 8).toShort()
         }
     }
@@ -230,7 +230,7 @@ private fun fillSet() = InstSet.apply {
     op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, addSP()) }
 
     op[0xC9] = Inst(1, 4, "RET", incPC = false) { ret() }
-    op[0xD9] = Inst(1, 4, "RETI") {
+    op[0xD9] = Inst(1, 4, "RETI", incPC = false) {
         cpu.ime = true
         ret()
     }

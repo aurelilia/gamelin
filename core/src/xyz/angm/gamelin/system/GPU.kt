@@ -1,17 +1,18 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 2:07 AM.
+ * This file was last modified at 3/14/21, 4:27 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system
 
+import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.GPUMode.*
 
-class GPU(private val gb: GameBoy) {
+class GPU(private val gb: GameBoy) : Disposable {
 
     val renderer = TileRenderer(gb, 20, 18, 4f)
 
@@ -135,7 +136,6 @@ class GPU(private val gb: GameBoy) {
 
     fun bgIdxTileDataAddr(idx: Int): Int {
         val tileIdx = gb.read(bgMapAddr + idx)
-        // println("idx: $idx adddr: ${(bgMapAddr + idx).hex16()} tile: $tileIdx FF40: ${gb.read(0xFF40).hex16()}")
         return bgTileDataAddr(tileIdx)
     }
 
@@ -149,6 +149,8 @@ class GPU(private val gb: GameBoy) {
     private fun getBGColorIdx(color: Int) = getColorIdx(bgPalette, color)
 
     private fun getColorIdx(palette: Int, color: Int) = (palette ushr (color * 2)) and 0b11
+
+    override fun dispose() = renderer.dispose()
 }
 
 private enum class GPUMode {

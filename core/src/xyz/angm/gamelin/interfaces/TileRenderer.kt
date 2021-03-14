@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 10:23 PM.
+ * This file was last modified at 3/14/21, 4:25 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,13 +12,14 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.GameBoy
 
 const val TILE_SIZE = 8
 private val colors = arrayOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY, Color.BLACK)
 
-class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Float) : Actor() {
+class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Float) : Actor(), Disposable {
 
     private val pixmap = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
     private var lastTex = Texture(pixmap)
@@ -53,5 +54,10 @@ class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Floa
         batch.draw(tex, x, y, width, height)
         lastTex.dispose()
         lastTex = tex
+    }
+
+    override fun dispose() {
+        pixmap.dispose()
+        lastTex.dispose()
     }
 }

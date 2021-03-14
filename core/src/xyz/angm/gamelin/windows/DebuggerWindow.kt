@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 1:22 AM.
+ * This file was last modified at 3/14/21, 4:33 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -118,18 +118,16 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
             row()
 
             visTable {
+                it.colspan(2)
+                defaults().pad(5f).padRight(15f)
                 visTextButton("Advance") {
                     onClick {
                         gb.advance(force = true)
                         refresh()
                     }
-                    it.pad(3f)
                 }
 
-                visTextButton("Force Update") {
-                    onClick { refresh() }
-                    it.pad(3f)
-                }
+                visTextButton("Force Update") { onClick { refresh() } }
 
                 var field: VisTextField? = null
                 visCheckBox("PC BP: 0x") {
@@ -144,11 +142,11 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                             field!!.isDisabled = false
                         }
                     }
+                    it.pad(0f)
                 }
                 field = visTextField {
                     text = gb.debugger.pcBreak.toString(16).toUpperCase()
                     isDisabled = gb.debugger.pcBreakEnable
-                    it.pad(3f)
                 }
 
                 var field2: VisTextField? = null
@@ -164,10 +162,16 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                             field2!!.isDisabled = false
                         }
                     }
+                    it.pad(0f)
                 }
                 field2 = visTextField {
                     text = gb.debugger.writeBreak.toString(16).toUpperCase()
                     isDisabled = gb.debugger.writeBreakEnable
+                }
+
+                visCheckBox("CPU Logging") {
+                    isChecked = gb.debugger.loggingEnable
+                    onClick { gb.debugger.loggingEnable = !gb.debugger.loggingEnable }
                 }
             }
         }

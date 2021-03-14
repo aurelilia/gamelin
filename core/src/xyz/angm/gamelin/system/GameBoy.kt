@@ -1,32 +1,33 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 1:40 AM.
+ * This file was last modified at 3/14/21, 4:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system
 
+import com.badlogic.gdx.utils.Disposable
 import mu.KotlinLogging
 import xyz.angm.gamelin.*
 import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.interfaces.Keyboard
 import kotlin.experimental.and
 
-class GameBoy(game: ByteArray) {
+class GameBoy(game: ByteArray) : Disposable {
 
     internal val debugger = Debugger()
     internal val cpu = CPU(this)
     internal val gpu = GPU(this)
     internal val keyboard = Keyboard()
-    private val mmu = MMU(this, game)
-    private var clock = 0
+    internal val mmu = MMU(this, game)
+    internal var clock = 0
 
     fun advance(force: Boolean = false) {
         if ((debugger.emuHalt || cpu.halt) && !force) return
-        val inst = cpu.nextInstruction()
-        clock += inst.cycles
-        debugger.process(this)
+        debugger.preAdvance(this)
+        cpu.nextInstruction()
+        debugger.postAdvance(this)
     }
 
     fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))!!
@@ -79,21 +80,21 @@ class GameBoy(game: ByteArray) {
     // -----------------------------------
     // Math/ALU
     // -----------------------------------
-    fun add(a: Int, b: Int): Int {
+    fun add(a: Int, b: Int, carry: Boolean = false): Int {
         val result = a + b
         cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
         cpu.flag(Flag.Negative, 0)
         cpu.flag(Flag.HalfCarry, ((a and 0xF) + (b and 0xF) and 0x10))
-        cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
+        if (carry) cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
         return result.toByte().int()
     }
 
-    fun sub(a: Int, b: Int): Int {
+    fun sub(a: Int, b: Int, carry: Boolean = false): Int {
         val result = a - b
         cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
         cpu.flag(Flag.Negative, 1)
         cpu.flag(Flag.HalfCarry, ((a and 0xF) - (b and 0xF) and 0x10))
-        cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
+        if (carry) cpu.flag(Flag.Carry, (a and 0xFF) - (b and 0xFF) and 0x100)
         return result.toByte().int()
     }
 
@@ -227,6 +228,11 @@ class GameBoy(game: ByteArray) {
     // -----------------------------------
     internal fun requestInterrupt(interrupt: Interrupt) {
         write(Interrupt.IF, read(Interrupt.IF) + (1 shl interrupt.position))
+    }
+
+    override fun dispose() {
+        gpu.dispose()
+        debugger.dispose()
     }
 
     internal companion object {

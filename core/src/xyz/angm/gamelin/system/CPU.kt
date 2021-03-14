@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 1:00 AM.
+ * This file was last modified at 3/14/21, 4:29 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,7 +19,8 @@ internal class CPU(private val gb: GameBoy) {
     var halt = false
     val regs = ByteArray(Reg.values().size)
 
-    fun nextInstruction(): Inst {
+    fun nextInstruction() {
+        val ime = this.ime
         val inst = gb.getNextInst()
         var cyclesTaken = when (inst) {
             is BrInst -> {
@@ -36,18 +37,19 @@ internal class CPU(private val gb: GameBoy) {
             }
         }
 
-        cyclesTaken += checkInterrupts()
         gb.gpu.step(tCycles = cyclesTaken * 4)
-        return inst
+        val interCycles = checkInterrupts(ime)
+        gb.gpu.step(tCycles = interCycles * 4)
+        gb.clock += cyclesTaken + interCycles
     }
 
-    private fun checkInterrupts(): Int {
+    private fun checkInterrupts(ime: Boolean): Int {
         if (!ime) return 0
         for (interrupt in Interrupt.values()) {
             if (interrupt.isSet(gb.read(Interrupt.IE)) && interrupt.isSet(gb.read(Interrupt.IF))) {
                 halt = false
                 gb.write(Interrupt.IF, gb.read(Interrupt.IF) xor (1 shl interrupt.position))
-                ime = false
+                this.ime = false
                 gb.pushS(pc.int())
                 pc = interrupt.handlerAddr
                 return 3
