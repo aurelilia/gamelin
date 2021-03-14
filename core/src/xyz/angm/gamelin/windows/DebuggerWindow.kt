@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 4:33 AM.
+ * This file was last modified at 3/14/21, 5:02 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -60,7 +60,7 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
             visScrollPane {
                 actor = scene2d.visTable {
                     defaults().left().pad(0f).padLeft(2f).expandX()
-                    var pc = gb.cpu.pc.int() - 8
+                    var pc = gb.cpu.pc.int()
                     for (i in 0..50) {
                         val inst = InstSet.instOf(gb.read(pc), gb.read(pc + 1))
                         if (inst == null) pc += 1

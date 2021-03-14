@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 4:13 PM.
+ * This file was last modified at 3/14/21, 6:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -59,7 +59,7 @@ class GameBoy(game: ByteArray) : Disposable {
     internal fun write(addr: Short, value: Int) = write(addr, value.toByte())
     internal fun write(addr: Int, value: Short) = write(addr.toShort(), value.toByte())
     internal fun write(addr: Int, value: Byte) = write(addr.toShort(), value)
-    internal fun write(reg: Reg, value: Byte) = cpu.regs.set(reg.idx, value)
+    internal fun write(reg: Reg, value: Byte) = cpu.write(reg, value)
     internal fun write(reg: Reg, value: Int) = write(reg, value.toByte())
     internal fun writeAny(addr: Int, value: Int) = mmu.writeAny(addr.toShort(), value.toByte())
 
@@ -143,7 +143,7 @@ class GameBoy(game: ByteArray) : Disposable {
     }
 
     fun rr(value: Byte, maybeSetZ: Boolean): Byte {
-        val result = value.rotRight(1) + (cpu.flagVal(Flag.Carry) shl 7)
+        val result = value.rotRight(1).setBit(7, cpu.flagVal(Flag.Carry))
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (maybeSetZ && result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }

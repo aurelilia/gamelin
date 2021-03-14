@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 4:29 PM.
+ * This file was last modified at 3/14/21, 5:20 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -56,6 +56,12 @@ internal class CPU(private val gb: GameBoy) {
             }
         }
         return 0
+    }
+
+    internal fun write(reg: Reg, value: Byte) {
+        // Register F only allows writing the 4 high/flag bits
+        val regVal = if (reg == Reg.F) (value.int() and 0xF0).toByte() else value
+        regs[reg.idx] = regVal
     }
 
     fun flag(flag: Flag) = flagVal(flag) == 1

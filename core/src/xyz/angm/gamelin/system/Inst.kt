@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 4:42 PM.
+ * This file was last modified at 3/14/21, 6:04 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -44,7 +44,7 @@ private fun fillSet() = InstSet.apply {
     // 0x00 - 0x3F
     // -----------------------------------
     op[0x00] = Inst(1, 1, "NOP") { }
-    op[0x10] = Inst(1, 1, "STOP") { throw InterruptedException("RIP") }
+    op[0x10] = Inst(1, 1, "STOP") { }
     op[0x20] = BrInst(2, 2, 3, "JR NZ, s8") { if (!cpu.flag(Zero)) jr() else false }
     op[0x30] = BrInst(2, 2, 3, "JR NC, s8") { if (!cpu.flag(Carry)) jr() else false }
 
@@ -83,7 +83,7 @@ private fun fillSet() = InstSet.apply {
 
         cpu.flag(HalfCarry, 0)
         cpu.flag(Zero, if ((a and 0xFF) == 0) 1 else 0)
-        cpu.flag(Carry, if ((a and 0x100) == 0x100) 1 else 0)
+        cpu.flag(Carry, if ((a and 0x100) == 0x100) 1 else Carry.get(f))
 
         write(A, a and 0xFF)
     }
@@ -123,7 +123,7 @@ private fun fillSet() = InstSet.apply {
     op[0x3F] = Inst(1, 1, "CCF") {
         cpu.flag(Negative, 0)
         cpu.flag(HalfCarry, 0)
-        cpu.flag(Carry, cpu.flagVal(Carry))
+        cpu.flag(Carry, if (cpu.flag(Carry)) 0 else 1)
     }
 
     // -----------------------------------
@@ -234,7 +234,7 @@ private fun fillSet() = InstSet.apply {
         cpu.ime = true
         ret()
     }
-    op[0xE9] = Inst(1, 1, "JP HL") { cpu.pc = read16(HL).toShort() }
+    op[0xE9] = Inst(1, 1, "JP HL", incPC = false) { cpu.pc = read16(HL).toShort() }
     op[0xF9] = Inst(1, 1, "LD SP, HL") { cpu.sp = read16(HL).toShort() }
 
     op[0xCA] = BrInst(3, 3, 4, "JP Z, a16") { if (cpu.flag(Zero)) jp() else false }

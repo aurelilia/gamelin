@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 4:46 PM.
+ * This file was last modified at 3/14/21, 5:34 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -28,7 +28,7 @@ open class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        gb = GameBoy(Gdx.files.local("roms/tetris.gb").readBytes())
+        gb = GameBoy(Gdx.files.local("roms/09-op r,r.gb").readBytes())
         VisUI.load()
 
         val multi = InputMultiplexer()
