@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 11:07 PM.
+ * This file was last modified at 3/15/21, 12:30 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -76,12 +76,26 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                 it.height(300f).width(500f).expandX()
             }
             visTable {
-                defaults().left().pad(0f).padLeft(2f).expandX()
-                visLabel("DRegs: ") { it.row() }
-                for (reg in arrayOf(DReg.AF, DReg.BC, DReg.DE, DReg.HL)) visLabel("$reg = ${gb.read16(reg).hex16()}") { it.row() }
-                visLabel("SP = ${gb.readSP().hex16()}") { it.row() }
-                visLabel("PC = ${gb.cpu.pc.hex16()}") { it.row() }
-                it.width(200f)
+                visScrollPane {
+                    actor = scene2d.visTable {
+                        defaults().left().pad(0f).padLeft(2f).expandX()
+                        for (i in 0 until 10 step 2) {
+                            val location = gb.cpu.sp - i
+                            visLabel("${location.hex16()} = ${gb.read16(location).hex16()}") { it.row() }
+                        }
+                    }
+                    setScrollingDisabled(true, false)
+                    it.height(300f).width(200f)
+                }
+
+                visTable {
+                    defaults().left().pad(0f).padLeft(2f).expandX()
+                    visLabel("DRegs: ") { it.row() }
+                    for (reg in arrayOf(DReg.AF, DReg.BC, DReg.DE, DReg.HL)) visLabel("$reg = ${gb.read16(reg).hex16()}") { it.row() }
+                    visLabel("SP = ${gb.readSP().hex16()}") { it.row() }
+                    visLabel("PC = ${gb.cpu.pc.hex16()}") { it.row() }
+                    it.width(200f)
+                }
             }
 
             row()
@@ -91,7 +105,7 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                     val addRow = { name: String, row: Int ->
                         var out = "$name:${row.hex16()} "
                         for (by in 0 until 16) {
-                            out += "${gb.read(row + by).hex8()} "
+                            out += "${gb.readAny(row + by).hex8()} "
                         }
                         visLabel(out)
                         row()
@@ -173,6 +187,11 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                 visCheckBox("CPU Logging") {
                     isChecked = gb.debugger.loggingEnable
                     onClick { gb.debugger.loggingEnable = !gb.debugger.loggingEnable }
+                }
+
+                visCheckBox("Slow") {
+                    isChecked = gb.debugger.slow
+                    onClick { gb.debugger.slow = !gb.debugger.slow }
                 }
             }
         }

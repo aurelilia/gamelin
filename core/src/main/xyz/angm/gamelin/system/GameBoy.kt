@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 11:07 PM.
+ * This file was last modified at 3/15/21, 12:33 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -31,7 +31,7 @@ class GameBoy(
 
     fun advanceDelta(delta: Float) {
         if (debugger.emuHalt || cpu.halt) return
-        val target = clock + (CLOCK_SPEED_HZ * delta)
+        val target = clock + (if (debugger.slow) 1 else (CLOCK_SPEED_HZ * delta).toInt())
         while (clock < target && !(debugger.emuHalt || cpu.halt)) advance()
     }
 
@@ -41,7 +41,13 @@ class GameBoy(
         debugger.postAdvance(this)
     }
 
-    fun getNextInst() = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))!!
+    fun getNextInst(): Inst {
+        val inst = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))
+        return if (inst == null) {
+            debugger.emuHalt = true
+            InstSet.instOf(0x0, 0x0)!! // NOP
+        } else inst
+    }
 
     // -----------------------------------
     // Timing
