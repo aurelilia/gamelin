@@ -16,7 +16,7 @@ import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.GameBoy
 
-const val TILE_SIZE = 8
+private const val TILE_SIZE = 8
 private val colors = arrayOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY, Color.BLACK)
 
 class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Float) : Actor(), Disposable {

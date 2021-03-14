@@ -33,9 +33,6 @@ allprojects {
     sourceCompatibility = 1.8
     [compileJava, compileTestJava]*.options*.encoding = "UTF-8"
 
-    sourceSets.main.java.srcDirs = [ "src/" ]
-    sourceSets.main.resources.srcDirs = [ "resources/" ]
-
     version = new SimpleDateFormat("yyyyMMdd").format(new Date())
     ext {
         appName = "gamelin"
@@ -73,6 +70,7 @@ allprojects {
 }
 
 project(":desktop") {
+    sourceSets.main.java.srcDirs = [ "src/" ]
     dependencies {
         implementation project(":core")
         implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
@@ -82,6 +80,8 @@ project(":desktop") {
 }
 
 project(":core") {
+    sourceSets.main.java.srcDirs = [ "src/main/" ]
+    sourceSets.test.java.srcDirs = [ "src/test/" ]
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
         api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
