@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 9:17 PM.
+ * This file was last modified at 3/15/21, 12:41 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -67,7 +67,7 @@ private fun fillSet() = InstSet.apply {
     op[0x35] = Inst(1, 3, "DEC (HL)") { write(read16(HL), sub(read(read16(HL)), 1)) }
 
     bdh.forEachIndexed { i, r -> op[0x06 + (i shl 4)] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
-    op[0x36] = Inst(1, 3, "LD (HL), d8") { write(read16(HL), read(cpu.pc + 1)) }
+    op[0x36] = Inst(2, 3, "LD (HL), d8") { write(read16(HL), read(cpu.pc + 1)) }
 
     op[0x07] = Inst(1, 1, "RLCA") { write(A, rlc(read(A).toByte(), false)) }
     op[0x17] = Inst(1, 1, "RLA") { write(A, rl(read(A).toByte(), false)) }
