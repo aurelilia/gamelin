@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 1:35 PM.
+ * This file was last modified at 3/15/21, 2:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -108,8 +108,8 @@ class PPU(private val gb: GameBoy) : Disposable {
         val tileY = bgMapLine and 7
         var tileAddr = bgMapAddr + ((bgMapLine / 8) * 0x20) + (scrollX ushr 3)
         var tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
-        var high = gb.read(tileDataAddr).toByte()
-        var low = gb.read(tileDataAddr + 1).toByte()
+        var high = gb.read(tileDataAddr + 1).toByte()
+        var low = gb.read(tileDataAddr).toByte()
 
         for (tileIdxAddr in 0 until 160) {
             val colorIdx = (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX)
@@ -120,8 +120,8 @@ class PPU(private val gb: GameBoy) : Disposable {
                 if ((tileAddr and 0x19) == 0x19) tileAddr -= 0x20
                 tileAddr++
                 tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
-                high = gb.read(tileDataAddr).toByte()
-                low = gb.read(tileDataAddr + 1).toByte()
+                high = gb.read(tileDataAddr + 1).toByte()
+                low = gb.read(tileDataAddr).toByte()
             }
         }
     }
@@ -136,12 +136,12 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     private fun renderObj() = Sprite.run {
         if (!(y <= line && (y + 8) > line)) return // Not on this line
-        val palette = if (altPalette) objPalette1 else objPalette2
+        val palette = if (altPalette) objPalette2 else objPalette1
         val tileY = if (yFlip) 7 - (line - y) else line - y
 
         val tileDataAddr = objTileOffset(tilenum) + (tileY * 2)
-        val high = gb.read(tileDataAddr).toByte()
-        val low = gb.read(tileDataAddr + 1).toByte()
+        val high = gb.read(tileDataAddr + 1).toByte()
+        val low = gb.read(tileDataAddr).toByte()
 
         for (tileX in 0 until 8) {
             val colorIdx = if (!xFlip) (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX) else (high.isBit(tileX) shl 1) + low.isBit(tileX)
