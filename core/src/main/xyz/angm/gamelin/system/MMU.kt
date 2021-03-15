@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 10:43 PM.
+ * This file was last modified at 3/15/21, 1:34 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -55,8 +55,13 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
             // Special behavior for:
             // FF04: Timer Divider: Reset it
             // FF07: Timer Control: Only lower 3 bits are used
+            // FF46: OAM DMA
             0xFF04 -> writeAny(addr, 0)
             0xFF07 -> writeAny(addr, value and 7)
+            0xFF46 -> { //TODO timing & blocking reads
+                var source = value.int() shl 8
+                for (dest in 0xFE00..0xFE9F) write(dest.toShort(), read(source++.toShort()))
+            }
 
             else -> writeAny(addr, value)
         }
