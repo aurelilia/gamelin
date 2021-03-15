@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 12:33 AM.
+ * This file was last modified at 3/15/21, 1:34 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,7 +24,7 @@ class GameBoy(
 
     internal val cpu = CPU(this)
     internal val ppu = PPU(this)
-    internal val keyboard = Keyboard()
+    internal val keyboard = Keyboard(this)
     internal val mmu = MMU(this, game)
     private val timer = Timer(this)
     private var clock = 0
