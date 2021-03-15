@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 2:00 PM.
+ * This file was last modified at 3/15/21, 2:54 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -128,14 +128,18 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     // TODO: 8x16 sprite mode
     private fun renderObjs() {
+        var objCount = 0
         for (loc in 0xFE00 until 0xFEA0 step 4) {
             Sprite.dat = gb.read16(loc) + (gb.read16(loc + 2) shl 16)
-            renderObj()
+            if (Sprite.y <= line && (Sprite.y + 8) > line) { // If on this line
+                renderObj()
+                objCount++
+                if (objCount == 10) break // At most 10 object per scanline
+            }
         }
     }
 
     private fun renderObj() = Sprite.run {
-        if (!(y <= line && (y + 8) > line)) return // Not on this line
         val palette = if (altPalette) objPalette2 else objPalette1
         val tileY = if (yFlip) 7 - (line - y) else line - y
 
