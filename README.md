@@ -39,8 +39,6 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ./gradlew desktop:dist
 ```
 
-Game ROM is currently hardcoded in `core/main/src/xyz/angm/gamelin/Gamelin.kt`.
-
 ## Thanks To
 - [Imran Nazar, for their series of blog posts on GB emulation](http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU)
 - [Michael Steil, for The Ultimate Game Boy Talk](https://media.ccc.de/v/33c3-8029-the_ultimate_game_boy_talk)

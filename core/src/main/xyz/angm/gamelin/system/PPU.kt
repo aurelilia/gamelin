@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 2:54 PM.
+ * This file was last modified at 3/15/21, 3:21 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -174,6 +174,12 @@ class PPU(private val gb: GameBoy) : Disposable {
     private fun getBGColorIdx(color: Int) = getColorIdx(bgPalette, color)
 
     private fun getColorIdx(palette: Int, color: Int) = (palette ushr (color * 2)) and 0b11
+
+    fun reset() {
+        mode = OAMScan
+        modeclock = 0
+        line = 0
+    }
 
     override fun dispose() = renderer.dispose()
 }

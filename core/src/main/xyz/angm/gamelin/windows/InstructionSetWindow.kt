@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/12/21, 9:44 PM.
+ * This file was last modified at 3/15/21, 3:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,10 +9,9 @@ package xyz.angm.gamelin.windows
 
 import com.badlogic.gdx.graphics.Color
 import com.kotcrab.vis.ui.widget.VisTextButton
-import com.kotcrab.vis.ui.widget.VisWindow
 import xyz.angm.gamelin.system.Inst
 
-class InstructionSetWindow(name: String, set: Array<Inst?>) : VisWindow(name) {
+class InstructionSetWindow(name: String, set: Array<Inst?>) : Window(name) {
 
     init {
         var idx = 0
@@ -24,6 +23,5 @@ class InstructionSetWindow(name: String, set: Array<Inst?>) : VisWindow(name) {
             if ((--idx % 16) == 0) row()
         }
         pack()
-        addCloseButton()
     }
 }

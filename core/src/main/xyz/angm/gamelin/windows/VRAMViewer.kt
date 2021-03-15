@@ -1,17 +1,16 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/13/21, 9:23 PM.
+ * This file was last modified at 3/15/21, 4:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.windows
 
-import com.kotcrab.vis.ui.widget.VisWindow
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.system.GameBoy
 
-class VRAMViewer(gb: GameBoy) : VisWindow("VRAM Viewer") {
+class VRAMViewer(gb: GameBoy) : Window("VRAM Viewer") {
 
     private val renderer = TileRenderer(gb, 16, 24, 4f)
 

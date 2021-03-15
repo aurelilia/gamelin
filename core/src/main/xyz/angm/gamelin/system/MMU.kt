@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 1:34 AM.
+ * This file was last modified at 3/15/21, 3:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,11 +16,11 @@ import kotlin.experimental.and
 private const val INVALID_READ = 0xFF.toByte()
 private val bootix = file("bootix_dmg.bin").readBytes()
 
-class MMU(private val gb: GameBoy, private val rom: ByteArray) {
+internal class MMU(private val gb: GameBoy) {
 
     // Is there any real reason to have so many byte arrays instead
     // of just one big one?
-    // ROM: 0000-7FFF TODO bank switching
+    private lateinit var rom: ByteArray // ROM: 0000-7FFF TODO bank switching
     private val vram = ByteArray(8_192) // 8000-9FFF
     private val extRam = ByteArray(8_192) // A000-BFFF
     private val ram = ByteArray(8_192) // C000-DFFF
@@ -29,7 +29,12 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
     private val zram = ByteArray(128) // FF80-FFFF
     internal var inBios = true
 
-    internal fun read(addr: Short): Byte {
+    fun load(game: ByteArray) {
+        rom = game
+        inBios = true
+    }
+
+    fun read(addr: Short): Byte {
         // Ensure BIOS gets disabled once it's done
         if (gb.cpu.pc.int() == 0x100) inBios = false
         return when (val a = addr.int()) {
@@ -45,7 +50,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
         }
     }
 
-    internal fun write(addr: Short, value: Byte) {
+    fun write(addr: Short, value: Byte) {
         gb.debugger.writeOccured(addr, value)
         when (val a = addr.int()) {
             // Cannot write to:
@@ -67,7 +72,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
         }
     }
 
-    internal fun readAny(addr: Short): Byte {
+    fun readAny(addr: Short): Byte {
         return when (val a = addr.int()) {
             in 0x0000..0x7FFF -> {
                 if (inBios && addr < 0x0100) bootix[a]
@@ -86,7 +91,7 @@ class MMU(private val gb: GameBoy, private val rom: ByteArray) {
         }
     }
 
-    internal fun writeAny(addr: Short, value: Byte) {
+    fun writeAny(addr: Short, value: Byte) {
         when (val a = addr.int()) {
             in 0x0000..0x7FFF -> rom[a] = value
             in 0x8000..0x9FFF -> vram[a and 0x1FFF] = value

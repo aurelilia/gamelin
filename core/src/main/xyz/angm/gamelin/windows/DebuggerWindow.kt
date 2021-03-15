@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 12:30 AM.
+ * This file was last modified at 3/15/21, 4:21 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,7 +9,6 @@ package xyz.angm.gamelin.windows
 
 import com.badlogic.gdx.graphics.Color
 import com.kotcrab.vis.ui.widget.VisTextField
-import com.kotcrab.vis.ui.widget.VisWindow
 import ktx.actors.onClick
 import ktx.scene2d.horizontalGroup
 import ktx.scene2d.scene2d
@@ -19,7 +18,7 @@ import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.system.*
 
-class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
+class DebuggerWindow(private val gb: GameBoy) : Window("Debugger") {
 
     private val tab = KVisTable(true)
     private var active = true
@@ -81,7 +80,7 @@ class DebuggerWindow(private val gb: GameBoy) : VisWindow("Debugger") {
                         defaults().left().pad(0f).padLeft(2f).expandX()
                         for (i in 0 until 10 step 2) {
                             val location = gb.cpu.sp - i
-                            visLabel("${location.hex16()} = ${gb.read16(location).hex16()}") { it.row() }
+                            visLabel("${(location and 0xFFFF).hex16()} = ${gb.read16(location).hex16()}") { it.row() }
                         }
                     }
                     setScrollingDisabled(true, false)

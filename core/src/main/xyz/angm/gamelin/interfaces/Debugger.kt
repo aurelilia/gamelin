@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 12:23 AM.
+ * This file was last modified at 3/15/21, 3:29 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,7 +16,7 @@ import xyz.angm.gamelin.system.GameBoy
 
 open class Debugger : Disposable {
 
-    var emuHalt = false
+    var emuHalt = true
     var pcBreak = 0
     var pcBreakEnable = false
     var writeBreak = 0

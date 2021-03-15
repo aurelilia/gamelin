@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 2:29 PM.
+ * This file was last modified at 3/15/21, 3:21 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -58,5 +58,13 @@ internal class Timer(private val gb: GameBoy) {
                 gb.requestInterrupt(Interrupt.Timer)
             } else counter++
         }
+    }
+
+    fun reset() {
+        mainClock = 0
+        subClock = 0
+        divClock = 0
+        divider = 0
+        counter = 0
     }
 }

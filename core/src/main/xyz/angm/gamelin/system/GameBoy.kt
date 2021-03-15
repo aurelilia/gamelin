@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 2:23 PM.
+ * This file was last modified at 3/15/21, 4:25 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,19 +15,25 @@ import xyz.angm.gamelin.interfaces.Keyboard
 import kotlin.experimental.and
 
 private const val CLOCK_SPEED_HZ = 4194304
-private const val CPU_CLOCK_SPEED = CLOCK_SPEED_HZ / 4
 
-class GameBoy(
-    game: ByteArray,
-    internal val debugger: Debugger = Debugger()
-) : Disposable {
+class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
 
     internal val cpu = CPU(this)
     internal val ppu = PPU(this)
     internal val keyboard = Keyboard(this)
-    internal val mmu = MMU(this, game)
+    internal val mmu = MMU(this)
     private val timer = Timer(this)
     private var clock = 0
+
+    constructor(game: ByteArray, debugger: Debugger) : this(debugger) {
+        loadGame(game)
+    }
+
+    fun loadGame(game: ByteArray) {
+        mmu.load(game)
+        reset()
+        debugger.emuHalt = false
+    }
 
     fun advanceDelta(delta: Float) {
         if (debugger.emuHalt || cpu.halt) return
@@ -47,6 +53,14 @@ class GameBoy(
             debugger.emuHalt = true
             InstSet.instOf(0x0, 0x0)!! // NOP
         } else inst
+    }
+
+    fun reset() {
+        cpu.reset()
+        ppu.reset()
+        keyboard.reset()
+        timer.reset()
+        clock = 0
     }
 
     // -----------------------------------
