@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 4:25 PM.
+ * This file was last modified at 3/15/21, 4:50 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -74,7 +74,10 @@ class Gamelin : ApplicationAdapter() {
             filter.addRule("GameBoy ROMs (.gb)", "gb")
             chooser.setFileTypeFilter(filter)
             chooser.setListener(object : StreamingFileChooserListener() {
-                override fun selected(file: FileHandle) = gb.loadGame(file.readBytes())
+                override fun selected(file: FileHandle) {
+                    gb.loadGame(file.readBytes())
+                    gbWindow.updateTitle(gb)
+                }
             })
             stage.addActor(chooser)
             chooser.fadeIn()
