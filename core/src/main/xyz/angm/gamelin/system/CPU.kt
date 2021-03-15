@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 1:39 PM.
+ * This file was last modified at 3/15/21, 2:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -38,7 +38,7 @@ internal class CPU(private val gb: GameBoy) {
         }
 
         gb.advanceClock(cyclesTaken)
-        gb.advanceClock(checkInterrupts(ime))
+        gb.advanceClock(checkInterrupts(ime && this.ime))
     }
 
     private fun checkInterrupts(ime: Boolean): Int {
@@ -105,8 +105,7 @@ internal enum class Flag(val position: Int) {
 internal enum class Interrupt(val position: Int, val handlerAddr: Short) {
     VBlank(0, 0x0040),
     LCDC(1, 0x0048),
-
-    // Timer(2, 0x0050),
+    Timer(2, 0x0050),
     Serial(3, 0x0058),
     Joypad(4, 0x0060);
 

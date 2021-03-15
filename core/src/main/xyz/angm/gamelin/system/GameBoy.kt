@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 1:34 PM.
+ * This file was last modified at 3/15/21, 2:23 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -55,7 +55,7 @@ class GameBoy(
     internal fun advanceClock(mCycles: Int) {
         val tCycles = mCycles * 4
         ppu.step(tCycles)
-        timer.step(tCycles)
+        timer.step(mCycles)
         clock += tCycles
     }
 
@@ -257,7 +257,7 @@ class GameBoy(
     // Interrupts
     // -----------------------------------
     internal fun requestInterrupt(interrupt: Interrupt) {
-        write(Interrupt.IF, read(Interrupt.IF) + (1 shl interrupt.position))
+        write(Interrupt.IF, read(Interrupt.IF).toByte().setBit(interrupt.position, 1))
     }
 
     override fun dispose() {

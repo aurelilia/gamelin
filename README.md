@@ -20,9 +20,14 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Automated testing of blargg roms with kotest (`gradle core:test`)
 
 #### Working/Tested games
-- Tetris (1989): Boots to title screen, loops forever and does not react to input
-- Dr. Mario (1990): Menu and some animations way too fast due to missing timer, fully playable otherwise
-- Tic-Tac-Toe (1996, by Norman Nithman): Works with no issue
+##### Perfect with no observable issues
+- Tetris (1989, Nintendo)
+- Tic-Tac-Toe (1996, Norman Nithman)
+
+##### Playable, with issues
+- Dr. Mario (1990, Nintendo): 
+    - Only one half of a pellet is actually recognized (both halves display)
+    - Text of selected music in menu is invisible
 
 ## Build
 
