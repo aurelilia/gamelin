@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 11:04 PM.
+ * This file was last modified at 3/15/21, 1:22 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -144,7 +144,7 @@ class PPU(private val gb: GameBoy) : Disposable {
         val low = gb.read(tileDataAddr + 1).toByte()
 
         for (tileX in 0 until 8) {
-            val colorIdx = if (xFlip) (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX) else (high.isBit(tileX) shl 1) + low.isBit(tileX)
+            val colorIdx = if (!xFlip) (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX) else (high.isBit(tileX) shl 1) + low.isBit(tileX)
             val screenX = x + tileX
             if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || renderer.isClear(screenX, line)))
                 renderer.drawPixel(screenX, line, getColorIdx(palette, colorIdx))
