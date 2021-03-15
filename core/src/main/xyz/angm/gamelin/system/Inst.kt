@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 1:34 AM.
+ * This file was last modified at 3/15/21, 5:47 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -144,7 +144,7 @@ private fun fillSet() = InstSet.apply {
     for (from in regs) {
         op[idx++] = Inst(1, 2, "LD (HL), $from") { write(read16(HL), read(from)) }
     }
-    op[idx++] = Inst(1, 1, "HALT") { }
+    op[idx++] = Inst(1, 1, "HALT") { cpu.halt = true }
     op[idx++] = Inst(1, 2, "LD (HL), A") { write(read16(HL), read(A)) }
     for (from in regs) {
         op[idx++] = Inst(1, 1, "LD A, $from") { write(A, read(from)) }

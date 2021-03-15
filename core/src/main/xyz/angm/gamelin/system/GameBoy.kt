@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 4:25 PM.
+ * This file was last modified at 3/15/21, 8:55 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,15 +12,17 @@ import mu.KotlinLogging
 import xyz.angm.gamelin.*
 import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.interfaces.Keyboard
+import xyz.angm.gamelin.system.sound.Sound
 import kotlin.experimental.and
 
-private const val CLOCK_SPEED_HZ = 4194304
+const val CLOCK_SPEED_HZ = 4194304
 
 class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
 
     internal val cpu = CPU(this)
     internal val ppu = PPU(this)
-    internal val keyboard = Keyboard(this)
+    internal val joypad = Keyboard(this)
+    internal val sound = Sound(this)
     internal val mmu = MMU(this)
     private val timer = Timer(this)
     private var clock = 0
@@ -36,9 +38,9 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     }
 
     fun advanceDelta(delta: Float) {
-        if (debugger.emuHalt || cpu.halt) return
+        if (debugger.emuHalt) return
         val target = clock + (if (debugger.slow) 1 else (CLOCK_SPEED_HZ * delta).toInt())
-        while (clock < target && !(debugger.emuHalt || cpu.halt)) advance()
+        while (clock < target && !debugger.emuHalt) advance()
     }
 
     fun advance() {
@@ -58,7 +60,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     fun reset() {
         cpu.reset()
         ppu.reset()
-        keyboard.reset()
+        joypad.reset()
         timer.reset()
         clock = 0
     }
@@ -70,6 +72,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
         val tCycles = mCycles * 4
         ppu.step(tCycles)
         timer.step(mCycles)
+        sound.step(tCycles)
         clock += tCycles
     }
 

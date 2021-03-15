@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 11:03 PM.
+ * This file was last modified at 3/15/21, 8:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,7 +17,7 @@ fun Byte.rotLeft(dist: Int): Byte = ((this.int() shl dist) or (this.int() ushr (
 fun Byte.int() = this.toInt() and 0xFF
 fun Short.int() = this.toInt() and 0xFFFF
 
-fun Int.isBit(bit: Int) = ((this and (1 shl bit)) shr bit) == 1
+fun Int.isBit(bit: Int) = (this and (1 shl bit)) != 0
 
 fun Number.hex8() = String.format("0x%02X", this)
 fun Number.hex16() = String.format("0x%04X", this)

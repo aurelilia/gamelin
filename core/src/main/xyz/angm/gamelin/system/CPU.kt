@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 3:22 PM.
+ * This file was last modified at 3/15/21, 5:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -21,23 +21,27 @@ internal class CPU(private val gb: GameBoy) {
 
     fun nextInstruction() {
         val ime = this.ime
-        val inst = gb.getNextInst()
-        var cyclesTaken = when (inst) {
-            is BrInst -> {
-                if (inst.executeBr(gb)) inst.cyclesWithBranch
-                else {
-                    pc = (pc + inst.size).toShort()
+
+        if (!halt) {
+            val inst = gb.getNextInst()
+            var cyclesTaken = when (inst) {
+                is BrInst -> {
+                    if (inst.executeBr(gb)) inst.cyclesWithBranch
+                    else {
+                        pc = (pc + inst.size).toShort()
+                        inst.cycles
+                    }
+                }
+                else -> {
+                    inst.execute(gb)
+                    if (inst.incPC) pc = (pc + inst.size).toShort()
                     inst.cycles
                 }
             }
-            else -> {
-                inst.execute(gb)
-                if (inst.incPC) pc = (pc + inst.size).toShort()
-                inst.cycles
-            }
-        }
 
-        gb.advanceClock(cyclesTaken)
+            gb.advanceClock(cyclesTaken)
+        } else gb.advanceClock(1)
+
         gb.advanceClock(checkInterrupts(ime && this.ime))
     }
 

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 3:19 PM.
+ * This file was last modified at 3/15/21, 9:23 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -46,6 +46,12 @@ internal class MMU(private val gb: GameBoy) {
                 INVALID_READ
             }
 
+            // Special behavior for:
+            // FF00: Joypad: Redirect it
+            // FF10-FF23: Sound Channels: Redirect it
+            0xFF00 -> gb.joypad.read()
+            in 0xFF10..0xFF23 -> gb.sound.channelRead(addr).toByte()
+
             else -> readAny(addr)
         }
     }
@@ -58,11 +64,17 @@ internal class MMU(private val gb: GameBoy) {
             0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
 
             // Special behavior for:
+            // FF00: Joypad: Redirect it
             // FF04: Timer Divider: Reset it
             // FF07: Timer Control: Only lower 3 bits are used
+            // FF10-FF23: Sound Channels: Redirect it
+            // FF26: Sound Enable: Redirect to sound system to allow start/stop of sound
             // FF46: OAM DMA
+            0xFF00 -> gb.joypad.write(value)
             0xFF04 -> writeAny(addr, 0)
             0xFF07 -> writeAny(addr, value and 7)
+            in 0xFF10..0xFF23 -> gb.sound.channelWrite(addr, value)
+            0xFF26 -> gb.sound.enableWritten(value)
             0xFF46 -> { //TODO timing & blocking reads
                 var source = value.int() shl 8
                 for (dest in 0xFE00..0xFE9F) write(dest.toShort(), read(source++.toShort()))
@@ -84,8 +96,7 @@ internal class MMU(private val gb: GameBoy) {
             in 0xE000..0xFDFF -> ram[a and 0x1FFF]
             in 0xFE00..0xFE9F -> oam[a and 0xFF]
             in 0xFEA0..0xFEFF -> 0
-            0xFF00 -> gb.keyboard.read()
-            in 0xFF01..0xFF7F -> mmIO[a and 0x7F]
+            in 0xFF00..0xFF7F -> mmIO[a and 0x7F]
             in 0xFF80..0xFFFF -> zram[a and 0x7F]
             else -> throw IndexOutOfBoundsException("what ${a.toString(16)}")
         }
@@ -100,8 +111,7 @@ internal class MMU(private val gb: GameBoy) {
             in 0xE000..0xFDFF -> ram[a and 0x1FFF] = value
             in 0xFE00..0xFE9F -> oam[a and 0xFF] = value
             in 0xFEA0..0xFEFF -> Unit
-            0xFF00 -> gb.keyboard.write(value)
-            in 0xFF01..0xFF7F -> mmIO[a and 0x7F] = value
+            in 0xFF00..0xFF7F -> mmIO[a and 0x7F] = value
             in 0xFF80..0xFFFF -> zram[a and 0x7F] = value
             else -> throw IndexOutOfBoundsException("what ${a.toString(16)}")
         }

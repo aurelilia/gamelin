@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 4:50 PM.
+ * This file was last modified at 3/15/21, 7:24 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -47,7 +47,7 @@ class Gamelin : ApplicationAdapter() {
         root = VisTable()
 
         val multi = InputMultiplexer()
-        multi.addProcessor(gb.keyboard)
+        multi.addProcessor(gb.joypad)
         multi.addProcessor(stage)
         multi.addProcessor(hotkeyHandler)
         Gdx.input.inputProcessor = multi
