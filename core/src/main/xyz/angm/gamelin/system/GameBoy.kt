@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:00 PM.
+ * This file was last modified at 3/16/21, 6:57 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,11 @@ import mu.KotlinLogging
 import xyz.angm.gamelin.*
 import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.interfaces.Keyboard
-import xyz.angm.gamelin.system.sound.Sound
+import xyz.angm.gamelin.system.cpu.*
+import xyz.angm.gamelin.system.io.MMU
+import xyz.angm.gamelin.system.io.PPU
+import xyz.angm.gamelin.system.io.Timer
+import xyz.angm.gamelin.system.io.sound.Sound
 import kotlin.experimental.and
 
 const val CLOCK_SPEED_HZ = 4194304
@@ -284,7 +288,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     // Interrupts
     // -----------------------------------
     internal fun requestInterrupt(interrupt: Interrupt) {
-        write(Interrupt.IF, read(Interrupt.IF).toByte().setBit(interrupt.position, 1))
+        write(MMU.IF, read(MMU.IF).toByte().setBit(interrupt.position, 1))
     }
 
     override fun dispose() {

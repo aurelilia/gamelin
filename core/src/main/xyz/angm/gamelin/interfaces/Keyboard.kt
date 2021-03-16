@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 3:21 PM.
+ * This file was last modified at 3/16/21, 6:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.system.GameBoy
-import xyz.angm.gamelin.system.Interrupt
+import xyz.angm.gamelin.system.cpu.Interrupt
 
 private val row0Keys = arrayOf(Input.Keys.Z, Input.Keys.X, Input.Keys.SPACE, Input.Keys.ENTER).reversedArray()
 private val row1Keys = arrayOf(Input.Keys.RIGHT, Input.Keys.LEFT, Input.Keys.UP, Input.Keys.DOWN).reversedArray()

@@ -1,18 +1,20 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 3:21 PM.
+ * This file was last modified at 3/16/21, 7:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.system
+package xyz.angm.gamelin.system.io
 
 import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.isBit_
 import xyz.angm.gamelin.setBit
-import xyz.angm.gamelin.system.GPUMode.*
+import xyz.angm.gamelin.system.GameBoy
+import xyz.angm.gamelin.system.cpu.Interrupt
+import xyz.angm.gamelin.system.io.GPUMode.*
 
 class PPU(private val gb: GameBoy) : Disposable {
 

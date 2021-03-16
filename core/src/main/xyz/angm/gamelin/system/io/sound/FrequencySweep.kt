@@ -1,11 +1,11 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 11:01 AM.
+ * This file was last modified at 3/16/21, 6:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.system.sound
+package xyz.angm.gamelin.system.io.sound
 
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit

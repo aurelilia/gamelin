@@ -1,14 +1,16 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 5:52 PM.
+ * This file was last modified at 3/16/21, 6:57 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.system
+package xyz.angm.gamelin.system.cpu
 
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.isBit
+import xyz.angm.gamelin.system.GameBoy
+import xyz.angm.gamelin.system.io.MMU
 import kotlin.experimental.and
 
 internal class CPU(private val gb: GameBoy) {
@@ -48,9 +50,9 @@ internal class CPU(private val gb: GameBoy) {
     private fun checkInterrupts(ime: Boolean): Int {
         if (!ime) return 0
         for (interrupt in Interrupt.values()) {
-            if (interrupt.isSet(gb.read(Interrupt.IE)) && interrupt.isSet(gb.read(Interrupt.IF))) {
+            if (interrupt.isSet(gb.read(MMU.IE)) && interrupt.isSet(gb.read(MMU.IF))) {
                 halt = false
-                gb.write(Interrupt.IF, gb.read(Interrupt.IF) xor (1 shl interrupt.position))
+                gb.write(MMU.IF, gb.read(MMU.IF) xor (1 shl interrupt.position))
                 this.ime = false
                 gb.pushS(pc.int())
                 pc = interrupt.handlerAddr
@@ -121,9 +123,4 @@ internal enum class Interrupt(val position: Int, val handlerAddr: Short) {
     Joypad(4, 0x0060);
 
     fun isSet(reg: Int) = reg.isBit(position)
-
-    companion object {
-        const val IF = 0xFF0F
-        const val IE = 0xFFFF
-    }
 }

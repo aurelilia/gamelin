@@ -1,17 +1,18 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 5:47 PM.
+ * This file was last modified at 3/16/21, 6:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.system
+package xyz.angm.gamelin.system.cpu
 
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.setBit
-import xyz.angm.gamelin.system.DReg.*
-import xyz.angm.gamelin.system.Flag.*
-import xyz.angm.gamelin.system.Reg.*
+import xyz.angm.gamelin.system.GameBoy
+import xyz.angm.gamelin.system.cpu.DReg.*
+import xyz.angm.gamelin.system.cpu.Flag.*
+import xyz.angm.gamelin.system.cpu.Reg.*
 
 open class Inst(val size: Short, val cycles: Int, val name: String, val incPC: Boolean = true, val execute: GameBoy.() -> Unit)
 

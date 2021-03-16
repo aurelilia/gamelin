@@ -1,16 +1,17 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 10:47 AM.
+ * This file was last modified at 3/16/21, 7:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.system
+package xyz.angm.gamelin.system.io
 
 import ktx.assets.file
 import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
+import xyz.angm.gamelin.system.GameBoy
 import kotlin.experimental.and
 
 private const val INVALID_READ = 0xFF.toByte()
@@ -19,6 +20,42 @@ private val bootix = file("bootix_dmg.bin").readBytes()
 internal class MMU(private val gb: GameBoy) {
 
     companion object {
+        const val BIOS_PC_END = 0x0100
+
+        // LCD
+        const val VBK = 0xFF4F
+        const val LCDC = 0xFF40
+        const val LY = 0xFF44
+        const val LYC = 0xFF45
+        const val STAT = 0xFF41
+        const val SCY = 0xFF42
+        const val SCX = 0xFF43
+        const val WY = 0xFF4A
+        const val WX = 0xFF4B
+        const val BGP = 0xFF47
+        const val OBP0 = 0xFF48
+        const val OBP1 = 0xFF49
+        const val BCPS = 0xFF68
+        const val BCPD = 0xFF69
+        const val OCPS = 0xFF6A
+        const val OCPD = 0xFF6B
+
+        // Interrupts
+        const val IF = 0xFF0F
+        const val IE = 0xFFFF
+
+        // Timer
+        const val DIV = 0xFF04
+        const val TIMA = 0xFF05
+        const val TMA = 0xFF06
+        const val TAC = 0xFF07
+
+        // Joypad
+        const val P1 = 0xFF00
+
+        // DMA
+        const val DMA = 0xFF46
+
         // Sound
         const val NR10 = 0xFF10
         const val NR11 = 0xFF11

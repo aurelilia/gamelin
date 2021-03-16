@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 5:45 PM.
+ * This file was last modified at 3/16/21, 7:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -11,8 +11,8 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.int
-import xyz.angm.gamelin.system.DReg
 import xyz.angm.gamelin.system.GameBoy
+import xyz.angm.gamelin.system.cpu.DReg
 
 open class Debugger : Disposable {
 
