@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 9:20 PM.
+ * This file was last modified at 3/17/21, 12:45 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,10 +9,9 @@ package xyz.angm.gamelin.system.io
 
 import xyz.angm.gamelin.addrOutOfBounds
 import xyz.angm.gamelin.isBit
-import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
 
-internal class Timer(private val gb: GameBoy) {
+internal class Timer(private val mmu: MMU) : IODevice() {
 
     private var tCycleCount = 0
     private var counterTimer = 0
@@ -32,7 +31,7 @@ internal class Timer(private val gb: GameBoy) {
             interruptIn--
             if (interruptIn == 0) {
                 counter = modulo
-                gb.requestInterrupt(Interrupt.Timer)
+                mmu.requestInterrupt(Interrupt.Timer)
             }
         }
 
@@ -45,7 +44,7 @@ internal class Timer(private val gb: GameBoy) {
         }
     }
 
-    fun read(addr: Int): Int {
+    override fun read(addr: Int): Int {
         return when (addr) {
             MMU.DIV -> (tCycleCount ushr 8) and 0xFF
             MMU.TIMA -> counter
@@ -55,7 +54,7 @@ internal class Timer(private val gb: GameBoy) {
         }
     }
 
-    fun write(addr: Int, value: Int) {
+    override fun write(addr: Int, value: Int) {
         when (addr) {
             MMU.DIV -> divider = 0
             MMU.TIMA -> counter = value

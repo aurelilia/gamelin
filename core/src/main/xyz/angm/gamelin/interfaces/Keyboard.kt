@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/17/21, 12:44 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -11,13 +11,13 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputAdapter
 import xyz.angm.gamelin.int
-import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
+import xyz.angm.gamelin.system.io.MMU
 
 private val row0Keys = arrayOf(Input.Keys.Z, Input.Keys.X, Input.Keys.SPACE, Input.Keys.ENTER).reversedArray()
 private val row1Keys = arrayOf(Input.Keys.RIGHT, Input.Keys.LEFT, Input.Keys.UP, Input.Keys.DOWN).reversedArray()
 
-class Keyboard(private val gb: GameBoy) : InputAdapter() {
+internal class Keyboard(private val mmu: MMU) : InputAdapter() {
 
     private var column = 0
 
@@ -43,7 +43,7 @@ class Keyboard(private val gb: GameBoy) : InputAdapter() {
     }
 
     override fun keyDown(keycode: Int): Boolean {
-        if ((read().int() and 0x0F) != 0x0F) gb.requestInterrupt(Interrupt.Joypad)
+        if ((read().int() and 0x0F) != 0x0F) mmu.requestInterrupt(Interrupt.Joypad)
         return false
     }
 

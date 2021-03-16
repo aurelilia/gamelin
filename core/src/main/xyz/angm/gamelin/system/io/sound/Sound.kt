@@ -1,18 +1,20 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 11:41 PM.
+ * This file was last modified at 3/17/21, 12:41 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io.sound
 
+import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.interfaces.AudioOutput
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
+import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
 
-class Sound {
+class Sound : IODevice(), Disposable {
 
     var output = AudioOutput()
     private var outDiv = 0
@@ -72,12 +74,12 @@ class Sound {
         }
     }
 
-    fun read(address: Int): Int {
-        return when (address) {
-            in MMU.NR10..MMU.NR14 -> square1.readByte(address)
-            in MMU.NR21..MMU.NR24 -> square2.readByte(address)
-            in MMU.NR30..MMU.NR34, in 0xFF30..0xFF3F -> wave.readByte(address)
-            in MMU.NR41..MMU.NR44 -> noise.readByte(address)
+    override fun read(addr: Int): Int {
+        return when (addr) {
+            in MMU.NR10..MMU.NR14 -> square1.readByte(addr)
+            in MMU.NR21..MMU.NR24 -> square2.readByte(addr)
+            in MMU.NR30..MMU.NR34, in 0xFF30..0xFF3F -> wave.readByte(addr)
+            in MMU.NR41..MMU.NR44 -> noise.readByte(addr)
             MMU.NR50 -> ((volumeRight) or (volumeLeft shl 4)).setBit(7, vinLeft).setBit(3, vinRight)
             MMU.NR51 -> {
                 var result = 0
@@ -100,19 +102,19 @@ class Sound {
         }
     }
 
-    fun write(address: Int, value: Int) {
+    override fun write(addr: Int, value: Int) {
         // When powered off, all registers (NR10-NR51) are instantly written with zero and any writes to those
         // registers are ignored while power remains off (except on the DMG, where length counters are
         // unaffected by power and can still be written while off)
-        if (!enabled && address != MMU.NR52 && address != MMU.NR11 && address != MMU.NR21 && address != MMU.NR31 && address != MMU.NR41) {
+        if (!enabled && addr != MMU.NR52 && addr != MMU.NR11 && addr != MMU.NR21 && addr != MMU.NR31 && addr != MMU.NR41) {
             return
         }
 
-        when (address) {
-            in MMU.NR10..MMU.NR14 -> square1.writeByte(address, value)
-            in MMU.NR21..MMU.NR24 -> square2.writeByte(address, value)
-            in MMU.NR30..MMU.NR34, in 0xFF30..0xFF3F -> wave.writeByte(address, value)
-            in MMU.NR41..MMU.NR44 -> noise.writeByte(address, value)
+        when (addr) {
+            in MMU.NR10..MMU.NR14 -> square1.writeByte(addr, value)
+            in MMU.NR21..MMU.NR24 -> square2.writeByte(addr, value)
+            in MMU.NR30..MMU.NR34, in 0xFF30..0xFF3F -> wave.writeByte(addr, value)
+            in MMU.NR41..MMU.NR44 -> noise.writeByte(addr, value)
             MMU.NR50 -> {
                 vinLeft = value.isBit(7)
                 vinRight = value.isBit(3)
@@ -145,4 +147,6 @@ class Sound {
             }
         }
     }
+
+    override fun dispose() = output.dispose()
 }
