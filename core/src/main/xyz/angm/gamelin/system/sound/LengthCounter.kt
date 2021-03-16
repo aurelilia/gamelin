@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 8:55 PM.
+ * This file was last modified at 3/16/21, 10:47 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,55 +10,71 @@ package xyz.angm.gamelin.system.sound
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
-class LengthCounter(private val fullLength: Int) {
+class LengthCounter(private val fullLength: Int, private val soundChannel: SoundChannel) {
 
-    var value = 0
+    private val DIVIDER = CLOCK_SPEED_HZ / 256
+
+    var length = 0
         private set
-    private var i: Long = 0
-    var isEnabled = false
+
+    private var counter = 0
+    var lengthEnabled = false
         private set
 
-    fun start() {
-        i = 8192
-    }
-
-    fun cycle() {
-        if (++i == DIVIDER) {
-            i = 0
-            if (isEnabled && value > 0) value--
-        }
-    }
-
-    fun setLength(length: Int) {
-        if (length == 0) {
-            this.value = fullLength
-        } else {
-            this.value = length
-        }
-    }
-
-    fun setNr4(value: Int) {
-        val enable = value.isBit(6)
-        val trigger = value.isBit(7)
-        if (isEnabled) {
-            if (this.value == 0 && trigger) {
-                if (enable && i < DIVIDER / 2) setLength(fullLength - 1)
-                else setLength(fullLength)
-            }
-        } else if (enable) {
-            if (this.value > 0 && i < DIVIDER / 2) this.value--
-            if (this.value == 0 && trigger && i < DIVIDER / 2) setLength(fullLength - 1)
-        } else if (this.value == 0 && trigger) setLength(fullLength)
-        isEnabled = enable
+    init {
+        reset()
     }
 
     fun reset() {
-        isEnabled = true
-        i = 0
-        value = 0
+        this.lengthEnabled = false
+        this.counter = 0
+        this.length = fullLength
     }
 
-    companion object {
-        private const val DIVIDER = CLOCK_SPEED_HZ / 256.toLong()
+    fun tick() {
+        counter++
+        if (counter == DIVIDER) {
+            counter = 0
+            if (lengthEnabled && length > 0) {
+                decreaseLength()
+            }
+        }
+    }
+
+    fun setNr1(value: Int) {
+        this.length = if (value == 0) fullLength else fullLength - value
+    }
+
+    fun setNr4(value: Int) {
+        val wasEnabled = lengthEnabled
+        lengthEnabled = value.isBit(6)
+
+        /* Extra length clocking occurs when writing to NRx4 when the frame sequencer's next step is one that doesn't clock the length counter.
+         * In this case, if the length counter was PREVIOUSLY disabled and now enabled and the length counter is not zero, it is decremented.
+         */
+        if (!wasEnabled && lengthEnabled && length != 0) {
+            if (counter < DIVIDER / 2) {
+                decreaseLength()
+            }
+        }
+
+        if (value.isBit(7) && length == 0) {
+            length = fullLength
+
+            /* If a channel is triggered when the frame sequencer's next step is one that doesn't clock the length counter and the
+             * length counter is now enabled and length is being set to 64 (256 for wave channel) because it was previously zero,
+             * it is set to 63 instead (255 for wave channel).
+             */
+            if (counter < DIVIDER / 2 && lengthEnabled) {
+                decreaseLength()
+            }
+        }
+    }
+
+    private fun decreaseLength() {
+        length--
+        if (length == 0) {
+            soundChannel.enabled = false
+        }
     }
 }

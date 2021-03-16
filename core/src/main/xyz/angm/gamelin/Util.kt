@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 8:38 PM.
+ * This file was last modified at 3/16/21, 10:47 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,6 +18,9 @@ fun Byte.int() = this.toInt() and 0xFF
 fun Short.int() = this.toInt() and 0xFFFF
 
 fun Int.isBit(bit: Int) = (this and (1 shl bit)) != 0
+fun Int.setBit(bit: Int, bitState: Int) = (this and ((1 shl bit) xor 0xFF)) or (bitState shl bit)
+fun Int.setBit(bit: Int) = setBit(bit, 1)
+fun Int.setBit(bit: Int, bitState: Boolean) = (this and ((1 shl bit) xor 0xFF)) or (if (bitState) 1 shl bit else 0)
 
 fun Number.hex8() = String.format("0x%02X", this)
 fun Number.hex16() = String.format("0x%04X", this)

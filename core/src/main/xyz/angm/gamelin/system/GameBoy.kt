@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 8:55 PM.
+ * This file was last modified at 3/16/21, 10:47 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     internal val cpu = CPU(this)
     internal val ppu = PPU(this)
     internal val joypad = Keyboard(this)
-    internal val sound = Sound(this)
+    internal val sound = Sound()
     internal val mmu = MMU(this)
     private val timer = Timer(this)
     private var clock = 0
@@ -280,6 +280,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     override fun dispose() {
         ppu.dispose()
         debugger.dispose()
+        sound.output.dispose()
     }
 
     internal companion object {

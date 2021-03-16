@@ -1,40 +1,67 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 11:23 PM.
+ * This file was last modified at 3/16/21, 10:47 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.sound
 
+import xyz.angm.gamelin.isBit
+import xyz.angm.gamelin.setBit
+
 class PolynomialCounter {
 
+    private var clockShift = 0
+    private var divisorCode = 0
     private var shiftedDivisor = 0
-    private var i = 0
+    private var counter = 0
+    var width7 = false
+
+    init {
+        reset()
+    }
+
+    fun reset() {
+        shiftedDivisor = 0
+        counter = 0
+        clockShift = 0
+        divisorCode = 0
+        width7 = false
+    }
+
+    fun getNr43(): Int {
+        var result = clockShift shl 4
+        result = result.setBit(3, width7)
+        result = result or divisorCode
+        return result
+    }
 
     fun setNr43(value: Int) {
-        val clockShift = value shr 4
-        val divisor = when (value and 7) {
-            0 -> 8
-            1 -> 16
-            2 -> 32
-            3 -> 48
-            4 -> 64
-            5 -> 80
-            6 -> 96
-            7 -> 112
-            else -> throw IllegalStateException()
+        width7 = value.isBit(3)
+        clockShift = value shr 4
+
+        divisorCode = value and 0b111
+        val divisor = if (divisorCode == 0) {
+            8
+        } else {
+            divisorCode shl 4
         }
+
         shiftedDivisor = divisor shl clockShift
-        i = 1
     }
 
     fun tick(): Boolean {
-        return if (--i == 0) {
-            i = shiftedDivisor
+        counter--
+        return if (counter == 0) {
+            counter = shiftedDivisor * 4
             true
         } else {
             false
         }
+    }
+
+    fun trigger() {
+        counter = shiftedDivisor * 4
     }
 }

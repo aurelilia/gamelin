@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 9:23 PM.
+ * This file was last modified at 3/16/21, 10:47 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,6 +17,35 @@ private const val INVALID_READ = 0xFF.toByte()
 private val bootix = file("bootix_dmg.bin").readBytes()
 
 internal class MMU(private val gb: GameBoy) {
+
+    companion object {
+        // Sound
+        const val NR10 = 0xFF10
+        const val NR11 = 0xFF11
+        const val NR12 = 0xFF12
+        const val NR13 = 0xFF13
+        const val NR14 = 0xFF14
+
+        const val NR21 = 0xFF16
+        const val NR22 = 0xFF17
+        const val NR23 = 0xFF18
+        const val NR24 = 0xFF19
+
+        const val NR30 = 0xFF1A
+        const val NR31 = 0xFF1B
+        const val NR32 = 0xFF1C
+        const val NR33 = 0xFF1D
+        const val NR34 = 0xFF1E
+
+        const val NR41 = 0xFF20
+        const val NR42 = 0xFF21
+        const val NR43 = 0xFF22
+        const val NR44 = 0xFF23
+
+        const val NR50 = 0xFF24
+        const val NR51 = 0xFF25
+        const val NR52 = 0xFF26
+    }
 
     // Is there any real reason to have so many byte arrays instead
     // of just one big one?
@@ -50,7 +79,7 @@ internal class MMU(private val gb: GameBoy) {
             // FF00: Joypad: Redirect it
             // FF10-FF23: Sound Channels: Redirect it
             0xFF00 -> gb.joypad.read()
-            in 0xFF10..0xFF23 -> gb.sound.channelRead(addr).toByte()
+            in NR10..NR52 -> gb.sound.readByte(addr.int()).toByte()
 
             else -> readAny(addr)
         }
@@ -68,13 +97,11 @@ internal class MMU(private val gb: GameBoy) {
             // FF04: Timer Divider: Reset it
             // FF07: Timer Control: Only lower 3 bits are used
             // FF10-FF23: Sound Channels: Redirect it
-            // FF26: Sound Enable: Redirect to sound system to allow start/stop of sound
             // FF46: OAM DMA
             0xFF00 -> gb.joypad.write(value)
             0xFF04 -> writeAny(addr, 0)
             0xFF07 -> writeAny(addr, value and 7)
-            in 0xFF10..0xFF23 -> gb.sound.channelWrite(addr, value)
-            0xFF26 -> gb.sound.enableWritten(value)
+            in NR10..NR52 -> gb.sound.writeByte(addr.int(), value.int())
             0xFF46 -> { //TODO timing & blocking reads
                 var source = value.int() shl 8
                 for (dest in 0xFE00..0xFE9F) write(dest.toShort(), read(source++.toShort()))

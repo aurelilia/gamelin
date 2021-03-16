@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 9:02 PM.
+ * This file was last modified at 3/16/21, 11:01 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,66 +8,67 @@
 package xyz.angm.gamelin.system.sound
 
 import xyz.angm.gamelin.isBit
+import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
-class FrequencySweep {
+class FrequencySweep(private val soundChannel: SoundChannel) {
 
-    // sweep parameters
+    private val DIVIDER = CLOCK_SPEED_HZ / 128
+
+    private var timer = 0
+    private var sweepEnabled = false
+    private var shift = 0
+    private var shadowRegister = 0
+    private var frequency = 0
     private var period = 0
     private var negate = false
-    private var shift = 0
+    private var counter = 0
 
-    // current process variables
-    private var timer = 0
-    private var shadowFreq = 0
+    /* Clearing the sweep negate mode bit in NR10 after at least one sweep calculation has been made
+     * using the negate mode since the last trigger causes the channel to be immediately disabled.
+     */
+    private var calculationMade = false
 
-    var nr13 = 0
-    var nr14 = 0
-        set(value) {
-            field = value
-            if (value and (1 shl 7) != 0) trigger()
-        }
-
-    private var i = 0
-    private var overflow = false
-    private var counterEnabled = false
-    private var negging = false
-
-    fun start() {
-        counterEnabled = false
-        i = 8192
+    init {
+        reset()
     }
 
-    fun trigger() {
-        negging = false
-        overflow = false
-        shadowFreq = nr13 or (nr14 and 7 shl 8)
-        timer = if (period == 0) 8 else period
-        counterEnabled = period != 0 || shift != 0
-        if (shift > 0) {
-            calculate()
-        }
+    fun powerOn() {
+        counter %= 8192
     }
 
-    fun setNr10(value: Int) {
-        period = value shr 4 and 7
-        negate = value.isBit(3)
-        shift = value and 7
-        if (negging && !negate) overflow = true
+    fun reset() {
+        timer = 0
+        sweepEnabled = false
+        shift = 0
+        shadowRegister = 0
+        frequency = 0
+        period = 0
+        negate = false
+        counter = 0
+        calculationMade = false
     }
 
-    fun cycle() {
-        if (++i == DIVIDER) {
-            i = 0
-            if (!counterEnabled) return
-            if (--timer == 0) {
+    fun tick() {
+        counter++
+        if (counter == DIVIDER) {
+            counter = 0
+
+            if (!sweepEnabled)
+                return
+
+            timer--
+            if (timer == 0) {
                 timer = if (period == 0) 8 else period
+
                 if (period != 0) {
-                    val newFreq = calculate()
-                    if (!overflow && shift != 0) {
-                        shadowFreq = newFreq
-                        nr13 = shadowFreq and 0xff
-                        nr14 = shadowFreq and 0x700 shr 8
+                    val freq = calculate()
+
+                    // If overflow enabled will be false
+                    if (sweepEnabled && shift != 0) {
+                        frequency = freq
+                        shadowRegister = freq
+
                         calculate()
                     }
                 }
@@ -75,19 +76,69 @@ class FrequencySweep {
         }
     }
 
-    private fun calculate(): Int {
-        var freq = shadowFreq shr shift
-        if (negate) {
-            freq = shadowFreq - freq
-            negging = true
-        } else freq += shadowFreq
-        if (freq > 2047) overflow = true
-        return freq
+    fun setNr10(value: Int) {
+        period = (value shr 4) and 0b111 // Bits 654 period
+        val newNegate = value.isBit(3)    // Bit 3 negate
+        shift = value and 0b111          // Bits 210 shift
+
+        if (newNegate && !negate) {
+            calculationMade = false
+        }
+
+        if (calculationMade && negate && !newNegate) {
+            sweepEnabled = false
+            soundChannel.enabled = false
+        }
+
+        negate = newNegate
     }
 
-    fun isEnabled() = !overflow
+    fun setNr13(value: Int) {
+        frequency = (frequency and 0b11100000000) or value
+    }
 
-    companion object {
-        private const val DIVIDER: Int = CLOCK_SPEED_HZ / 128
+    fun setNr14(value: Int) {
+        frequency = (frequency and 0b11111111) or ((value and 0b111) shl 8)
+    }
+
+    fun getNr10(): Int {
+        var result = 0b10000000
+        result = result or shift
+        result = result.setBit(3, negate)
+        result = result or (period shl 4)
+        return result
+    }
+
+    fun trigger() {
+        shadowRegister = frequency
+        timer = if (period == 0) 8 else period
+        sweepEnabled = period != 0 || shift != 0
+        calculationMade = false
+
+        if (shift > 0) {
+            frequency = calculate()
+        }
+    }
+
+    fun getFrequency(): Int {
+        return 2048 - frequency
+    }
+
+    private fun calculate(): Int {
+        calculationMade = true
+
+        var freq = shadowRegister shr shift
+        freq = if (negate) {
+            shadowRegister - freq
+        } else {
+            shadowRegister + freq
+        }
+
+        if (freq > 2047) {
+            sweepEnabled = false
+            soundChannel.enabled = false
+        }
+
+        return freq
     }
 }
