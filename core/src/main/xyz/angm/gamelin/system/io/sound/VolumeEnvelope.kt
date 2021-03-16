@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,8 +13,6 @@ import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
 class VolumeEnvelope {
 
-    private val DIVIDER = CLOCK_SPEED_HZ / 64
-
     private var add = false
     private var startingVolume = 0
     var volume = 0
@@ -22,25 +20,21 @@ class VolumeEnvelope {
     private var counter = 0
     private var enabled = false
 
-    init {
-        reset()
-    }
-
     fun powerOn() {
         counter %= 8192
     }
 
     fun reset() {
-        this.enabled = false
-        this.counter = 0
-        this.volume = 0
-        this.startingVolume = 0
-        this.add = false
-        this.period = 0
+        enabled = false
+        counter = 0
+        volume = 0
+        startingVolume = 0
+        add = false
+        period = 0
     }
 
-    fun tick() {
-        counter++
+    fun cycle(cycles: Int) {
+        counter += cycles
         if (period > 0 && counter >= period * DIVIDER) {
             counter = 0
 
@@ -73,13 +67,15 @@ class VolumeEnvelope {
         return result
     }
 
-    fun getDac(): Boolean {
-        // If any of the upper 5 bits is enabled, dac is enabled
-        return (getNr2() and 0b11111000) != 0
-    }
+    // If any of the upper 5 bits is enabled, dac is enabled
+    fun getDac() = (getNr2() and 0b11111000) != 0
 
     fun trigger() {
-        this.volume = startingVolume
-        this.enabled = true
+        volume = startingVolume
+        enabled = true
+    }
+
+    companion object {
+        private const val DIVIDER = CLOCK_SPEED_HZ / 64
     }
 }

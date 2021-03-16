@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:48 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,8 +13,6 @@ import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
 class FrequencySweep(private val soundChannel: SoundChannel) {
 
-    private val DIVIDER = CLOCK_SPEED_HZ / 128
-
     private var timer = 0
     private var sweepEnabled = false
     private var shift = 0
@@ -25,13 +23,8 @@ class FrequencySweep(private val soundChannel: SoundChannel) {
     private var counter = 0
 
     /* Clearing the sweep negate mode bit in NR10 after at least one sweep calculation has been made
-     * using the negate mode since the last trigger causes the channel to be immediately disabled.
-     */
+     * using the negate mode since the last trigger causes the channel to be immediately disabled. */
     private var calculationMade = false
-
-    init {
-        reset()
-    }
 
     fun powerOn() {
         counter %= 8192
@@ -49,13 +42,11 @@ class FrequencySweep(private val soundChannel: SoundChannel) {
         calculationMade = false
     }
 
-    fun tick() {
-        counter++
-        if (counter == DIVIDER) {
-            counter = 0
-
-            if (!sweepEnabled)
-                return
+    fun cycle(cycles: Int) {
+        counter += cycles
+        if (counter > DIVIDER) {
+            counter -= DIVIDER
+            if (!sweepEnabled) return
 
             timer--
             if (timer == 0) {
@@ -63,12 +54,10 @@ class FrequencySweep(private val soundChannel: SoundChannel) {
 
                 if (period != 0) {
                     val freq = calculate()
-
                     // If overflow enabled will be false
                     if (sweepEnabled && shift != 0) {
                         frequency = freq
                         shadowRegister = freq
-
                         calculate()
                     }
                 }
@@ -120,19 +109,13 @@ class FrequencySweep(private val soundChannel: SoundChannel) {
         }
     }
 
-    fun getFrequency(): Int {
-        return 2048 - frequency
-    }
+    fun getFrequency() = 2048 - frequency
 
     private fun calculate(): Int {
         calculationMade = true
 
         var freq = shadowRegister shr shift
-        freq = if (negate) {
-            shadowRegister - freq
-        } else {
-            shadowRegister + freq
-        }
+        freq = if (negate) shadowRegister - freq else shadowRegister + freq
 
         if (freq > 2047) {
             sweepEnabled = false
@@ -140,5 +123,9 @@ class FrequencySweep(private val soundChannel: SoundChannel) {
         }
 
         return freq
+    }
+
+    companion object {
+        private const val DIVIDER = CLOCK_SPEED_HZ / 128
     }
 }

@@ -1,13 +1,12 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:41 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io.sound
 
-import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.io.MMU
@@ -21,25 +20,19 @@ class WaveChannel : SoundChannel() {
     private var frequency = 0
     private var timer = 0
     private var positionCounter = 0
-
     override val lengthCounter = LengthCounter(256, this)
 
-    init {
-        reset()
-    }
-
     override fun reset() {
-        dac = false
-        volumeShift = 4
-        volumeCode = 0
-        frequency = 0
-        timer = 0
-        positionCounter = 0
+        resetExceptRam()
         patternRam.fill(0)
     }
 
     override fun powerOff() {
         super.powerOff()
+        resetExceptRam()
+    }
+
+    private fun resetExceptRam() {
         dac = false
         volumeShift = 4
         volumeCode = 0
@@ -48,26 +41,26 @@ class WaveChannel : SoundChannel() {
         positionCounter = 0
     }
 
-    override fun tick(): Int {
-        lengthCounter.tick()
+    override fun cycle(cycles: Int): Int {
+        lengthCounter.cycle(cycles)
+        if (!enabled) return 0
 
-        if (!enabled)
-            return 0
+        for (i in 0 until cycles) {
+            timer--
+            if (timer == 0) {
+                // Reset timer
+                timer = (2048 - frequency) / 2 * 4
 
-        timer--
-        if (timer == 0) {
-            // Reset timer
-            timer = (2048 - frequency) / 2 * 4
+                // Set sample buffer
+                lastOutput = patternRam[positionCounter / 2]
+                if (positionCounter % 2 == 0) {
+                    lastOutput = lastOutput shr 4
+                }
+                lastOutput = (lastOutput and 0x0f) shr volumeShift
 
-            // Set sample buffer
-            lastOutput = patternRam[positionCounter / 2]
-            if (positionCounter % 2 == 0) {
-                lastOutput = lastOutput shr 4
+                // Increase sample position counter
+                positionCounter = (positionCounter + 1) % 32
             }
-            lastOutput = (lastOutput and 0x0f) shr volumeShift
-
-            // Increase sample position counter
-            positionCounter = (positionCounter + 1) % 32
         }
 
         return lastOutput
@@ -77,10 +70,7 @@ class WaveChannel : SoundChannel() {
         enabled = true
         timer = (2048 - frequency) / 2 * 4
         positionCounter = 0
-
-        if (!dac) {
-            enabled = false
-        }
+        if (!dac) enabled = false
     }
 
     fun readByte(address: Int): Int {
@@ -99,7 +89,7 @@ class WaveChannel : SoundChannel() {
                 result
             }
             in 0xFF30..0xFF3F -> this.patternRam[address - 0xFF30]
-            else -> throw IllegalArgumentException("Address ${address.hex16()} does not belong to WaveChannel")
+            else -> MMU.INVALID_READ
         }
     }
 
@@ -115,24 +105,16 @@ class WaveChannel : SoundChannel() {
                 volumeCode = (newVal and 0b01100000) shr 5
                 volumeShift = when (volumeCode) {
                     0 -> 4
-                    1 -> 0
-                    2 -> 1
-                    3 -> 2
-                    else -> throw IllegalStateException("Invalid volume code")
+                    else -> volumeCode - 1
                 }
             }
             MMU.NR33 -> frequency = (frequency and 0b11100000000) or newVal
             MMU.NR34 -> {
                 frequency = (frequency and 0b11111111) or ((newVal and 0b111) shl 8)
-
                 lengthCounter.setNr4(newVal)
-
-                if (newVal.isBit(7)) {
-                    trigger()
-                }
+                if (newVal.isBit(7)) trigger()
             }
             in 0xFF30..0xFF3F -> this.patternRam[address - 0xFF30] = newVal
-            else -> throw IllegalArgumentException("Address ${address.hex16()} does not belong to WaveChannel")
         }
     }
 }

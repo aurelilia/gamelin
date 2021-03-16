@@ -1,13 +1,12 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io.sound
 
-import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.io.MMU
@@ -34,21 +33,13 @@ class NoiseChannel : SoundChannel() {
         reset()
     }
 
-    override fun tick(): Int {
-        volumeEnvelope.tick()
-
-        lengthCounter.tick()
-
-        if (polynomialCounter.tick()) {
-            lastOutput = lfsr.nextBit(polynomialCounter.width7)
+    override fun cycle(cycles: Int): Int {
+        volumeEnvelope.cycle(cycles)
+        lengthCounter.cycle(cycles)
+        if (polynomialCounter.cycle(cycles)) {
+            lastOutput = lfsr.cycle(cycles, polynomialCounter.width7)
         }
-
-        if (!enabled) {
-            return 0
-        }
-
-        val volume = volumeEnvelope.volume
-        return lastOutput * volume
+        return if (!enabled) 0 else lastOutput * volumeEnvelope.volume
     }
 
     override fun trigger() {
@@ -59,7 +50,6 @@ class NoiseChannel : SoundChannel() {
 
     fun readByte(address: Int): Int {
         return when (address) {
-            MMU.NR41 -> 0xFF
             MMU.NR42 -> volumeEnvelope.getNr2()
             MMU.NR43 -> polynomialCounter.getNr43()
             MMU.NR44 -> {
@@ -67,34 +57,25 @@ class NoiseChannel : SoundChannel() {
                 result = result.setBit(6, lengthCounter.lengthEnabled)
                 result
             }
-            else -> throw IllegalArgumentException("Address ${address.hex16()} does not belong to NoiseChannel")
+            else -> MMU.INVALID_READ
         }
     }
 
     fun writeByte(address: Int, value: Int) {
         val newVal = value and 0xFF
         when (address) {
-            MMU.NR41 -> {
-                lengthCounter.setNr1(newVal and 0b00111111)
-            }
+            MMU.NR41 -> lengthCounter.setNr1(newVal and 0b00111111)
             MMU.NR42 -> {
                 volumeEnvelope.setNr2(newVal)
-
                 if (!volumeEnvelope.getDac()) {
                     enabled = false
                 }
             }
-            MMU.NR43 -> {
-                polynomialCounter.setNr43(newVal)
-            }
+            MMU.NR43 -> polynomialCounter.setNr43(newVal)
             MMU.NR44 -> {
                 lengthCounter.setNr4(newVal)
-
-                if (newVal.isBit(7)) {
-                    trigger()
-                }
+                if (newVal.isBit(7)) trigger()
             }
-            else -> throw IllegalArgumentException("Address ${address.hex16()} does not belong to NoiseChannel")
         }
     }
 }

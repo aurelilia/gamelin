@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -31,9 +31,9 @@ class SquareWave1 : SquareWave() {
         frequencySweep.reset()
     }
 
-    override fun tick(): Int {
-        frequencySweep.tick()
-        return super.tick()
+    override fun cycle(cycles: Int): Int {
+        frequencySweep.cycle(cycles)
+        return super.cycle(cycles)
     }
 
     override fun readByte(address: Int): Int {
@@ -44,22 +44,18 @@ class SquareWave1 : SquareWave() {
     }
 
     override fun writeByte(address: Int, value: Int) {
-        val newVal = value and 0xFF
-
         when (address) {
-            MMU.NR10 -> frequencySweep.setNr10(newVal)
-            MMU.NR13 -> frequencySweep.setNr13(newVal)
+            MMU.NR10 -> frequencySweep.setNr10(value)
+            MMU.NR13 -> frequencySweep.setNr13(value)
             MMU.NR14 -> {
-                frequencySweep.setNr14(newVal)
-                super.writeByte(address, newVal)
+                frequencySweep.setNr14(value)
+                super.writeByte(address, value)
             }
-            else -> super.writeByte(address, newVal)
+            else -> super.writeByte(address, value)
         }
     }
 
-    override fun getFrequency(): Int {
-        return frequencySweep.getFrequency()
-    }
+    override fun getFrequency() = frequencySweep.getFrequency()
 
     override fun trigger() {
         super.trigger()

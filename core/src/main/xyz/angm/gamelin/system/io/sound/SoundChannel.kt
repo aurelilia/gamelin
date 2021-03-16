@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:51 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,11 +14,9 @@ abstract class SoundChannel {
     protected val volumeEnvelope = VolumeEnvelope()
     protected var lastOutput = 0
 
-    abstract fun tick(): Int
+    abstract fun cycle(cycles: Int): Int
 
-    open fun powerOn() {
-        volumeEnvelope.powerOn()
-    }
+    open fun powerOn() = volumeEnvelope.powerOn()
 
     open fun powerOff() {
         enabled = false
@@ -29,7 +27,6 @@ abstract class SoundChannel {
     protected open fun trigger() {
         enabled = true
         volumeEnvelope.trigger()
-
         if (!volumeEnvelope.getDac()) {
             enabled = false
         }

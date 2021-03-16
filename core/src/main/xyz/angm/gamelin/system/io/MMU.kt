@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 9:16 PM.
+ * This file was last modified at 3/16/21, 11:39 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,13 +13,13 @@ import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.system.GameBoy
 
-private const val INVALID_READ = 0xFF.toByte()
 private val bootix = file("bootix_dmg.bin").readBytes()
 
 internal class MMU(private val gb: GameBoy) {
 
     companion object {
         const val BIOS_PC_END = 0x0100
+        const val INVALID_READ = 0xFF
 
         // LCD
         const val VBK = 0xFF4F
@@ -101,20 +101,20 @@ internal class MMU(private val gb: GameBoy) {
 
     fun read(addr: Short): Byte {
         // Ensure BIOS gets disabled once it's done
-        if (gb.cpu.pc.int() == 0x100) inBios = false
+        if (gb.cpu.pc.int() == BIOS_PC_END) inBios = false
         return when (val a = addr.int()) {
             // Cannot read from:
             // FF46: DMA Transfer
             // FF18, FF1D: Sound Channels
             0xFF18, 0xFF1D -> {
                 GameBoy.log.debug { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
-                INVALID_READ
+                INVALID_READ.toByte()
             }
 
             // Redirects
             JOYP -> gb.joypad.read()
             in DIV..TAC -> gb.timer.read(a).toByte()
-            in NR10..NR52 -> gb.sound.readByte(addr.int()).toByte()
+            in NR10..NR52 -> gb.sound.read(addr.int()).toByte()
 
             else -> readAny(addr)
         }
@@ -130,7 +130,7 @@ internal class MMU(private val gb: GameBoy) {
             // Redirects
             JOYP -> gb.joypad.write(value)
             in DIV..TAC -> gb.timer.write(a, value.int())
-            in NR10..NR52 -> gb.sound.writeByte(addr.int(), value.int())
+            in NR10..NR52 -> gb.sound.write(addr.int(), value.int())
 
             // Special behavior for:
             // FF46: OAM DMA

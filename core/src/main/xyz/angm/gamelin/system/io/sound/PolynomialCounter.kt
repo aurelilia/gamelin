@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:50 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -42,23 +42,16 @@ class PolynomialCounter {
         clockShift = value shr 4
 
         divisorCode = value and 0b111
-        val divisor = if (divisorCode == 0) {
-            8
-        } else {
-            divisorCode shl 4
-        }
-
+        val divisor = if (divisorCode == 0) 8 else divisorCode shl 4
         shiftedDivisor = divisor shl clockShift
     }
 
-    fun tick(): Boolean {
-        counter--
-        return if (counter == 0) {
-            counter = shiftedDivisor * 4
-            true
-        } else {
-            false
+    fun cycle(cycles: Int): Boolean {
+        for (i in 0 until cycles) {
+            counter--
+            if (counter == 0) counter = shiftedDivisor * 4
         }
+        return counter == shiftedDivisor * 4
     }
 
     fun trigger() {

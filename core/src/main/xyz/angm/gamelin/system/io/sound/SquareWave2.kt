@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -30,19 +30,15 @@ class SquareWave2 : SquareWave() {
     }
 
     override fun writeByte(address: Int, value: Int) {
-        val newVal = value and 0xFF
-
         when (address) {
-            MMU.NR23 -> frequency = (frequency and 0b11100000000) or newVal
+            MMU.NR23 -> frequency = (frequency and 0b11100000000) or value
             MMU.NR24 -> {
-                frequency = (frequency and 0b11111111) or ((newVal and 0b111) shl 8)
-                super.writeByte(address, newVal)
+                frequency = (frequency and 0b11111111) or ((value and 0b111) shl 8)
+                super.writeByte(address, value)
             }
-            else -> super.writeByte(address, newVal)
+            else -> super.writeByte(address, value)
         }
     }
 
-    override fun getFrequency(): Int {
-        return 2048 - frequency
-    }
+    override fun getFrequency() = 2048 - frequency
 }

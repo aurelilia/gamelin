@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/16/21, 11:48 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,11 +12,7 @@ import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
 class LengthCounter(private val fullLength: Int, private val soundChannel: SoundChannel) {
 
-    private val DIVIDER = CLOCK_SPEED_HZ / 256
-
-    var length = 0
-        private set
-
+    private var length = 0
     private var counter = 0
     var lengthEnabled = false
         private set
@@ -31,10 +27,10 @@ class LengthCounter(private val fullLength: Int, private val soundChannel: Sound
         this.length = fullLength
     }
 
-    fun tick() {
-        counter++
-        if (counter == DIVIDER) {
-            counter = 0
+    fun cycle(cycles: Int) {
+        counter += cycles
+        if (counter >= DIVIDER) {
+            counter -= DIVIDER
             if (lengthEnabled && length > 0) {
                 decreaseLength()
             }
@@ -42,7 +38,7 @@ class LengthCounter(private val fullLength: Int, private val soundChannel: Sound
     }
 
     fun setNr1(value: Int) {
-        this.length = if (value == 0) fullLength else fullLength - value
+        length = if (value == 0) fullLength else fullLength - value
     }
 
     fun setNr4(value: Int) {
@@ -52,10 +48,8 @@ class LengthCounter(private val fullLength: Int, private val soundChannel: Sound
         /* Extra length clocking occurs when writing to NRx4 when the frame sequencer's next step is one that doesn't clock the length counter.
          * In this case, if the length counter was PREVIOUSLY disabled and now enabled and the length counter is not zero, it is decremented.
          */
-        if (!wasEnabled && lengthEnabled && length != 0) {
-            if (counter < DIVIDER / 2) {
-                decreaseLength()
-            }
+        if (!wasEnabled && lengthEnabled && length != 0 && counter < DIVIDER / 2) {
+            decreaseLength()
         }
 
         if (value.isBit(7) && length == 0) {
@@ -76,5 +70,9 @@ class LengthCounter(private val fullLength: Int, private val soundChannel: Sound
         if (length == 0) {
             soundChannel.enabled = false
         }
+    }
+
+    companion object {
+        private const val DIVIDER = CLOCK_SPEED_HZ / 256
     }
 }
