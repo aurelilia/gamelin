@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 10:47 AM.
+ * This file was last modified at 3/16/21, 6:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -25,6 +25,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     internal val sound = Sound()
     internal val mmu = MMU(this)
     private val timer = Timer(this)
+    private var disposed = false
     private var clock = 0
 
     constructor(game: ByteArray, debugger: Debugger) : this(debugger) {
@@ -39,8 +40,17 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
 
     fun advanceDelta(delta: Float) {
         if (debugger.emuHalt) return
-        val target = clock + (if (debugger.slow) 1 else (CLOCK_SPEED_HZ * delta).toInt())
+        val target = clock + (CLOCK_SPEED_HZ * delta)
         while (clock < target && !debugger.emuHalt) advance()
+    }
+
+    fun createThread() = Thread(::advanceIndefinitely)
+
+    private fun advanceIndefinitely() {
+        while (!disposed) {
+            if (debugger.emuHalt) Thread.sleep(16)
+            else if (sound.output.needsSamples()) advance()
+        }
     }
 
     fun advance() {

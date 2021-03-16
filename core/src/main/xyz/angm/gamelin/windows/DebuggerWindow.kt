@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 4:21 PM.
+ * This file was last modified at 3/16/21, 5:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -186,11 +186,6 @@ class DebuggerWindow(private val gb: GameBoy) : Window("Debugger") {
                 visCheckBox("CPU Logging") {
                     isChecked = gb.debugger.loggingEnable
                     onClick { gb.debugger.loggingEnable = !gb.debugger.loggingEnable }
-                }
-
-                visCheckBox("Slow") {
-                    isChecked = gb.debugger.slow
-                    onClick { gb.debugger.slow = !gb.debugger.slow }
                 }
             }
         }

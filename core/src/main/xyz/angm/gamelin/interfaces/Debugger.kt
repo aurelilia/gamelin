@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 3:29 PM.
+ * This file was last modified at 3/16/21, 5:45 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -21,7 +21,6 @@ open class Debugger : Disposable {
     var pcBreakEnable = false
     var writeBreak = 0
     var writeBreakEnable = false
-    var slow = false
 
     var loggingEnable = false
     private val logger = StringBuilder()
