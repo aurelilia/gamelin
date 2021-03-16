@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 7:00 PM.
+ * This file was last modified at 3/16/21, 9:16 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,6 @@ import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.system.GameBoy
-import kotlin.experimental.and
 
 private const val INVALID_READ = 0xFF.toByte()
 private val bootix = file("bootix_dmg.bin").readBytes()
@@ -51,7 +50,7 @@ internal class MMU(private val gb: GameBoy) {
         const val TAC = 0xFF07
 
         // Joypad
-        const val P1 = 0xFF00
+        const val JOYP = 0xFF00
 
         // DMA
         const val DMA = 0xFF46
@@ -112,10 +111,9 @@ internal class MMU(private val gb: GameBoy) {
                 INVALID_READ
             }
 
-            // Special behavior for:
-            // FF00: Joypad: Redirect it
-            // FF10-FF23: Sound Channels: Redirect it
-            0xFF00 -> gb.joypad.read()
+            // Redirects
+            JOYP -> gb.joypad.read()
+            in DIV..TAC -> gb.timer.read(a).toByte()
             in NR10..NR52 -> gb.sound.readByte(addr.int()).toByte()
 
             else -> readAny(addr)
@@ -129,16 +127,13 @@ internal class MMU(private val gb: GameBoy) {
             // FF44: Current PPU scan line
             0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
 
-            // Special behavior for:
-            // FF00: Joypad: Redirect it
-            // FF04: Timer Divider: Reset it
-            // FF07: Timer Control: Only lower 3 bits are used
-            // FF10-FF23: Sound Channels: Redirect it
-            // FF46: OAM DMA
-            0xFF00 -> gb.joypad.write(value)
-            0xFF04 -> writeAny(addr, 0)
-            0xFF07 -> writeAny(addr, value and 7)
+            // Redirects
+            JOYP -> gb.joypad.write(value)
+            in DIV..TAC -> gb.timer.write(a, value.int())
             in NR10..NR52 -> gb.sound.writeByte(addr.int(), value.int())
+
+            // Special behavior for:
+            // FF46: OAM DMA
             0xFF46 -> { //TODO timing & blocking reads
                 var source = value.int() shl 8
                 for (dest in 0xFE00..0xFE9F) write(dest.toShort(), read(source++.toShort()))

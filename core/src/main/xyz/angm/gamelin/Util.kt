@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 10:47 AM.
+ * This file was last modified at 3/16/21, 9:16 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,3 +24,5 @@ fun Int.setBit(bit: Int, bitState: Boolean) = (this and ((1 shl bit) xor 0xFF)) 
 
 fun Number.hex8() = String.format("0x%02X", this)
 fun Number.hex16() = String.format("0x%04X", this)
+
+fun addrOutOfBounds(addr: Int): Nothing = throw IllegalArgumentException("Index out of bounds: ${addr.hex16()}")
