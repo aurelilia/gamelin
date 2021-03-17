@@ -53,7 +53,11 @@ Blargg ROMs can be run automatically using gradle:
 ```bash
 gradle test
 ```
-Currently, only the `cpu_instrs` tests are tested, see `assets/roms/test/blargg`.
+
+#### Blargg test results
+- `cpu_instrs`: 11/11 pass
+- `dmg_sound`: 7/12 pass (01, 07, 09, 10, 12 fail)
+- Others: Not tested yet
 
 ## Thanks To
 - [Imran Nazar, for their series of blog posts on GB emulation](http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU)
