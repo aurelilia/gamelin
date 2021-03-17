@@ -9,6 +9,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - All of the PPU except the window and some finer details
 - Most of the timers as well as PPU interrupts
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
+- Full APU/Sound emulation
 
 ##### Emulator
 - Reset and ROM changing support
