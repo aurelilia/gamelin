@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 3:45 PM.
+ * This file was last modified at 3/17/21, 4:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -76,16 +76,18 @@ private fun fillSet() = InstSet.apply {
         var a = read(A)
         val f = read(F)
         if (!Negative.isSet(f)) {
-            if (Carry.isSet(f) || a > 0x9F) a += 0x60
+            if (Carry.isSet(f) || a > 0x99) {
+                a += 0x60
+                cpu.flag(Carry, 1)
+            }
             if (HalfCarry.isSet(f) || (a and 0x0F) > 0x09) a += 0x06
         } else {
             if (Carry.isSet(f)) a -= 0x60
             if (HalfCarry.isSet(f)) a = (a - 0x06) and 0xFF
         }
 
-        cpu.flag(HalfCarry, 0)
         cpu.flag(Zero, if ((a and 0xFF) == 0) 1 else 0)
-        cpu.flag(Carry, if ((a and 0x100) == 0x100) 1 else Carry.get(f))
+        cpu.flag(HalfCarry, 0)
 
         write(A, a and 0xFF)
     }

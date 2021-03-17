@@ -5,7 +5,7 @@ A Gameboy emulator written in Kotlin with LibGDX and VisUI.
 The emulator is in an early, but usable state. At the moment, the following is implemented and works:
 
 ##### Console
-- Full SM83 CPU instruction set (With 9/11 passing blargg cpu_instr tests)
+- Full SM83 CPU instruction set (All blargg cpu_instr tests except 02-interrupts pass)
 - All of the PPU except the window and some finer details
 - Most of the timers as well as PPU interrupts
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
