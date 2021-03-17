@@ -1,6 +1,7 @@
 /gradle
 /assets/roms/*
 !/assets/roms/test
+/assets/gamelin.log
 
 */out/
 assets/gamelin.sqlite3
