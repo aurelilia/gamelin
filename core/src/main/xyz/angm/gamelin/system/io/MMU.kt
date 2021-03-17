@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 12:46 AM.
+ * This file was last modified at 3/17/21, 5:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -130,7 +130,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
 
     fun writeAny(addr: Short, value: Byte) {
         when (val a = addr.int()) {
-            in 0x0000..0x7FFF -> rom[a] = value
+            in 0x0000..0x7FFF -> Unit // TODO banks
             in 0x8000..0x9FFF -> vram[a and 0x1FFF] = value
             in 0xA000..0xBFFF -> extRam[a and 0x1FFF] = value
             in 0xC000..0xDFFF -> ram[a and 0x1FFF] = value

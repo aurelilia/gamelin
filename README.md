@@ -9,7 +9,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - All of the PPU except the window and some finer details
 - Most of the timers as well as PPU interrupts
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
-- Full APU/Sound emulation
+- Full APU/Sound emulation (7/12 blargg dmg_sound tests pass)
 
 ##### Emulator
 - Reset and ROM changing support
@@ -21,25 +21,18 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Emulator halting / Line-by-line debugging
     - Per-instruction CPU/register state logging
 
-#### Working/Tested games
+### Working/Tested games
 ##### Perfect with no observable issues
 - Tic-Tac-Toe (1996, Norman Nithman)
 
-##### Minor issues that do not affect gameplay
-- Tetris (JP Version, 1989, Nintendo)
-    - Music is slightly off at times, some sound effects do not play
-
-##### Playable, with issues
-- Dr. Mario (1990, Nintendo): 
-    - Only one half of a pellet is actually recognized (both halves display)
+##### Minor, barely noticeable issues that do not affect gameplay
+- Tetris (JP and Global versions, 1989, Nintendo)
+    - The "fail" sound effect played while the playing field is filled does
+    not play, Music might be a bit off at times as well?
+- Dr. Mario (Global version, 1990, Nintendo): 
     - Text of selected music in menu is invisible
 
-##### Title screen, does not reach gameplay
-- Tetris (Global Version, 1989, Nintendo)
-    - Console hangs when pressing A on difficulty select
-
 ## Build
-
 ``` bash
 # Run on desktop
 ./gradlew desktop:run
