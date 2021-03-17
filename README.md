@@ -5,7 +5,7 @@ A Gameboy emulator written in Kotlin with LibGDX and VisUI.
 The emulator is in an early, but usable state. At the moment, the following is implemented and works:
 
 ##### Console
-- Full SM83 CPU instruction set (All blargg cpu_instr tests except 02-interrupts pass)
+- Full SM83 CPU instruction set (All blargg cpu_instr tests pass)
 - All of the PPU except the window and some finer details
 - Most of the timers as well as PPU interrupts
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
@@ -33,11 +33,10 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Dr. Mario (1990, Nintendo): 
     - Only one half of a pellet is actually recognized (both halves display)
     - Text of selected music in menu is invisible
-    - Music sounds slightly off
 
 ##### Title screen, does not reach gameplay
 - Tetris (Global Version, 1989, Nintendo)
-    - Entire emulator exits (with exit code 0?) when pressing A on difficulty select
+    - Console hangs when pressing A on difficulty select
 
 ## Build
 

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 4:00 PM.
+ * This file was last modified at 3/17/21, 4:21 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,6 +13,7 @@ import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.DReg.*
 import xyz.angm.gamelin.system.cpu.Flag.*
 import xyz.angm.gamelin.system.cpu.Reg.*
+import xyz.angm.gamelin.system.io.MMU
 
 open class Inst(val size: Short, val cycles: Int, val name: String, val incPC: Boolean = true, val execute: GameBoy.() -> Unit)
 
@@ -147,7 +148,10 @@ private fun fillSet() = InstSet.apply {
     for (from in regs) {
         op[idx++] = Inst(1, 2, "LD (HL), $from") { write(read16(HL), read(from)) }
     }
-    op[idx++] = Inst(1, 1, "HALT") { cpu.halt = true }
+    op[idx++] = Inst(1, 1, "HALT") {
+        if (!cpu.ime && (read(MMU.IF) and read(MMU.IE) and 0x1F) != 0) cpu.haltBug = true
+        else cpu.halt = true
+    }
     op[idx++] = Inst(1, 2, "LD (HL), A") { write(read16(HL), read(A)) }
     for (from in regs) {
         op[idx++] = Inst(1, 1, "LD A, $from") { write(A, read(from)) }
