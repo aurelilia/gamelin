@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 12:43 AM.
+ * This file was last modified at 3/17/21, 10:29 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,6 +23,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     internal val cpu = CPU(this)
     internal val ppu = PPU(this)
     internal val mmu = MMU(this)
+    internal var gameLoaded = false
     private var disposed = false
     private var clock = 0
 
@@ -33,6 +34,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     fun loadGame(game: ByteArray) {
         mmu.load(game)
         reset()
+        gameLoaded = true
         debugger.emuHalt = false
     }
 

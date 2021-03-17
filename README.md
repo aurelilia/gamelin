@@ -10,11 +10,13 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Most of the timers as well as PPU interrupts
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
 - Full APU/Sound emulation (7/12 blargg dmg_sound tests pass)
+- Most MBC1 cartridge mapper behavior (MBC3/5 still missing)
 
 ##### Emulator
 - Reset and ROM changing support
 - Instruction Set Viewer
 - Tileset and BG Map Viewers
+- Cartridge Info Viewer
 - Debugger with support for:
     - PC and write breakpoints
     - Memory, register and stack view
@@ -31,6 +33,32 @@ The emulator is in an early, but usable state. At the moment, the following is i
     not play, Music might be a bit off at times as well?
 - Dr. Mario (Global version, 1990, Nintendo): 
     - Text of selected music in menu is invisible
+
+##### Does not reach gameplay/not playable
+- Tetris DX (Global, 1998, Nintendo)
+    - Title screen only allows selecting "Entry", pressing A loads an empty
+    tetris field and hangs
+- Super Mario Land (Global, Nintendo)
+    - Title screen works
+    - Gameplay is very slow for about 1 in-game second, then freezes
+- Kirby's Dream Land (Global, Nintendo/HAL)
+    - Title screen works with buggy Kirby sprite (missing 8x16-sprites support)
+    - Starting gameplay hangs on empty first level
+
+- The Legends of Zelda: Link's Awakening (Global, 1993, Nintendo)
+    - Intro cutscene and title screen work
+    - Game hangs after pressing START on title screen
+
+- Donkey Kong (Global, 1994, Nintendo)
+    - Title screen displays after a bunch of garbage output
+    - Hangs when pressing start and starts filling memory with garbage
+
+- Donkey Kong Land (Global, 1995, Nintendo/RARE)
+    - Softlocks on map selection screen
+    - Graphics are glitchy (wrong palettes, incorrect tiles)
+
+- Yoshi (Global, 1992, Nintendo)
+    - Only shows white screen
 
 ## Build
 ``` bash

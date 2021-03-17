@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 12:41 AM.
+ * This file was last modified at 3/17/21, 10:57 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -73,7 +73,7 @@ class Gamelin : ApplicationAdapter() {
             chooser.selectionMode = FileChooser.SelectionMode.FILES
             chooser.setDirectory(file("roms"))
             val filter = FileTypeFilter(true)
-            filter.addRule("GameBoy ROMs (.gb)", "gb")
+            filter.addRule("GameBoy ROMs (.gb, .gbc)", "gb", "gbc")
             chooser.setFileTypeFilter(filter)
             chooser.setListener(object : StreamingFileChooserListener() {
                 override fun selected(file: FileHandle) {
@@ -94,8 +94,9 @@ class Gamelin : ApplicationAdapter() {
         windowItem("Debugger", 2) { DebuggerWindow(gb) }
         windowItem("BG Map Viewer", 3) { BGMapViewer(gb) }
         windowItem("VRAM Viewer", 4) { VRAMViewer(gb) }
-        windowItem("Instruction Set", 5) { InstructionSetWindow("Instruction Set", InstSet.op) }
-        windowItem("Extended InstSet", 6) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
+        windowItem("Cartridge Info", 5) { CartInfoWindow(gb) }
+        windowItem("Instruction Set", 6) { InstructionSetWindow("Instruction Set", InstSet.op) }
+        windowItem("Extended InstSet", 7) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
 
         menuBar.addMenu(file)
         menuBar.addMenu(view)

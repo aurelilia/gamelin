@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 5:49 PM.
+ * This file was last modified at 3/17/21, 10:25 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,27 +18,24 @@ import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.sound.Sound
 
-private val bootix = file("bootix_dmg.bin").readBytes()
-
 internal class MMU(private val gb: GameBoy) : Disposable {
 
     // Is there any real reason to have so many byte arrays instead
     // of just one big one?
-    private lateinit var rom: ByteArray // ROM: 0000-7FFF TODO bank switching
     private val vram = ByteArray(8_192) // 8000-9FFF
-    private val extRam = ByteArray(8_192) // A000-BFFF
     private val ram = ByteArray(8_192) // C000-DFFF
     private val oam = ByteArray(160) // FE00-FE9F
     private val mmIO = ByteArray(128) // FF00-FF7F
     private val zram = ByteArray(128) // FF80-FFFF
     internal var inBios = true
 
+    internal lateinit var cart: Cartridge
     internal val sound = Sound()
     internal val joypad = Keyboard(this)
     private val timer = Timer(this)
 
     fun load(game: ByteArray) {
-        rom = game
+        cart = Cartridge.ofRom(game)
         inBios = true
     }
 
@@ -73,12 +70,17 @@ internal class MMU(private val gb: GameBoy) : Disposable {
             // Cannot read from:
             // FF46: DMA Transfer
             // FF18, FF1D: Sound Channels
-            0xFF18, 0xFF1D -> {
+            0xFF18, 0xFF46, 0xFF1D -> {
                 GameBoy.log.debug { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
                 INVALID_READ.toByte()
             }
 
             // Redirects
+            in 0x0000..0x7FFF, in 0xA000..0xBFFF -> {
+                if (inBios && addr < 0x0100) bootix[a]
+                else cart.read(addr)
+            }
+
             JOYP -> joypad.read()
             in DIV..TAC -> timer.read(addr)
             in NR10..NR52 -> sound.read(addr)
@@ -95,6 +97,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
             0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
 
             // Redirects
+            in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
             JOYP -> joypad.write(value)
             in DIV..TAC -> timer.write(addr, value)
             in NR10..NR52 -> sound.write(addr, value)
@@ -112,16 +115,11 @@ internal class MMU(private val gb: GameBoy) : Disposable {
 
     fun readAny(addr: Short): Byte {
         return when (val a = addr.int()) {
-            in 0x0000..0x7FFF -> {
-                if (inBios && addr < 0x0100) bootix[a]
-                else rom[a]
-            }
             in 0x8000..0x9FFF -> vram[a and 0x1FFF]
-            in 0xA000..0xBFFF -> extRam[a and 0x1FFF]
             in 0xC000..0xDFFF -> ram[a and 0x1FFF]
             in 0xE000..0xFDFF -> ram[a and 0x1FFF]
             in 0xFE00..0xFE9F -> oam[a and 0xFF]
-            in 0xFEA0..0xFEFF -> 0
+            in 0xFEA0..0xFEFF -> INVALID_READ.toByte()
             in 0xFF00..0xFF7F -> mmIO[a and 0x7F]
             in 0xFF80..0xFFFF -> zram[a and 0x7F]
             else -> throw IndexOutOfBoundsException("what ${a.toString(16)}")
@@ -130,9 +128,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
 
     fun writeAny(addr: Short, value: Byte) {
         when (val a = addr.int()) {
-            in 0x0000..0x7FFF -> Unit // TODO banks
             in 0x8000..0x9FFF -> vram[a and 0x1FFF] = value
-            in 0xA000..0xBFFF -> extRam[a and 0x1FFF] = value
             in 0xC000..0xDFFF -> ram[a and 0x1FFF] = value
             in 0xE000..0xFDFF -> ram[a and 0x1FFF] = value
             in 0xFE00..0xFE9F -> oam[a and 0xFF] = value
@@ -207,5 +203,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
         const val NR50 = 0xFF24
         const val NR51 = 0xFF25
         const val NR52 = 0xFF26
+
+        private val bootix = file("bootix_dmg.bin").readBytes()
     }
 }

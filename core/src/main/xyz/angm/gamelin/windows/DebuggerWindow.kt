@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 4:26 PM.
+ * This file was last modified at 3/17/21, 10:22 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,11 +22,10 @@ import xyz.angm.gamelin.system.cpu.Flag
 import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.system.cpu.Reg
 
-class DebuggerWindow(private val gb: GameBoy) : Window("Debugger") {
+class DebuggerWindow(private val gb: GameBoy) : DelayedUpdateWindow("Debugger", 0.5f) {
 
     private val tab = KVisTable(true)
     private var active = true
-    private var sinceUpdate = 0f
 
     init {
         add(tab).pad(10f)
@@ -36,15 +35,11 @@ class DebuggerWindow(private val gb: GameBoy) : Window("Debugger") {
 
     override fun act(delta: Float) {
         super.act(delta)
-        sinceUpdate += delta
-        if (active && sinceUpdate > 0.5f) {
-            refresh()
-            sinceUpdate = 0f
-        }
+        if (!active) sinceUpdate = 0f
         active = !gb.debugger.emuHalt
     }
 
-    private fun refresh() {
+    override fun refresh() {
         tab.clearChildren()
         val next = gb.getNextInst()
         tab.run {
