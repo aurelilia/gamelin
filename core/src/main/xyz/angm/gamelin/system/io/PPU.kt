@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 7:01 PM.
+ * This file was last modified at 3/18/21, 12:08 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -50,6 +50,9 @@ class PPU(private val gb: GameBoy) : Disposable {
     private val bgMapAddr get() = if (!control.isBit(3)) 0x9800 else 0x9C00
     private val windowMapAddr get() = if (!control.isBit(6)) 0x9800 else 0x9C00
 
+    // All pixels in the current render cycle that have a non-null BG color (objects render under it)
+    private val bgOccupiedPixels = Array(160 * 144) { false }
+
     fun step(tCycles: Int) {
         modeclock += tCycles
         if (modeclock < mode.cycles) return
@@ -75,6 +78,7 @@ class PPU(private val gb: GameBoy) : Disposable {
                 if (line > 153) {
                     mode = OAMScan
                     line = 0
+                    bgOccupiedPixels.fill(false)
                 }
             }
         }
@@ -115,6 +119,7 @@ class PPU(private val gb: GameBoy) : Disposable {
 
         for (tileIdxAddr in 0 until 160) {
             val colorIdx = (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX)
+            if (colorIdx != 0) setPixelOccupied(tileIdxAddr, line)
             renderer.drawPixel(tileIdxAddr, line, getBGColorIdx(colorIdx))
 
             if (++tileX == 8) {
@@ -152,7 +157,7 @@ class PPU(private val gb: GameBoy) : Disposable {
         for (tileX in 0 until 8) {
             val colorIdx = if (!xFlip) (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX) else (high.isBit(tileX) shl 1) + low.isBit(tileX)
             val screenX = x + tileX
-            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || renderer.isClear(screenX, line)))
+            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || !getPixelOccupied(screenX, line)))
                 renderer.drawPixel(screenX, line, getColorIdx(palette, colorIdx))
         }
     }
@@ -160,6 +165,12 @@ class PPU(private val gb: GameBoy) : Disposable {
     private fun renderWindow() {
         // TODO
     }
+
+    private fun setPixelOccupied(x: Int, y: Int) {
+        bgOccupiedPixels[(x * 144) + y] = true
+    }
+
+    private fun getPixelOccupied(x: Int, y: Int) = bgOccupiedPixels[(x * 144) + y]
 
     fun bgIdxTileDataAddr(idx: Int): Int {
         val tileIdx = gb.read(bgMapAddr + idx)

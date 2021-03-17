@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/14/21, 8:15 PM.
+ * This file was last modified at 3/18/21, 12:37 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -45,9 +45,6 @@ class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Floa
         pixmap.setColor(color)
         pixmap.drawPixel(x, y)
     }
-
-    // TODO
-    fun isClear(x: Int, y: Int) = true
 
     override fun draw(batch: Batch, parentAlpha: Float) {
         val tex = Texture(pixmap)

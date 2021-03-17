@@ -26,21 +26,21 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ### Working/Tested games
 ##### Perfect with no observable issues
 - Tic-Tac-Toe (1996, Norman Nithman)
+- Dr. Mario (Global version, 1990, Nintendo)
 
 ##### Minor, barely noticeable issues that do not affect gameplay
 - Tetris (JP and Global versions, 1989, Nintendo)
-    - The "fail" sound effect played while the playing field is filled does
-    not play, Music might be a bit off at times as well?
-- Dr. Mario (Global version, 1990, Nintendo): 
-    - Text of selected music in menu is invisible
+    - The "fail" sound effect played while the playing field is filled does not play
 
 ##### Does not reach gameplay/not playable
 - Tetris DX (Global, 1998, Nintendo)
     - Title screen only allows selecting "Entry", pressing A loads an empty
     tetris field and hangs
+
 - Super Mario Land (Global, Nintendo)
     - Title screen works
     - Gameplay is very slow for about 1 in-game second, then freezes
+
 - Kirby's Dream Land (Global, Nintendo/HAL)
     - Title screen works with buggy Kirby sprite (missing 8x16-sprites support)
     - Starting gameplay hangs on empty first level
