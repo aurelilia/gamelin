@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 6:53 PM.
+ * This file was last modified at 3/17/21, 3:45 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -275,7 +275,7 @@ private fun fillExt() = InstSet.apply {
         val name = inst.first
         val exec = inst.second
         for (reg in regs) ep[idx++] = Inst(2, 2, "$name $reg") { write(reg, exec(read(reg).toByte())) }
-        ep[idx++] = Inst(2, 2, "$name (HL)") { write(read(read16(HL)), exec(read(read16(HL)).toByte())) }
+        ep[idx++] = Inst(2, 4, "$name (HL)") { write(read16(HL), exec(read(read16(HL)).toByte())) }
         ep[idx++] = Inst(2, 2, "$name A") { write(A, exec(read(A).toByte())) }
     }
 
