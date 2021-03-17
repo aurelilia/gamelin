@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 11:51 PM.
+ * This file was last modified at 3/17/21, 5:02 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -49,7 +49,8 @@ abstract class SquareWave : SoundChannel() {
 
         timer -= cycles
         while (timer < 0) {
-            timer += getFrequency() * 4
+            if (getFrequency() == 0) timer = 0
+            else timer += getFrequency() * 4
             lastOutput = dutyCycles[duty].isBit_(dutyCounter)
             dutyCounter = (dutyCounter + 1) and 7
         }

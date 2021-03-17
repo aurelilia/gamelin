@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 11:48 PM.
+ * This file was last modified at 3/17/21, 5:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,6 +10,7 @@ package xyz.angm.gamelin.system.io.sound
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
+import kotlin.math.min
 
 class FrequencySweep(private val soundChannel: SoundChannel) {
 
@@ -122,7 +123,7 @@ class FrequencySweep(private val soundChannel: SoundChannel) {
             soundChannel.enabled = false
         }
 
-        return freq
+        return min(freq, 2048)
     }
 
     companion object {
