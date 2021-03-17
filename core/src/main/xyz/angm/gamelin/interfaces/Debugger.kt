@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/16/21, 7:01 PM.
+ * This file was last modified at 3/17/21, 3:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,6 +24,7 @@ open class Debugger : Disposable {
 
     var loggingEnable = false
     private val logger = StringBuilder()
+    private val logFile = Gdx.files.local("gamelin.log")
     private var pc = 0
     private var nopCount = 0
 
@@ -43,6 +44,8 @@ open class Debugger : Disposable {
                     logger.appendLine("DE = ${gb.read16(DReg.DE).hex16()} HL = ${gb.read16(DReg.HL).hex16()} SP = ${gb.readSP().hex16()}")
                 }
             }
+            // 1 MB, very big logs (500MB+) can cause the emu to run out of heap space trying to write it to a file
+            if (logger.length > 1_000_000) flushLog()
         }
     }
 
@@ -53,8 +56,13 @@ open class Debugger : Disposable {
     override fun dispose() {
         if (logger.isNotEmpty()) {
             if (nopCount > 0) logger.appendLine("${pc.hex16()} NOP $nopCount TIMES")
-            Gdx.files.local("gamelin.log").writeString(logger.toString(), false)
+            flushLog()
         }
+    }
+
+    private fun flushLog() {
+        logFile.writeString(logger.toString(), true)
+        logger.clear()
     }
 
     open fun writeOccured(addr: Short, value: Byte) {
