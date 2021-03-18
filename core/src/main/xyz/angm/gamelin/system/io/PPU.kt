@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 1:49 PM.
+ * This file was last modified at 3/18/21, 5:32 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -67,11 +67,19 @@ class PPU(private val gb: GameBoy) : Disposable {
             Upload -> {
                 mode = HBlank
                 renderLine()
+                statInterrupt(3)
             }
 
             HBlank -> {
                 line++
-                mode = if (line == 143) VBlank else OAMScan
+                mode = if (line == 144) {
+                    statInterrupt(4)
+                    VBlank
+                } else {
+                    statInterrupt(5)
+                    OAMScan
+                }
+                lycInterrupt()
             }
 
             VBlank -> {
@@ -80,29 +88,23 @@ class PPU(private val gb: GameBoy) : Disposable {
                 if (line > 153) {
                     mode = OAMScan
                     line = 0
+                    statInterrupt(5)
                     bgOccupiedPixels.fill(false)
                     renderer.finishFrame()
                 }
+                lycInterrupt()
             }
         }
 
-        // Shamelessly stolen from kotcrab's xgbc. Thank you, kotcrab!!
-        stat = stat.toByte().setBit(2, if (lineCompare == line) 1 else 0) and 0b11111100
-        when (mode) {
-            OAMScan -> {
-                stat = stat or 0b10
-                if (stat.toByte().isBit_(5)) gb.requestInterrupt(Interrupt.LCDC)
-            }
-            Upload -> stat = stat or 0b11
-            HBlank -> {
-                stat = stat or 0b00
-                if (stat.toByte().isBit_(3)) gb.requestInterrupt(Interrupt.LCDC)
-            }
-            VBlank -> {
-                stat = stat or 0b01
-                if (stat.toByte().isBit_(4)) gb.requestInterrupt(Interrupt.LCDC)
-            }
-        }
+        stat = (stat.toByte().setBit(2, if (lineCompare == line) 1 else 0) and 0b11111100) or mode.idx
+    }
+
+    private fun statInterrupt(index: Int) {
+        if (stat.toByte().isBit_(index)) gb.requestInterrupt(Interrupt.LCDC)
+    }
+
+    private fun lycInterrupt() {
+        if (lineCompare == line) statInterrupt(6)
     }
 
     private fun renderLine() {
@@ -110,6 +112,8 @@ class PPU(private val gb: GameBoy) : Disposable {
         if (bgEnable) {
             renderBG()
             if (windowEnable) renderWindow()
+        } else {
+            clearLine()
         }
         if (objEnable) renderObjs()
     }
@@ -120,7 +124,7 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     private fun renderWindow() {
         if (windowY > line) return
-        renderBGOrWindow(0, windowMapAddr, line) { it }
+        renderBGOrWindow(windowX, windowMapAddr, line) { it }
     }
 
     private inline fun renderBGOrWindow(scrollX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
@@ -144,6 +148,12 @@ class PPU(private val gb: GameBoy) : Disposable {
                 high = gb.read(tileDataAddr + 1).toByte()
                 low = gb.read(tileDataAddr).toByte()
             }
+        }
+    }
+
+    private fun clearLine() {
+        for (tileIdxAddr in 0 until 160) {
+            renderer.drawPixel(tileIdxAddr, line, 0)
         }
     }
 
@@ -204,8 +214,8 @@ class PPU(private val gb: GameBoy) : Disposable {
     override fun dispose() = renderer.dispose()
 }
 
-private enum class GPUMode(val cycles: Int) {
-    HBlank(204), VBlank(456), OAMScan(80), Upload(172)
+private enum class GPUMode(val cycles: Int, val idx: Int) {
+    HBlank(204, 0), VBlank(456, 1), OAMScan(80, 2), Upload(172, 3)
 }
 
 private object Sprite {
