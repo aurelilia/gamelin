@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 5:32 PM.
+ * This file was last modified at 3/18/21, 6:15 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -75,10 +75,8 @@ class PPU(private val gb: GameBoy) : Disposable {
                 mode = if (line == 144) {
                     statInterrupt(4)
                     VBlank
-                } else {
-                    statInterrupt(5)
-                    OAMScan
-                }
+                } else OAMScan
+                statInterrupt(5)
                 lycInterrupt()
             }
 
@@ -157,12 +155,11 @@ class PPU(private val gb: GameBoy) : Disposable {
         }
     }
 
-    // TODO: 8x16 sprite mode
     private fun renderObjs() {
         var objCount = 0
         for (loc in 0xFE00 until 0xFEA0 step 4) {
             Sprite.dat = gb.read16(loc) + (gb.read16(loc + 2) shl 16)
-            if (Sprite.y <= line && (Sprite.y + 8) > line) { // If on this line
+            if (Sprite.y <= line && (Sprite.y + if (bigObjMode) 16 else 8) > line) { // If on this line
                 renderObj()
                 objCount++
                 if (objCount == 10) break // At most 10 objects per scanline
@@ -172,9 +169,16 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     private fun renderObj() = Sprite.run {
         val palette = if (altPalette) objPalette2 else objPalette1
-        val tileY = if (yFlip) 7 - (line - y) else line - y
+        val tileYOp = (line - y) and 0x07
+        val tileY = if (yFlip) 7 - tileYOp else tileYOp
 
-        val tileDataAddr = objTileOffset(tilenum) + (tileY * 2)
+        val tileNum = when {
+            bigObjMode && (((line - y) <= 7) != yFlip) -> tilenum and 0xFE
+            bigObjMode -> tilenum or 0x01
+            else -> tilenum
+        }
+
+        val tileDataAddr = objTileOffset(tileNum) + (tileY * 2)
         val high = gb.read(tileDataAddr + 1).toByte()
         val low = gb.read(tileDataAddr).toByte()
 
