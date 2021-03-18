@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 1:23 AM.
+ * This file was last modified at 3/18/21, 12:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -36,7 +36,7 @@ class CartInfoWindow(private val gb: GameBoy) : DelayedUpdateWindow("Cartridge I
                 visLabel("RAM Banks: ${gb.mmu.cart.ramBankCount}") { it.row() }
                 visLabel("Destination: ${if (gb.read(Cartridge.DESTINATION) == 0) "Japan" else "Global"}") { it.row() }
                 visLabel(
-                    "CGB Flag: ${gb.read(Cartridge.CGB_FLAG).hex16()} (${
+                    "CGB Flag: ${gb.read(Cartridge.CGB_FLAG).hex8()} (${
                         when (gb.read(Cartridge.CGB_FLAG)) {
                             0x80 -> "Supports CGB Mode"
                             0xC0 -> "CGB only"
