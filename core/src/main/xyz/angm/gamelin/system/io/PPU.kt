@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 6:15 PM.
+ * This file was last modified at 3/18/21, 6:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -117,15 +117,15 @@ class PPU(private val gb: GameBoy) : Disposable {
     }
 
     private fun renderBG() {
-        renderBGOrWindow(scrollX, bgMapAddr, bgMapLine) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
+        renderBGOrWindow(scrollX, 0, bgMapAddr, bgMapLine) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
     }
 
     private fun renderWindow() {
         if (windowY > line) return
-        renderBGOrWindow(windowX, windowMapAddr, line) { it }
+        renderBGOrWindow(0, windowX - 7, windowMapAddr, line) { it }
     }
 
-    private inline fun renderBGOrWindow(scrollX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
+    private inline fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
         var tileX = scrollX and 7
         val tileY = mapLine and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
@@ -133,7 +133,7 @@ class PPU(private val gb: GameBoy) : Disposable {
         var high = gb.read(tileDataAddr + 1).toByte()
         var low = gb.read(tileDataAddr).toByte()
 
-        for (tileIdxAddr in 0 until 160) {
+        for (tileIdxAddr in startX until 160) {
             val colorIdx = (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX)
             if (colorIdx != 0) setPixelOccupied(tileIdxAddr, line)
             renderer.drawPixel(tileIdxAddr, line, getBGColorIdx(colorIdx))
