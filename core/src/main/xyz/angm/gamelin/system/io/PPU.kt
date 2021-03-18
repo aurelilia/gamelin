@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 1:26 PM.
+ * This file was last modified at 3/18/21, 1:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -81,6 +81,7 @@ class PPU(private val gb: GameBoy) : Disposable {
                     mode = OAMScan
                     line = 0
                     bgOccupiedPixels.fill(false)
+                    renderer.finishFrame()
                 }
             }
         }
@@ -181,10 +182,7 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     private fun getPixelOccupied(x: Int, y: Int) = bgOccupiedPixels[(x * 144) + y]
 
-    fun bgIdxTileDataAddr(idx: Int): Int {
-        val tileIdx = gb.read(bgMapAddr + idx)
-        return bgTileDataAddr(tileIdx)
-    }
+    fun bgIdxTileDataAddr(window: Boolean, idx: Int) = bgTileDataAddr(gb.read((if (window) windowMapAddr else bgMapAddr) + idx))
 
     private fun bgTileDataAddr(idx: Int): Int {
         return if (gb.read(0xFF40).isBit(4)) 0x8000 + (idx * 0x10)

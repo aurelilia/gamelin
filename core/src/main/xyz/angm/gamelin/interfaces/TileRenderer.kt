@@ -1,12 +1,13 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 12:37 AM.
+ * This file was last modified at 3/18/21, 1:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.interfaces
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
@@ -21,8 +22,10 @@ private val colors = arrayOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY, Col
 
 class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Float) : Actor(), Disposable {
 
-    private val pixmap = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
-    private var lastTex: Texture? = null
+    private val pixmapA = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
+    private val pixmapB = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
+    private var current = pixmapA
+    private var texture = Texture(pixmapA)
 
     init {
         setSize(TILE_SIZE * width * scale, TILE_SIZE * height * scale)
@@ -42,19 +45,27 @@ class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Floa
 
     fun drawPixel(x: Int, y: Int, colorIdx: Int) {
         val color = colors[colorIdx]
-        pixmap.setColor(color)
-        pixmap.drawPixel(x, y)
+        current.setColor(color)
+        current.drawPixel(x, y)
+    }
+
+    fun finishFrame() {
+        val map = current
+        current = if (current === pixmapA) pixmapB else pixmapA
+        Gdx.app.postRunnable {
+            val tex = Texture(map)
+            texture.dispose()
+            texture = tex
+        }
     }
 
     override fun draw(batch: Batch, parentAlpha: Float) {
-        val tex = Texture(pixmap)
-        batch.draw(tex, x, y, width, height)
-        lastTex?.dispose()
-        lastTex = tex
+        batch.draw(texture, x, y, width, height)
     }
 
     override fun dispose() {
-        pixmap.dispose()
-        lastTex?.dispose()
+        pixmapA.dispose()
+        pixmapB.dispose()
+        texture.dispose()
     }
 }

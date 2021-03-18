@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/15/21, 4:19 PM.
+ * This file was last modified at 3/18/21, 1:44 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -25,5 +25,6 @@ class VRAMViewer(gb: GameBoy) : Window("VRAM Viewer") {
             val tileIdx = (tile - 0x8000) / 0x10
             renderer.drawTile(tileIdx % 0x10, tileIdx / 0x10, tile) { it }
         }
+        renderer.finishFrame()
     }
 }

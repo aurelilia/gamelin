@@ -36,7 +36,6 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Pokemon Blue (Global, 1996, Game Freak)
     - Game display some garbage before copyrights/GF logo/intro
     - All big sprites are black squares (decompression routine broken?)
-    - Game has a lot of flickering lines
     - Gameplay seems to work fine (tested until getting the Pokedex)
 
 ##### Somewhat playable with big issues
@@ -48,7 +47,6 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Game display some garbage before copyright/intro
     - Works well until starting first level, most of map is invisible and
     sprites are cut off (still playable though)
-    - Game has a lot of flickering lines
 
 ##### Does not reach gameplay/not playable
 - Tetris DX (Global, 1998, Nintendo)
@@ -58,11 +56,11 @@ The emulator is in an early, but usable state. At the moment, the following is i
 
 - Kirby's Dream Land (Global, Nintendo/HAL)
     - Title screen works with buggy Kirby sprite (missing 8x16-sprites support)
-    - Starting gameplay hangs on empty first level
+    - Starting gameplay hangs on empty first level or white screen, inconsistent (interrupt timing issue?)
 
 - The Legends of Zelda: Link's Awakening (Global, 1993, Nintendo)
-    - Intro cutscene and title screen work with graphical glitches
-    - Game hangs after pressing START on title screen
+    - Intro cutscene and title screen work, sprites cut off
+    - Game shows empty file select, pressing A causes the RST 38 bug and eats all memory, crashing
 
 - Donkey Kong Land (Global, 1995, Nintendo/RARE)
     - Softlocks on map selection screen
