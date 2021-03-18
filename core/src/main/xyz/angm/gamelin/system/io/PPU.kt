@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 12:47 PM.
+ * This file was last modified at 3/18/21, 1:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,6 +16,7 @@ import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.GPUMode.*
 
+// TODO: LCDC can be modified mid-scanline, account for that
 class PPU(private val gb: GameBoy) : Disposable {
 
     val renderer = TileRenderer(gb, 20, 18, 4f)
@@ -49,6 +50,8 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     private val bgMapAddr get() = if (!control.isBit(3)) 0x9800 else 0x9C00
     private val windowMapAddr get() = if (!control.isBit(6)) 0x9800 else 0x9C00
+    private val windowX get() = gb.read(0xFF4B)
+    private val windowY get() = gb.read(0xFF4A)
 
     // All pixels in the current render cycle that have a non-null BG color (objects render under it)
     private val bgOccupiedPixels = Array(160 * 144) { false }
@@ -103,15 +106,26 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     private fun renderLine() {
         if (!displayEnable) return
-        if (bgEnable) renderBG()
-        if (windowEnable) renderWindow()
+        if (bgEnable) {
+            renderBG()
+            if (windowEnable) renderWindow()
+        }
         if (objEnable) renderObjs()
     }
 
     private fun renderBG() {
+        renderBGOrWindow(scrollX, bgMapAddr, bgMapLine) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
+    }
+
+    private fun renderWindow() {
+        if (windowY > line) return
+        renderBGOrWindow(0, windowMapAddr, line) { it }
+    }
+
+    private inline fun renderBGOrWindow(scrollX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
         var tileX = scrollX and 7
-        val tileY = bgMapLine and 7
-        var tileAddr = bgMapAddr + ((bgMapLine / 8) * 0x20) + (scrollX ushr 3)
+        val tileY = mapLine and 7
+        var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
         var tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
         var high = gb.read(tileDataAddr + 1).toByte()
         var low = gb.read(tileDataAddr).toByte()
@@ -123,7 +137,7 @@ class PPU(private val gb: GameBoy) : Disposable {
 
             if (++tileX == 8) {
                 tileX = 0
-                if ((tileAddr and 0x1F) == 0x1F) tileAddr -= 0x20
+                tileAddr = tileAddrCorrect(tileAddr)
                 tileAddr++
                 tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
                 high = gb.read(tileDataAddr + 1).toByte()
@@ -140,7 +154,7 @@ class PPU(private val gb: GameBoy) : Disposable {
             if (Sprite.y <= line && (Sprite.y + 8) > line) { // If on this line
                 renderObj()
                 objCount++
-                if (objCount == 10) break // At most 10 object per scanline
+                if (objCount == 10) break // At most 10 objects per scanline
             }
         }
     }
@@ -159,10 +173,6 @@ class PPU(private val gb: GameBoy) : Disposable {
             if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || !getPixelOccupied(screenX, line)))
                 renderer.drawPixel(screenX, line, getColorIdx(palette, colorIdx))
         }
-    }
-
-    private fun renderWindow() {
-        // TODO
     }
 
     private fun setPixelOccupied(x: Int, y: Int) {
