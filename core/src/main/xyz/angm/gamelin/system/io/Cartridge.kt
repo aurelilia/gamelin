@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 1:09 AM.
+ * This file was last modified at 3/18/21, 6:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -26,7 +26,7 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
     protected var ramEnable = false
     protected var romBank = 1
     protected var ramBank = 0
-    protected val ramAvailable get() = ram.isNotEmpty() && !ramEnable
+    protected val ramAvailable get() = ram.isNotEmpty() && ramEnable
 
     override fun read(addr: Int): Int {
         return when (addr) {

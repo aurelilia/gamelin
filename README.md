@@ -27,44 +27,39 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ##### Perfect with no observable issues
 - Tic-Tac-Toe (1996, Norman Nithman)
 - Dr. Mario (Global version, 1990, Nintendo)
+- The Legends of Zelda: Link's Awakening (Global, 1993, Nintendo)
+    - Played until shortly after obtaining your sword at the shore
 
-##### Minor, barely noticeable issues that do not affect gameplay
+##### Small sound/bootup issues, otherwise perfect
 - Tetris (JP and Global versions, 1989, Nintendo)
     - The "fail" sound effect played while the playing field is filled does not play
-
-##### Playable with some issues
+- Super Mario Land (Global, Nintendo)
+    - Background music is off at times, missing some effects in it
 - Pokemon Blue (Global, 1996, Game Freak)
     - Game display some garbage before copyrights/GF logo/intro
-    - All big sprites are black squares (decompression routine broken?)
     - Gameplay seems to work fine (tested until getting the Pokedex)
+    - Some music has missing sound effects
+    - Menu screen is a bit buggy on first load
+- Donkey Kong Land (Global, 1995, Nintendo/RARE)
+    - Game displays garbage on boot
+    - Tested for the first 2 levels: perfect
+
+##### Playable with some small other issues
+- Tetris DX (Global, 1998, Nintendo)
+    - Game briefly displays garbage on boot
+    - Some parts of the UI are blacked out
+    - Some sound effects missing
 
 ##### Somewhat playable with big issues
-- Super Mario Land (Global, Nintendo)
-    - Game does not update the background X scroll, making it almost impossible
-    to properly tell where Mario is because the displayed map is incorrect
-
 - Donkey Kong (Global, 1994, Nintendo)
-    - Game display some garbage before copyright/intro
+    - Game displays some garbage before copyright/intro
     - Works well until starting first level, most of map is invisible and
     sprites are cut off (still playable though)
 
 ##### Does not reach gameplay/not playable
-- Tetris DX (Global, 1998, Nintendo)
-    - Game briefly displays garbage on boot
-    - Title screen only allows selecting "Entry", pressing A/Start loads an empty
-    tetris field and hangs (although reset button combo still works)
-
 - Kirby's Dream Land (Global, Nintendo/HAL)
     - Title screen works with buggy Kirby sprite (missing 8x16-sprites support)
     - Starting gameplay hangs on empty first level or white screen, inconsistent (interrupt timing issue?)
-
-- The Legends of Zelda: Link's Awakening (Global, 1993, Nintendo)
-    - Intro cutscene and title screen work, sprites cut off
-    - Game shows empty file select, pressing A causes the RST 38 bug and eats all memory, crashing
-
-- Donkey Kong Land (Global, 1995, Nintendo/RARE)
-    - Softlocks on map selection screen
-    - Graphics are glitchy (wrong palettes, incorrect tiles)
 
 - Yoshi (Global, 1992, Nintendo)
     - Only shows white screen
