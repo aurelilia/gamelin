@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 12:08 AM.
+ * This file was last modified at 3/18/21, 12:47 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -63,7 +63,6 @@ class PPU(private val gb: GameBoy) : Disposable {
 
             Upload -> {
                 mode = HBlank
-                gb.requestInterrupt(Interrupt.LCDC)
                 renderLine()
             }
 
@@ -124,7 +123,7 @@ class PPU(private val gb: GameBoy) : Disposable {
 
             if (++tileX == 8) {
                 tileX = 0
-                if ((tileAddr and 0x19) == 0x19) tileAddr -= 0x20
+                if ((tileAddr and 0x1F) == 0x1F) tileAddr -= 0x20
                 tileAddr++
                 tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
                 high = gb.read(tileDataAddr + 1).toByte()

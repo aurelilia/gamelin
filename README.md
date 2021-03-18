@@ -34,19 +34,19 @@ The emulator is in an early, but usable state. At the moment, the following is i
 
 ##### Reaches gameplay, heavy issues
 - Pokemon Blue (Global, 1996, Game Freak)
-    - Game display some garbage on boot, then regular GF logo
-    - Intro cutscene plays mostly normal, Pokemon on title screen are black squares
+    - Game display some garbage instead of copyrights on boot, then regular GF logo and intro
+    - Intro plays normal, Pokemon on title screen are black squares
     - Graphics are very glitchy in general:
         - Window is unimplemented, all text boxes invisible
         - A lot of screens just display white (Oak intro cutscene, battle...)
-        - Some areas have weird "shifts" in their tile map
     - Playable until first rival fight, blindly spamming A in battle does not work 
     (game seems to play the "asleep" sound effect for both parties after first turn?)
 
 ##### Does not reach gameplay/not playable
 - Tetris DX (Global, 1998, Nintendo)
-    - Title screen only allows selecting "Entry", pressing A loads an empty
-    tetris field and hangs
+    - Game briefly displays garbage on boot
+    - Title screen only allows selecting "Entry", pressing A/Start loads an empty
+    tetris field and hangs (although reset button combo still works)
 
 - Super Mario Land (Global, Nintendo)
     - Title screen works
@@ -62,7 +62,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 
 - Donkey Kong (Global, 1994, Nintendo)
     - Title screen displays after a bunch of garbage output
-    - Hangs when pressing start and starts filling memory with garbage
+    - Hangs on glitchy file select (?)
 
 - Donkey Kong Land (Global, 1995, Nintendo/RARE)
     - Softlocks on map selection screen
