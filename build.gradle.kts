@@ -6,19 +6,43 @@
  */
 
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
+import com.soywiz.korge.gradle.*
+
+buildscript {
+    repositories {
+        mavenLocal()
+        maven { url = uri("https://dl.bintray.com/korlibs/korlibs") }
+        maven { url = uri("https://plugins.gradle.org/m2/") }
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:2.0.9.1")
+    }
+}
 
 plugins {
     kotlin("multiplatform") version "1.4.31"
     application
 }
 
-group = "me.ellie"
+group = "xyz.angm.gamelin"
 version = "1.0-SNAPSHOT"
 
 repositories {
     jcenter()
     mavenCentral()
     maven { url = uri("https://dl.bintray.com/kotlin/kotlinx") }
+}
+
+// JS / KORGE
+apply<KorgeGradlePlugin>()
+korge {
+    id = "xyz.angm.gamelin"
+    version = "0.0.1"
+    name = "gamelin"
+    entryPoint = "main"
+    targetJs()
 }
 
 kotlin {
@@ -99,11 +123,6 @@ kotlin {
             kotlin.srcDir("src/jsTest")
         }
     }
-}
-
-
-tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
-    outputFileName = "output.js"
 }
 
 // These tasks were previosuly in Groovy, thank you to Unciv for their Kotlin translations!

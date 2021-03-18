@@ -8,6 +8,7 @@
 package xyz.angm.gamelin.interfaces
 
 actual class AudioOutput actual constructor() {
+
     actual fun reset() {
     }
 
