@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 10:57 PM.
+ * This file was last modified at 3/18/21, 12:11 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,6 @@ import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
-import ktx.assets.file
 import ktx.collections.*
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
@@ -68,19 +67,8 @@ class Gamelin : ApplicationAdapter() {
         val file = Menu("File")
         val view = Menu("View")
 
+        val chooser = createFileChooser()
         file.item("Load ROM", 1) {
-            val chooser = FileChooser("Choose ROM", FileChooser.Mode.OPEN)
-            chooser.selectionMode = FileChooser.SelectionMode.FILES
-            chooser.setDirectory(file("roms"))
-            val filter = FileTypeFilter(true)
-            filter.addRule("GameBoy ROMs (.gb, .gbc)", "gb", "gbc")
-            chooser.setFileTypeFilter(filter)
-            chooser.setListener(object : StreamingFileChooserListener() {
-                override fun selected(file: FileHandle) {
-                    gb.loadGame(file.readBytes())
-                    gbWindow.updateTitle(gb)
-                }
-            })
             stage.addActor(chooser)
             chooser.fadeIn()
         }
@@ -108,6 +96,23 @@ class Gamelin : ApplicationAdapter() {
             override fun changed(event: ChangeEvent?, actor: Actor?) = click()
         }).setShortcut(Input.Keys.NUM_0 + shortcut))
         hotkeyHandler.register(Input.Keys.NUM_0 + shortcut, click)
+    }
+
+    private fun createFileChooser(): FileChooser {
+        FileChooser.setDefaultPrefsName("gamelin")
+        FileChooser.setSaveLastDirectory(true)
+        val chooser = FileChooser("Choose ROM", FileChooser.Mode.OPEN)
+        chooser.selectionMode = FileChooser.SelectionMode.FILES
+        val filter = FileTypeFilter(true)
+        filter.addRule("GameBoy ROMs (.gb, .gbc)", "gb", "gbc")
+        chooser.setFileTypeFilter(filter)
+        chooser.setListener(object : StreamingFileChooserListener() {
+            override fun selected(file: FileHandle) {
+                gb.loadGame(file.readBytes())
+                gbWindow.updateTitle(gb)
+            }
+        })
+        return chooser
     }
 
     private fun toggleWindow(name: String, create: () -> Window) {
