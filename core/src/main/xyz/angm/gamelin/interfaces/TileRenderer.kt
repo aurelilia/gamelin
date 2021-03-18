@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 1:42 PM.
+ * This file was last modified at 3/18/21, 8:02 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,12 +15,12 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.Disposable
 import xyz.angm.gamelin.isBit
-import xyz.angm.gamelin.system.GameBoy
+import xyz.angm.gamelin.system.io.MMU
 
 private const val TILE_SIZE = 8
 private val colors = arrayOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY, Color.BLACK)
 
-class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Float) : Actor(), Disposable {
+internal class TileRenderer(private val mmu: MMU, width: Int, height: Int, scale: Float) : Actor(), Disposable {
 
     private val pixmapA = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
     private val pixmapB = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
@@ -33,8 +33,8 @@ class TileRenderer(private val gb: GameBoy, width: Int, height: Int, scale: Floa
 
     fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
         for (line in 0 until TILE_SIZE) {
-            val high = gb.read(tilePtr + (line * 2)).toByte()
-            val low = gb.read(tilePtr + (line * 2) + 1).toByte()
+            val high = mmu.read(tilePtr + (line * 2)).toByte()
+            val low = mmu.read(tilePtr + (line * 2) + 1).toByte()
 
             for (pixel in 0 until TILE_SIZE) {
                 val colorIdx = (high.isBit(7 - pixel) shl 1) + low.isBit(7 - pixel)

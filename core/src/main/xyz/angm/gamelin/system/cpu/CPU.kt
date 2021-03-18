@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 4:22 PM.
+ * This file was last modified at 3/18/21, 8:12 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -49,11 +49,11 @@ internal class CPU(private val gb: GameBoy) {
             gb.advanceClock(cyclesTaken)
         }
 
-        gb.advanceClock(checkInterrupts(ime && this.ime))
+        if (checkInterrupts(ime && this.ime)) gb.advanceClock(5)
     }
 
-    private fun checkInterrupts(ime: Boolean): Int {
-        if (!ime) return 0
+    private fun checkInterrupts(ime: Boolean): Boolean {
+        if (!ime) return false
         for (interrupt in Interrupt.values()) {
             if (interrupt.isSet(gb.read(MMU.IE)) && interrupt.isSet(gb.read(MMU.IF))) {
                 halt = false
@@ -61,10 +61,10 @@ internal class CPU(private val gb: GameBoy) {
                 this.ime = false
                 gb.pushS(pc.int())
                 pc = interrupt.handlerAddr
-                return 5
+                return true
             }
         }
-        return 0
+        return false
     }
 
     fun write(reg: Reg, value: Byte) {

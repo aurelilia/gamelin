@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 10:25 PM.
+ * This file was last modified at 3/18/21, 8:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -32,6 +32,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
     internal lateinit var cart: Cartridge
     internal val sound = Sound()
     internal val joypad = Keyboard(this)
+    internal val ppu = PPU(this)
     private val timer = Timer(this)
 
     fun load(game: ByteArray) {
@@ -40,6 +41,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
     }
 
     fun step(cycles: Int) {
+        ppu.step(cycles)
         sound.step(cycles)
         timer.step(cycles)
     }
@@ -48,6 +50,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
         timer.reset()
         joypad.reset()
         sound.reset()
+        ppu.reset()
 
         ram.fill(0)
         oam.fill(0)
@@ -57,6 +60,7 @@ internal class MMU(private val gb: GameBoy) : Disposable {
 
     override fun dispose() {
         sound.dispose()
+        ppu.dispose()
     }
 
     internal fun requestInterrupt(interrupt: Interrupt) {
@@ -84,9 +88,18 @@ internal class MMU(private val gb: GameBoy) : Disposable {
             JOYP -> joypad.read()
             in DIV..TAC -> timer.read(addr)
             in NR10..NR52 -> sound.read(addr)
+            in LCDC..OCPD -> ppu.read(addr)
 
             else -> readAny(addr)
         }
+    }
+
+    fun read(addr: Int) = read(addr.toShort()).int()
+
+    fun read16(addr: Int): Int {
+        val ls = read(addr)
+        val hs = read(addr + 1)
+        return ((hs shl 8) or ls)
     }
 
     fun write(addr: Short, value: Byte) {
@@ -96,12 +109,6 @@ internal class MMU(private val gb: GameBoy) : Disposable {
             // FF44: Current PPU scan line
             0xFF44 -> GameBoy.log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
 
-            // Redirects
-            in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
-            JOYP -> joypad.write(value)
-            in DIV..TAC -> timer.write(addr, value)
-            in NR10..NR52 -> sound.write(addr, value)
-
             // Special behavior for:
             // FF46: OAM DMA
             0xFF46 -> { //TODO timing & blocking reads
@@ -109,9 +116,18 @@ internal class MMU(private val gb: GameBoy) : Disposable {
                 for (dest in 0xFE00..0xFE9F) write(dest.toShort(), read(source++.toShort()))
             }
 
+            // Redirects
+            in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
+            JOYP -> joypad.write(value)
+            in DIV..TAC -> timer.write(addr, value)
+            in NR10..NR52 -> sound.write(addr, value)
+            in LCDC..OCPD -> ppu.write(addr, value)
+
             else -> writeAny(addr, value)
         }
     }
+
+    fun write(addr: Int, value: Int) = write(addr.toShort(), value.toByte())
 
     fun readAny(addr: Short): Byte {
         return when (val a = addr.int()) {

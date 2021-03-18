@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 6:43 PM.
+ * This file was last modified at 3/18/21, 8:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,49 +12,83 @@ import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.isBit_
 import xyz.angm.gamelin.setBit
-import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.GPUMode.*
 
-// TODO: LCDC can be modified mid-scanline, account for that
-class PPU(private val gb: GameBoy) : Disposable {
+internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
 
-    val renderer = TileRenderer(gb, 20, 18, 4f)
+    val renderer = TileRenderer(mmu, 20, 18, 4f)
 
     private var mode = OAMScan
     private var modeclock = 0
-    private var line
-        get() = gb.read(0xFF44)
-        set(value) = gb.writeAny(0xFF44, value)
-    private var lineCompare
-        get() = gb.read(0xFF45)
-        set(value) = gb.writeAny(0xFF45, value)
-    private var stat
-        get() = gb.read(0xFF41)
-        set(value) = gb.writeAny(0xFF41, value)
 
-    private val control get() = gb.read(0xFF40)
-    private val displayEnable get() = control.isBit(7)
-    private val bgEnable get() = control.isBit(0)
-    private val objEnable get() = control.isBit(1)
-    private val windowEnable get() = control.isBit(5)
-    private val bigObjMode get() = control.isBit(2)
+    private var lcdc = 0
+    private var displayEnable = false
+    private var bgEnable = false
+    private var objEnable = false
+    private var windowEnable = false
+    private var bigObjMode = false
+    private var altBgTileData = false
+    private var bgMapAddr = 0x9800
+    private var windowMapAddr = 0x9800
 
-    private val scrollX get() = gb.read(0xFF43)
-    private val scrollY get() = gb.read(0xFF42)
-    private val bgMapLine get() = (scrollY + line) and 0xFF
+    private var line = 0
+    private var lineCompare = 0
 
-    private val bgPalette get() = gb.read(0xFF47)
-    private val objPalette1 get() = gb.read(0xFF48)
-    private val objPalette2 get() = gb.read(0xFF49)
+    private var stat = 0
+    private var scrollX = 0
+    private var scrollY = 0
+    private var windowX = 0
+    private var windowY = 0
 
-    private val bgMapAddr get() = if (!control.isBit(3)) 0x9800 else 0x9C00
-    private val windowMapAddr get() = if (!control.isBit(6)) 0x9800 else 0x9C00
-    private val windowX get() = gb.read(0xFF4B)
-    private val windowY get() = gb.read(0xFF4A)
+    private var bgPalette = 0b11100100
+    private var objPalette1 = 0b11100100
+    private var objPalette2 = 0b11100100
 
     // All pixels in the current render cycle that have a non-null BG color (objects render under it)
     private val bgOccupiedPixels = Array(160 * 144) { false }
+
+    override fun read(addr: Int): Int {
+        return when (addr) {
+            MMU.LCDC -> lcdc
+            MMU.STAT -> stat
+            MMU.SCY -> scrollY
+            MMU.SCX -> scrollX
+            MMU.LY -> line
+            MMU.LYC -> lineCompare
+            MMU.BGP -> bgPalette
+            MMU.OBP0 -> objPalette1
+            MMU.OBP1 -> objPalette2
+            MMU.WX -> windowX + 7
+            MMU.WY -> windowY
+            else -> MMU.INVALID_READ
+        }
+    }
+
+    override fun write(addr: Int, value: Int) {
+        when (addr) {
+            MMU.LCDC -> {
+                lcdc = value
+                bgEnable = lcdc.isBit(0)
+                objEnable = lcdc.isBit(1)
+                bigObjMode = lcdc.isBit(2)
+                bgMapAddr = if (!lcdc.isBit(3)) 0x9800 else 0x9C00
+                altBgTileData = lcdc.isBit(4)
+                windowEnable = lcdc.isBit(5)
+                windowMapAddr = if (!lcdc.isBit(6)) 0x9800 else 0x9C00
+                displayEnable = lcdc.isBit(7)
+            }
+            MMU.STAT -> stat = value
+            MMU.SCY -> scrollY = value
+            MMU.SCX -> scrollX = value
+            MMU.LYC -> lineCompare = value
+            MMU.BGP -> bgPalette = value
+            MMU.OBP0 -> objPalette1 = value
+            MMU.OBP1 -> objPalette2 = value
+            MMU.WX -> windowX = value - 7
+            MMU.WY -> windowY = value
+        }
+    }
 
     fun step(tCycles: Int) {
         modeclock += tCycles
@@ -81,7 +115,7 @@ class PPU(private val gb: GameBoy) : Disposable {
             }
 
             VBlank -> {
-                if (line == 144) gb.requestInterrupt(Interrupt.VBlank)
+                if (line == 144) mmu.requestInterrupt(Interrupt.VBlank)
                 line++
                 if (line > 153) {
                     mode = OAMScan
@@ -98,7 +132,7 @@ class PPU(private val gb: GameBoy) : Disposable {
     }
 
     private fun statInterrupt(index: Int) {
-        if (stat.toByte().isBit_(index)) gb.requestInterrupt(Interrupt.LCDC)
+        if (stat.toByte().isBit_(index)) mmu.requestInterrupt(Interrupt.LCDC)
     }
 
     private fun lycInterrupt() {
@@ -117,21 +151,21 @@ class PPU(private val gb: GameBoy) : Disposable {
     }
 
     private fun renderBG() {
-        renderBGOrWindow(scrollX, 0, bgMapAddr, bgMapLine) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
+        renderBGOrWindow(scrollX, 0, bgMapAddr, (scrollY + line) and 0xFF) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
     }
 
     private fun renderWindow() {
         if (windowY > line) return
-        renderBGOrWindow(0, windowX - 7, windowMapAddr, line) { it }
+        renderBGOrWindow(0, windowX, windowMapAddr, line) { it }
     }
 
     private inline fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
         var tileX = scrollX and 7
         val tileY = mapLine and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
-        var tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
-        var high = gb.read(tileDataAddr + 1).toByte()
-        var low = gb.read(tileDataAddr).toByte()
+        var tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2)
+        var high = mmu.read(tileDataAddr + 1).toByte()
+        var low = mmu.read(tileDataAddr).toByte()
 
         for (tileIdxAddr in startX until 160) {
             val colorIdx = (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX)
@@ -142,9 +176,9 @@ class PPU(private val gb: GameBoy) : Disposable {
                 tileX = 0
                 tileAddr = tileAddrCorrect(tileAddr)
                 tileAddr++
-                tileDataAddr = bgTileDataAddr(gb.read(tileAddr)) + (tileY * 2)
-                high = gb.read(tileDataAddr + 1).toByte()
-                low = gb.read(tileDataAddr).toByte()
+                tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2)
+                high = mmu.read(tileDataAddr + 1).toByte()
+                low = mmu.read(tileDataAddr).toByte()
             }
         }
     }
@@ -158,7 +192,7 @@ class PPU(private val gb: GameBoy) : Disposable {
     private fun renderObjs() {
         var objCount = 0
         for (loc in 0xFE00 until 0xFEA0 step 4) {
-            Sprite.dat = gb.read16(loc) + (gb.read16(loc + 2) shl 16)
+            Sprite.dat = mmu.read16(loc) + (mmu.read16(loc + 2) shl 16)
             if (Sprite.y <= line && (Sprite.y + if (bigObjMode) 16 else 8) > line) { // If on this line
                 renderObj()
                 objCount++
@@ -179,8 +213,8 @@ class PPU(private val gb: GameBoy) : Disposable {
         }
 
         val tileDataAddr = objTileOffset(tileNum) + (tileY * 2)
-        val high = gb.read(tileDataAddr + 1).toByte()
-        val low = gb.read(tileDataAddr).toByte()
+        val high = mmu.read(tileDataAddr + 1).toByte()
+        val low = mmu.read(tileDataAddr).toByte()
 
         for (tileX in 0 until 8) {
             val colorIdx = if (!xFlip) (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX) else (high.isBit(tileX) shl 1) + low.isBit(tileX)
@@ -196,10 +230,10 @@ class PPU(private val gb: GameBoy) : Disposable {
 
     private fun getPixelOccupied(x: Int, y: Int) = bgOccupiedPixels[(x * 144) + y]
 
-    fun bgIdxTileDataAddr(window: Boolean, idx: Int) = bgTileDataAddr(gb.read((if (window) windowMapAddr else bgMapAddr) + idx))
+    fun bgIdxTileDataAddr(window: Boolean, idx: Int) = bgTileDataAddr(mmu.read((if (window) windowMapAddr else bgMapAddr) + idx))
 
     private fun bgTileDataAddr(idx: Int): Int {
-        return if (gb.read(0xFF40).isBit(4)) 0x8000 + (idx * 0x10)
+        return if (altBgTileData) 0x8000 + (idx * 0x10)
         else 0x9000 + (idx.toByte() * 0x10)
     }
 
@@ -212,7 +246,29 @@ class PPU(private val gb: GameBoy) : Disposable {
     fun reset() {
         mode = OAMScan
         modeclock = 0
+
+        lcdc = 0
+        displayEnable = false
+        bgEnable = false
+        objEnable = false
+        windowEnable = false
+        bigObjMode = false
+        altBgTileData = false
+        bgMapAddr = 0x9800
+        windowMapAddr = 0x9800
+
         line = 0
+        lineCompare = 0
+
+        stat = 0
+        scrollX = 0
+        scrollY = 0
+        windowX = 0
+        windowY = 0
+
+        bgPalette = 0b11100100
+        objPalette1 = 0b11100100
+        objPalette2 = 0b11100100
     }
 
     override fun dispose() = renderer.dispose()

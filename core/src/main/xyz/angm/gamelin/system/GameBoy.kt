@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 10:29 PM.
+ * This file was last modified at 3/18/21, 8:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,7 +13,6 @@ import xyz.angm.gamelin.*
 import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.system.cpu.*
 import xyz.angm.gamelin.system.io.MMU
-import xyz.angm.gamelin.system.io.PPU
 import kotlin.experimental.and
 
 const val CLOCK_SPEED_HZ = 4194304
@@ -21,7 +20,6 @@ const val CLOCK_SPEED_HZ = 4194304
 class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
 
     internal val cpu = CPU(this)
-    internal val ppu = PPU(this)
     internal val mmu = MMU(this)
     internal var gameLoaded = false
     private var disposed = false
@@ -70,7 +68,6 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     fun reset() {
         cpu.reset()
         mmu.reset()
-        ppu.reset()
         clock = 0
     }
 
@@ -80,7 +77,6 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     internal fun advanceClock(mCycles: Int) {
         val tCycles = mCycles * 4
         mmu.step(tCycles)
-        ppu.step(tCycles)
         clock += tCycles
     }
 
@@ -94,13 +90,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     internal fun read16(reg: DReg) = (read(reg.low) or (read(reg.high) shl 8))
     internal fun readAny(addr: Int) = mmu.readAny(addr.toShort()).int()
 
-    private fun read16(addr: Short): Int {
-        val ls = read(addr)
-        val hs = read(addr + 1)
-        return ((hs shl 8) or ls)
-    }
-
-    internal fun read16(addr: Int) = read16(addr.toShort())
+    internal fun read16(addr: Int) = mmu.read16(addr)
     internal fun readSP() = cpu.sp.int()
 
     // -----------------------------------
@@ -244,7 +234,7 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
     // Stack Pointer operations
     // -----------------------------------
     fun popS(): Int {
-        val value = read16(cpu.sp)
+        val value = read16(cpu.sp.int())
         cpu.sp = (cpu.sp + 2).toShort()
         return value
     }
@@ -285,7 +275,6 @@ class GameBoy(internal val debugger: Debugger = Debugger()) : Disposable {
 
     override fun dispose() {
         mmu.dispose()
-        ppu.dispose()
         debugger.dispose()
     }
 

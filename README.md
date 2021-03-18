@@ -27,7 +27,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ##### Perfect with no observable issues
 - Tic-Tac-Toe (1996, Norman Nithman)
 - Dr. Mario (Global version, 1990, Nintendo)
-- The Legends of Zelda: Link's Awakening (Global, 1993, Nintendo)
+- The Legend of Zelda: Link's Awakening (Global, 1993, Nintendo)
     - Played until shortly after obtaining your sword at the shore
 
 ##### Small sound/bootup issues, otherwise perfect

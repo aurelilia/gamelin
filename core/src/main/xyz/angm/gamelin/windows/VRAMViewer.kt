@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 1:44 PM.
+ * This file was last modified at 3/18/21, 8:08 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,7 @@ import xyz.angm.gamelin.system.GameBoy
 
 class VRAMViewer(gb: GameBoy) : Window("VRAM Viewer") {
 
-    private val renderer = TileRenderer(gb, 16, 24, 4f)
+    private val renderer = TileRenderer(gb.mmu, 16, 24, 4f)
 
     init {
         add(renderer)
