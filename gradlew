@@ -1,6 +1,13 @@
 #!/usr/bin/env sh
 
 #
+# Developed as part of the Gamelin project.
+# This file was last modified at 3/18/21, 9:10 PM.
+# Copyright 2021, see git repository at git.angm.xyz for authors and other info.
+# This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
+#
+
+#
 # Copyright 2015 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,7 +137,7 @@ fi
 if [ "$cygwin" = "true" -o "$msys" = "true" ] ; then
     APP_HOME=`cygpath --path --mixed "$APP_HOME"`
     CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
-    
+
     JAVACMD=`cygpath --unix "$JAVACMD"`
 
     # We build the pattern for arguments to be converted via cygpath
