@@ -32,6 +32,17 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Tetris (JP and Global versions, 1989, Nintendo)
     - The "fail" sound effect played while the playing field is filled does not play
 
+##### Reaches gameplay, heavy issues
+- Pokemon Blue (Global, 1996, Game Freak)
+    - Game display some garbage on boot, then regular GF logo
+    - Intro cutscene plays mostly normal, Pokemon on title screen are black squares
+    - Graphics are very glitchy in general:
+        - Window is unimplemented, all text boxes invisible
+        - A lot of screens just display white (Oak intro cutscene, battle...)
+        - Some areas have weird "shifts" in their tile map
+    - Playable until first rival fight, blindly spamming A in battle does not work 
+    (game seems to play the "asleep" sound effect for both parties after first turn?)
+
 ##### Does not reach gameplay/not playable
 - Tetris DX (Global, 1998, Nintendo)
     - Title screen only allows selecting "Entry", pressing A loads an empty
@@ -46,7 +57,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Starting gameplay hangs on empty first level
 
 - The Legends of Zelda: Link's Awakening (Global, 1993, Nintendo)
-    - Intro cutscene and title screen work
+    - Intro cutscene and title screen work with graphical glitches
     - Game hangs after pressing START on title screen
 
 - Donkey Kong (Global, 1994, Nintendo)

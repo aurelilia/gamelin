@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/17/21, 10:32 PM.
+ * This file was last modified at 3/18/21, 1:09 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -44,9 +44,9 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
         }
     }
 
-    fun getTitle(): String {
+    fun getTitle(extended: Boolean = false): String {
         val str = StringBuilder()
-        for (byte in 0x134..0x013E) { // Title in Game ROM
+        for (byte in 0x134..if (extended) 0x0142 else 0x013E) { // Title in Game ROM
             val value = read(byte)
             if (value == 0x00) break
             str.append(value.toChar())
@@ -56,9 +56,11 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
 
     companion object {
 
+        const val CGB_FLAG = 0x0143
         const val KIND = 0x0147
         const val ROM_BANKS = 0x0148
         const val RAM_BANKS = 0x0149
+        const val DESTINATION = 0x014A
         const val BANK_COUNT_1MB = 64
 
         fun ofRom(rom: ByteArray): Cartridge {
@@ -81,7 +83,7 @@ class MBC1(rom: ByteArray) : Cartridge(rom) {
     override fun write(addr: Int, value: Int) {
         when (addr) {
             in 0x0000..0x1FFF -> ramEnable = (value and 0x0F) == 0x0A
-            in 0x2000..0x3FFF -> romBank = max((value % romBankCount), 1)
+            in 0x2000..0x3FFF -> romBank = max((value % romBankCount), 1) and 0x1F
             in 0x4000..0x5FFF -> {
                 upperReg = value and 0x03
                 updateReg()
@@ -106,6 +108,11 @@ class MBC1(rom: ByteArray) : Cartridge(rom) {
 class MBC3(rom: ByteArray) : Cartridge(rom) {
 
     override fun write(addr: Int, value: Int) {
-        TODO("Not yet implemented")
+        when (addr) {
+            in 0x0000..0x1FFF -> ramEnable = (value and 0x0F) == 0x0A
+            in 0x2000..0x3FFF -> romBank = max((value % romBankCount), 1)
+            in 0x4000..0x5FFF -> ramBank = value and 0x03
+            else -> super.write(addr, value)
+        }
     }
 }
