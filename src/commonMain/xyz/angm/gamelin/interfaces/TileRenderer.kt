@@ -12,7 +12,6 @@ import xyz.angm.gamelin.system.io.MMU
 const val TILE_SIZE = 8
 
 internal expect class TileRenderer(mmu: MMU, width: Int, height: Int, scale: Float) {
-    fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int)
     fun drawPixel(x: Int, y: Int, colorIdx: Int)
     fun finishFrame()
     fun dispose()

@@ -6,3 +6,4 @@
 
 gradle jsBrowserWebpack
 cp assets/web/index.html build/distributions/
+xdg-open build/distributions/index.html

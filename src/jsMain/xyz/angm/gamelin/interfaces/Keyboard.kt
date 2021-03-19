@@ -7,14 +7,13 @@
 
 package xyz.angm.gamelin.interfaces
 
+import com.soywiz.korev.Key
+import view
 import xyz.angm.gamelin.system.io.Button
 
-actual object Keyboard {
-    actual var buttonPressed: (Button) -> Unit
-        get() = TODO("Not yet implemented")
-        set(value) {}
+private val btnToKey = arrayOf(Key.Z, Key.X, Key.ENTER, Key.SPACE, Key.RIGHT, Key.LEFT, Key.UP, Key.DOWN)
 
-    actual fun isPressed(btn: Button): Boolean {
-        TODO("Not yet implemented")
-    }
+actual object Keyboard {
+    actual var buttonPressed: (Button) -> Unit = {} // TODO
+    actual fun isPressed(btn: Button) = view.keys[btnToKey[btn.ordinal]]
 }

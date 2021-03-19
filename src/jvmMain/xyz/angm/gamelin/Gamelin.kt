@@ -23,13 +23,13 @@ import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
 import ktx.collections.*
+import xyz.angm.gamelin.interfaces.DesktopDebugger
 import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.windows.*
 import kotlin.system.exitProcess
 
-/** The emulator. */
 class Gamelin : ApplicationAdapter() {
 
     private lateinit var stage: Stage
@@ -42,7 +42,7 @@ class Gamelin : ApplicationAdapter() {
 
     override fun create() {
         VisUI.load()
-        gb = GameBoy()
+        gb = GameBoy(DesktopDebugger())
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
         root = VisTable()
 

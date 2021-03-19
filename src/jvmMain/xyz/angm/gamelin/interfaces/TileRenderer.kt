@@ -27,7 +27,7 @@ internal actual class TileRenderer actual constructor(private val mmu: MMU, widt
         setSize(TILE_SIZE * width * scale, TILE_SIZE * height * scale)
     }
 
-    actual fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
+    fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
         for (line in 0 until TILE_SIZE) {
             val high = mmu.read(tilePtr + (line * 2)).toByte()
             val low = mmu.read(tilePtr + (line * 2) + 1).toByte()
