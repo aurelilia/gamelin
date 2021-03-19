@@ -17,6 +17,7 @@ import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.ImageData
 import org.w3c.files.FileReader
+import xyz.angm.gamelin.stringToBytes
 import xyz.angm.gamelin.system.GameBoy
 
 lateinit var view: Views
@@ -39,8 +40,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
         val reader = FileReader()
         reader.addEventListener("loadend", {
             val res = reader.result as String
-            val buf = ByteArray(res.length) { res[it].toByte() }
-            gb.loadGame(buf)
+            gb.loadGame(stringToBytes(res))
         })
         reader.readAsBinaryString(file)
     })

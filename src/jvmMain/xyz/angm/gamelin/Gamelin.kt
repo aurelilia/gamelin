@@ -24,6 +24,7 @@ import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
 import ktx.collections.*
 import xyz.angm.gamelin.interfaces.DesktopDebugger
+import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
@@ -111,6 +112,7 @@ class Gamelin : ApplicationAdapter() {
             override fun selected(file: FileHandle) {
                 gb.loadGame(file.readBytes())
                 gbWindow.updateTitle(gb)
+                FileSystem.gamePath = file
             }
         })
         return chooser
