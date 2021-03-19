@@ -41,7 +41,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Super Mario Land (Global, Nintendo)
     - Background music is off at times, missing some effects in it
 - Pokemon Blue (Global, 1996, Game Freak)
-    - Game display some garbage before copyrights/GF logo/intro
+    - Game displays some garbage before copyrights/GF logo/intro
     - Gameplay seems to work fine (tested until getting the Pokedex)
     - Some music has missing sound effects
     - Menu screen is a bit buggy on first load
@@ -61,9 +61,13 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Works well until starting first level, most of map is invisible and
     sprites are cut off (still playable though)
 
+##### Not really playable
+- Pokemon Silver (Global, 2000, Game Freak)
+    - Game displays some garbage before copyrights/GF logo/intro
+    - Playable inside the player's room, any screen transition crashes
+
 ##### Does not reach gameplay/not playable
 - Kirby's Dream Land (Global, Nintendo/HAL)
-    - Title screen works with buggy Kirby sprite (missing 8x16-sprites support)
     - Starting gameplay hangs on empty first level or white screen, inconsistent (interrupt timing issue?)
 
 - Yoshi (Global, 1992, Nintendo)
