@@ -11,7 +11,6 @@ import com.soywiz.korge.time.delay
 import com.soywiz.korge.view.Views
 import com.soywiz.korim.color.Colors
 import kotlinx.browser.document
-import kotlinx.html.currentTimeMillis
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLInputElement
