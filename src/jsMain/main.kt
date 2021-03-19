@@ -11,6 +11,7 @@ import com.soywiz.korge.time.delay
 import com.soywiz.korge.view.Views
 import com.soywiz.korim.color.Colors
 import kotlinx.browser.document
+import kotlinx.browser.window
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLInputElement
@@ -34,7 +35,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
     val fileElem = document.getElementById("game") as HTMLInputElement
     fileElem.addEventListener("change", {
         val file = fileElem.files!!.item(0)!!
-        document.getElementById("filetext")!!.innerHTML = file.name;
+        document.getElementById("filetext")!!.innerHTML = file.name
         val reader = FileReader()
         reader.addEventListener("loadend", {
             val res = reader.result as String
@@ -45,8 +46,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
     })
 
     while (!gb.gameLoaded) delay(100.milliseconds)
-    while (true) {
+    window.setInterval({
         gb.advanceDelta(1 / 30f)
-        delay(5.milliseconds)
-    }
+    }, 33)
 }

@@ -8,18 +8,25 @@
 package xyz.angm.gamelin.interfaces
 
 import com.soywiz.korau.sound.AudioSamples
+import kotlinx.browser.document
+import org.w3c.dom.HTMLInputElement
 import view
 import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
+
+private val soundEnable = document.getElementById("sound-enable") as HTMLInputElement
 
 actual class AudioOutput actual constructor() {
 
     private val device = JsPlatformAudioOutput(view.coroutineContext, 44100)
     private var buffer = AudioSamples(2, BUFFER_SIZE)
     private var bufferIndex = 0
-    private var play = false
+    private var enabled = soundEnable.checked
 
     init {
         device.start()
+        soundEnable.addEventListener("change", {
+            enabled = soundEnable.checked
+        })
     }
 
     actual fun reset() {
@@ -28,6 +35,7 @@ actual class AudioOutput actual constructor() {
     }
 
     actual fun play(left: Byte, right: Byte) {
+        if (!enabled) return
         buffer[0, bufferIndex] = (left * 32).toShort()
         buffer[1, bufferIndex++] = (right * 32).toShort()
         buffer[0, bufferIndex] = (left * 32).toShort()
@@ -38,14 +46,14 @@ actual class AudioOutput actual constructor() {
         }
     }
 
-    actual fun needsSamples() = !play
+    actual fun needsSamples() = true
 
     actual fun dispose() {
     }
 
     actual companion object {
-        actual val SAMPLE_RATE get() = 22050
-        actual val BUFFER_SIZE get() = 8192 * 8
-        actual val DIVIDER get() = CLOCK_SPEED_HZ / SAMPLE_RATE
+        actual val SAMPLE_RATE = 22050
+        actual val BUFFER_SIZE = 2048
+        actual val DIVIDER = CLOCK_SPEED_HZ / SAMPLE_RATE
     }
 }

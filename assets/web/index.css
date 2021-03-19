@@ -59,9 +59,12 @@ html, body, canvas {
     font: 14px Arial;
 }
 
-h2 {
+h2, .sound-checkbox, .desktop-msg {
     color: #afafaf;
     text-shadow: 2px 2px 0 rgb(73, 73, 73);
+}
+
+h2 {
     margin-top: 3%;
 }
 
@@ -106,6 +109,15 @@ h2 {
     right: 0;
     text-align: right;
     top: 0;
+}
+
+.sound-checkbox, .desktop-msg {
+    margin-top: 1%;
+}
+
+a {
+    color: #776bc7;
+    text-shadow: none;
 }
 
 @keyframes spin {

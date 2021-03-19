@@ -52,8 +52,8 @@ actual class AudioOutput actual constructor() {
     actual fun dispose() = device.dispose()
 
     actual companion object {
-        actual val SAMPLE_RATE get() = 22050
-        actual val BUFFER_SIZE get() = 1024
-        actual val DIVIDER get() = CLOCK_SPEED_HZ / SAMPLE_RATE
+        actual val SAMPLE_RATE = 22050
+        actual val BUFFER_SIZE = 1024
+        actual val DIVIDER = CLOCK_SPEED_HZ / SAMPLE_RATE
     }
 }

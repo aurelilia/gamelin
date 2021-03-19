@@ -15,7 +15,7 @@ import kotlin.experimental.and
 
 const val CLOCK_SPEED_HZ = 4194304
 
-class GameBoy(val debugger: Debugger = Debugger()) {
+class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
 
     internal val cpu = CPU(this)
     val mmu = MMU(this)
@@ -267,14 +267,12 @@ class GameBoy(val debugger: Debugger = Debugger()) {
     // -----------------------------------
     // Interrupts
     // -----------------------------------
-    internal fun requestInterrupt(interrupt: Interrupt) = mmu.requestInterrupt(interrupt)
-
-    fun dispose() {
+    override fun dispose() {
         mmu.dispose()
         debugger.dispose()
     }
 
     internal companion object Log {
-        fun debug(cls: () -> String) {}
+        fun debug(cls: () -> String) = println(cls())
     }
 }

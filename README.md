@@ -25,7 +25,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 
 ##### Web Version
 - Underlying emulator works fully in browser
-- Everything except sound working
+- Everything except sound working fully, sound is choppy
 
 ### Working/Tested games
 ##### Perfect with no observable issues

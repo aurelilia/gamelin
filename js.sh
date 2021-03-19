@@ -6,4 +6,3 @@
 
 gradle jsBrowserWebpack
 cp build/distributions/gamelin.* assets/web/
-xdg-open assets/web/index.html
