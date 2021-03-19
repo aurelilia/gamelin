@@ -2,6 +2,7 @@
 /assets/roms/*
 !/assets/roms/test
 /assets/gamelin.log
+/assets/web/gamelin*
 
 */out/
 

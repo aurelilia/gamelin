@@ -5,5 +5,5 @@
 # spending any more time on fixing this...
 
 gradle jsBrowserWebpack
-cp assets/web/index.html build/distributions/
-xdg-open build/distributions/index.html
+cp build/distributions/gamelin.* assets/web/
+xdg-open assets/web/index.html

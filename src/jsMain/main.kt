@@ -35,6 +35,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
     val fileElem = document.getElementById("game") as HTMLInputElement
     fileElem.addEventListener("change", {
         val file = fileElem.files!!.item(0)!!
+        document.getElementById("filetext")!!.innerHTML = file.name;
         val reader = FileReader()
         reader.addEventListener("loadend", {
             val res = reader.result as String
@@ -46,9 +47,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
 
     while (!gb.gameLoaded) delay(100.milliseconds)
     while (true) {
-        val time = currentTimeMillis()
         gb.advanceDelta(1 / 30f)
-        console.log("one 30fps frame done in ${currentTimeMillis() - time}ms")
         delay(5.milliseconds)
     }
 }
