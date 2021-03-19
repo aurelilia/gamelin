@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:53 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,9 +8,9 @@
 package xyz.angm.gamelin.system.io
 
 import xyz.angm.gamelin.Disposable
+import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
-import xyz.angm.gamelin.isBit_
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.GPUMode.*
@@ -132,7 +132,7 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
     }
 
     private fun statInterrupt(index: Int) {
-        if (stat.toByte().isBit_(index)) mmu.requestInterrupt(Interrupt.LCDC)
+        if (stat.toByte().isBit(index)) mmu.requestInterrupt(Interrupt.LCDC)
     }
 
     private fun lycInterrupt() {
@@ -168,7 +168,7 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
         var low = mmu.read(tileDataAddr).toByte()
 
         for (tileIdxAddr in startX until 160) {
-            val colorIdx = (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX)
+            val colorIdx = (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX)
             if (colorIdx != 0) setPixelOccupied(tileIdxAddr, line)
             renderer.drawPixel(tileIdxAddr, line, getBGColorIdx(colorIdx))
 
@@ -217,7 +217,7 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
         val low = mmu.read(tileDataAddr).toByte()
 
         for (tileX in 0 until 8) {
-            val colorIdx = if (!xFlip) (high.isBit(7 - tileX) shl 1) + low.isBit(7 - tileX) else (high.isBit(tileX) shl 1) + low.isBit(tileX)
+            val colorIdx = if (!xFlip) (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX) else (high.bit(tileX) shl 1) + low.bit(tileX)
             val screenX = x + tileX
             if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || !getPixelOccupied(screenX, line)))
                 renderer.drawPixel(screenX, line, getColorIdx(palette, colorIdx))

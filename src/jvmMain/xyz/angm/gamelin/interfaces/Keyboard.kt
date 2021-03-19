@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:41 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,7 @@ actual object Keyboard : InputAdapter() {
     private val keyToBtn = IntMap<Button>()
 
     init {
-        for (i in 0 until btnToKey.size) {
+        for (i in btnToKey.indices) {
             keyToBtn[btnToKey[i]] = Button.values()[i]
         }
     }

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:15 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,11 +23,13 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
         5 -> 8
         else -> throw UnsupportedOperationException("Unknown cartridge controller")
     }
-    protected val ram = loadRAM()
+
+    private val ram = loadRAM()
     protected var ramEnable = false
+    private val ramAvailable get() = ram.isNotEmpty() && ramEnable
+
     protected var romBank = 1
     protected var ramBank = 0
-    protected val ramAvailable get() = ram.isNotEmpty() && ramEnable
 
     override fun read(addr: Int): Int {
         return when (addr) {
@@ -109,10 +111,9 @@ class MBC1(rom: ByteArray) : Cartridge(rom) {
 
     // TODO: Mode 1 (RAM mode) 0000-3FFF mapping
     private fun updateReg() {
-        if (ramBankCount == 4 && ramMode) ramBank = upperReg
-        else ramBank = 0
-        if (romBankCount >= BANK_COUNT_1MB && !ramMode) romBank = (romBank and 0x1F) + upperReg shl 5
-        else romBank = (romBank and 0x1F)
+        ramBank = if (ramBankCount == 4 && ramMode) upperReg else 0
+        romBank = (romBank and 0x1F)
+        if (romBankCount >= BANK_COUNT_1MB && !ramMode) romBank += upperReg shl 5
     }
 }
 

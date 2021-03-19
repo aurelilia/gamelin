@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:57 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -103,7 +103,7 @@ class DebuggerWindow(private val gb: GameBoy) : DelayedUpdateWindow("Debugger", 
                     val addRow = { name: String, row: Int ->
                         var out = "$name:${row.hex16()} "
                         for (by in 0 until 16) {
-                            out += "${gb.readAny(row + by).hex8()} "
+                            out += "${gb.read(row + by).hex8()} "
                         }
                         visLabel(out)
                         row()

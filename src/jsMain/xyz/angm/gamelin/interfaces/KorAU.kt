@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 7:55 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,7 +14,6 @@ import com.soywiz.korau.sound.*
 import com.soywiz.korio.lang.Cancellable
 import com.soywiz.korio.lang.cancel
 import kotlinx.browser.document
-import kotlin.coroutines.CoroutineContext
 
 private val temp = FloatArray(1)
 
@@ -25,31 +24,25 @@ internal fun FloatArrayDeque.write(value: Float) {
 
 val nativeSoundProvider: NativeSoundProvider by lazy { HtmlNativeSoundProvider() }
 
-class JsPlatformAudioOutput(coroutineContext: CoroutineContext, val freq: Int) {
-    val id = lastId++
+class JsPlatformAudioOutput {
 
     init {
         nativeSoundProvider.initOnce()
     }
 
-    companion object {
-        var lastId = 0
-    }
-
-    var missingDataCount = 0
-    var nodeRunning = false
-    var node: ScriptProcessorNode? = null
+    private var missingDataCount = 0
+    private var nodeRunning = false
+    private var node: ScriptProcessorNode? = null
+    private var startPromise: Cancellable? = null
 
     private val nchannels = 2
     private val deques = Array(nchannels) { FloatArrayDeque() }
 
     private fun process(e: AudioProcessingEvent) {
-        console.log(e)
-        //val outChannels = Array(e.outputBuffer.numberOfChannels) { e.outputBuffer.getChannelData(it) }
         val outChannels = Array(e.outputBuffer.numberOfChannels) { e.outputBuffer.getChannelData(it) }
         var hasData = true
 
-        if (!document.asDynamic().hidden) {
+        if (!document.asDynamic().hidden as Boolean) {
             for (channel in 0 until nchannels) {
                 val deque = deques[channel]
                 val outChannel = outChannels[channel]
@@ -58,18 +51,12 @@ class JsPlatformAudioOutput(coroutineContext: CoroutineContext, val freq: Int) {
             }
         }
 
-        if (!hasData) {
-            missingDataCount++
-        }
-
-        if (missingDataCount >= 500) {
-            stop()
-        }
+        if (!hasData) missingDataCount++
+        if (missingDataCount >= 500) stop()
     }
 
     private fun ensureInit() = run { node }
 
-    private var startPromise: Cancellable? = null
 
     fun start() {
         if (nodeRunning) return
@@ -82,25 +69,21 @@ class JsPlatformAudioOutput(coroutineContext: CoroutineContext, val freq: Int) {
         nodeRunning = true
     }
 
-    fun stop() {
+    private fun stop() {
         if (!nodeRunning) return
         startPromise?.cancel()
         this.node?.disconnect()
         nodeRunning = false
     }
 
-    fun ensureRunning() {
+    private fun ensureRunning() {
         ensureInit()
         if (!nodeRunning) {
             start()
         }
     }
 
-    var totalShorts = 0
-    val availableSamples get() = totalShorts
-
-    fun add(samples: AudioSamples, offset: Int, size: Int): Unit {
-        totalShorts += size
+    fun add(samples: AudioSamples, offset: Int, size: Int) {
         ensureRunning()
         val schannels = samples.channels
         for (channel in 0 until nchannels) {

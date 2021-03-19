@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:41 PM.
+ * This file was last modified at 3/19/21, 11:34 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,6 +14,8 @@ import xyz.angm.gamelin.system.io.Button
 private val btnToKey = arrayOf(Key.Z, Key.X, Key.ENTER, Key.SPACE, Key.RIGHT, Key.LEFT, Key.UP, Key.DOWN)
 
 actual object Keyboard {
-    actual var buttonPressed: (Button) -> Unit = {} // TODO
+    // JS doesn't implement joypad interrupts as KORGE doesn't seem to have easy support for it,
+    // shouldn't affect most games anyway as it almost always goes unused.
+    actual var buttonPressed: (Button) -> Unit = {}
     actual fun isPressed(btn: Button) = view.keys[btnToKey[btn.ordinal]]
 }

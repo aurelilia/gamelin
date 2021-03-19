@@ -1,14 +1,14 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:15 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io.sound
 
+import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.isBit
-import xyz.angm.gamelin.isBit_
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.io.MMU
 
@@ -17,7 +17,7 @@ abstract class SquareWave : SoundChannel() {
     protected var duty = 0 // Current duty
     private var dutyCounter = 0 // Current bit in duty
     private var off = false
-    protected var timer = 0
+    private var timer = 0
 
     override fun reset() {
         super.reset()
@@ -51,7 +51,7 @@ abstract class SquareWave : SoundChannel() {
         while (timer < 0) {
             if (getFrequency() == 0) timer = 0
             else timer += getFrequency() * 4
-            lastOutput = dutyCycles[duty].isBit_(dutyCounter)
+            lastOutput = dutyCycles[duty].bit(dutyCounter)
             dutyCounter = (dutyCounter + 1) and 7
         }
 

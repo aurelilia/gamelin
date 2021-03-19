@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:18 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -27,18 +27,18 @@ class BlarggTest : FunSpec({
         var ramTestSuccess = false
         var ramTestFail = false
 
-        override fun writeOccured(addr: Short, value: Byte) {
+        override fun writeOccurred(addr: Short, value: Byte) {
             val addr = addr.int()
             val value = value.int()
-            when {
+            when (addr) {
                 // Serial (cpu tests)
-                addr == 0xFF01 -> data.append(value.toChar())
+                0xFF01 -> data.append(value.toChar())
 
                 // RAM output (sound tests)
-                addr == 0xA000 -> if (isRamOutput && value == 0x00) ramTestSuccess = true else if (isRamOutput && value != 0x80) ramTestFail = true
-                addr == 0xA001 -> isRamOutput = value == 0xDE
-                addr == 0xA002 -> isRamOutput = value == 0xB0
-                addr == 0xA003 -> isRamOutput = value == 0x61
+                0xA000 -> if (isRamOutput && value == 0x00) ramTestSuccess = true else if (isRamOutput && value != 0x80) ramTestFail = true
+                0xA001 -> isRamOutput = value == 0xDE
+                0xA002 -> isRamOutput = value == 0xB0
+                0xA003 -> isRamOutput = value == 0x61
             }
         }
 

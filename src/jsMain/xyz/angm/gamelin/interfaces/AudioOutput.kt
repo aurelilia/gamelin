@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:48 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,14 +10,13 @@ package xyz.angm.gamelin.interfaces
 import com.soywiz.korau.sound.AudioSamples
 import kotlinx.browser.document
 import org.w3c.dom.HTMLInputElement
-import view
 import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
 private val soundEnable = document.getElementById("sound-enable") as HTMLInputElement
 
 actual class AudioOutput actual constructor() {
 
-    private val device = JsPlatformAudioOutput(view.coroutineContext, 44100)
+    private val device = JsPlatformAudioOutput()
     private var buffer = AudioSamples(2, BUFFER_SIZE)
     private var bufferIndex = 0
     private var enabled = soundEnable.checked

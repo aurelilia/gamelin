@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:15 PM.
+ * This file was last modified at 3/19/21, 11:36 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -103,10 +103,7 @@ class WaveChannel : SoundChannel() {
             MMU.NR31 -> lengthCounter.setNr1(newVal)
             MMU.NR32 -> {
                 volumeCode = (newVal and 0b01100000) shr 5
-                volumeShift = when (volumeCode) {
-                    0 -> 4
-                    else -> volumeCode - 1
-                }
+                volumeShift = if (volumeCode == 0) 4 else volumeCode - 1
             }
             MMU.NR33 -> frequency = (frequency and 0b11100000000) or newVal
             MMU.NR34 -> {

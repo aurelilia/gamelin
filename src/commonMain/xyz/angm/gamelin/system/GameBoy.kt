@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:41 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -84,7 +84,6 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     internal fun read(reg: Reg) = cpu.regs[reg.idx].int()
     private fun readSigned(addr: Int) = mmu.read(addr.toShort()).toInt()
     internal fun read16(reg: DReg) = (read(reg.low) or (read(reg.high) shl 8))
-    internal fun readAny(addr: Int) = mmu.readAny(addr.toShort()).int()
 
     internal fun read16(addr: Int) = mmu.read16(addr)
     internal fun readSP() = cpu.sp.int()
@@ -99,7 +98,6 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     internal fun write(addr: Int, value: Byte) = write(addr.toShort(), value)
     internal fun write(reg: Reg, value: Byte) = cpu.write(reg, value)
     internal fun write(reg: Reg, value: Int) = write(reg, value.toByte())
-    internal fun writeAny(addr: Int, value: Int) = mmu.writeAny(addr.toShort(), value.toByte())
 
     internal fun write16(reg: DReg, value: Int) {
         write(reg.high, (value ushr 8).toByte())
@@ -196,7 +194,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
 
     fun sra(value: Byte): Byte {
         val a = ((value.int() ushr 1) and 0xFF).toByte()
-        val result = a.setBit(7, value.isBit(7))
+        val result = a.setBit(7, value.bit(7))
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
@@ -215,7 +213,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     }
 
     fun bit(value: Byte, bit: Int): Byte {
-        cpu.flag(Flag.Zero, value.isBit(bit) xor 1)
+        cpu.flag(Flag.Zero, value.bit(bit) xor 1)
         cpu.flag(Flag.Negative, 0)
         cpu.flag(Flag.HalfCarry, 1)
         return value

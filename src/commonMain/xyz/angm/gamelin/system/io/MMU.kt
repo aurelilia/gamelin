@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:45 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -71,7 +71,7 @@ class MMU(private val gb: GameBoy) : Disposable {
             // FF46: DMA Transfer
             // FF18, FF1D: Sound Channels
             0xFF18, 0xFF46, 0xFF1D -> {
-                GameBoy.Log.debug { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
+                GameBoy.debug { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
                 INVALID_READ.toByte()
             }
 
@@ -80,13 +80,20 @@ class MMU(private val gb: GameBoy) : Disposable {
                 if (inBios && addr < 0x0100) bootix[addr.toInt()]
                 else cart.read(addr)
             }
-
             JOYP -> joypad.read()
             in DIV..TAC -> timer.read(addr)
             in NR10..NR52 -> sound.read(addr)
             in LCDC..OCPD -> ppu.read(addr)
 
-            else -> readAny(addr)
+            // Direct reads
+            in 0x8000..0x9FFF -> vram[a and 0x1FFF]
+            in 0xC000..0xDFFF -> ram[a and 0x1FFF]
+            in 0xE000..0xFDFF -> ram[a and 0x1FFF]
+            in 0xFE00..0xFE9F -> oam[a and 0xFF]
+            in 0xFF00..0xFF7F -> mmIO[a and 0x7F]
+            in 0xFF80..0xFFFF -> zram[a and 0x7F]
+
+            else -> INVALID_READ.toByte()
         }
     }
 
@@ -99,15 +106,14 @@ class MMU(private val gb: GameBoy) : Disposable {
     }
 
     fun write(addr: Short, value: Byte) {
-        gb.debugger.writeOccured(addr, value)
+        gb.debugger.writeOccurred(addr, value)
         when (val a = addr.int()) {
             // Cannot write to:
             // FF44: Current PPU scan line
-            0xFF44 -> GameBoy.Log.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
+            0xFF44 -> GameBoy.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
 
-            // Special behavior for:
-            // FF46: OAM DMA
-            0xFF46 -> { //TODO timing & blocking reads
+            // Special behavior
+            DMA -> { //TODO timing & blocking reads
                 var source = value.int() shl 8
                 for (dest in 0xFE00..0xFE9F) write(dest.toShort(), read(source++.toShort()))
             }
@@ -119,37 +125,17 @@ class MMU(private val gb: GameBoy) : Disposable {
             in NR10..NR52 -> sound.write(addr, value)
             in LCDC..OCPD -> ppu.write(addr, value)
 
-            else -> writeAny(addr, value)
-        }
-    }
-
-    fun write(addr: Int, value: Int) = write(addr.toShort(), value.toByte())
-
-    fun readAny(addr: Short): Byte {
-        return when (val a = addr.int()) {
-            in 0x8000..0x9FFF -> vram[a and 0x1FFF]
-            in 0xC000..0xDFFF -> ram[a and 0x1FFF]
-            in 0xE000..0xFDFF -> ram[a and 0x1FFF]
-            in 0xFE00..0xFE9F -> oam[a and 0xFF]
-            in 0xFEA0..0xFEFF -> INVALID_READ.toByte()
-            in 0xFF00..0xFF7F -> mmIO[a and 0x7F]
-            in 0xFF80..0xFFFF -> zram[a and 0x7F]
-            else -> throw IndexOutOfBoundsException("what ${a.toString(16)}")
-        }
-    }
-
-    fun writeAny(addr: Short, value: Byte) {
-        when (val a = addr.int()) {
+            // Direct writes
             in 0x8000..0x9FFF -> vram[a and 0x1FFF] = value
             in 0xC000..0xDFFF -> ram[a and 0x1FFF] = value
             in 0xE000..0xFDFF -> ram[a and 0x1FFF] = value
             in 0xFE00..0xFE9F -> oam[a and 0xFF] = value
-            in 0xFEA0..0xFEFF -> Unit
             in 0xFF00..0xFF7F -> mmIO[a and 0x7F] = value
             in 0xFF80..0xFFFF -> zram[a and 0x7F] = value
-            else -> throw IndexOutOfBoundsException("what ${a.toString(16)}")
         }
     }
+
+    fun write(addr: Int, value: Int) = write(addr.toShort(), value.toByte())
 
     companion object {
         const val BIOS_PC_END = 0x0100
@@ -218,264 +204,18 @@ class MMU(private val gb: GameBoy) : Disposable {
 
         // BOOT ROM, Bootix made by Hacktix: https://github.com/Hacktix/Bootix
         // Thank you, Hacktix!
-        // This is Version 1.2, hardcoded as file support differs on target and this is the easiest.
+        // This is Version 1.2, hardcoded as file support differs on targets and this is the easiest.
         private val bootix: ByteArray = byteArrayOf(
-            49,
-            -2,
-            -1,
-            33,
-            -1,
-            -97,
-            -81,
-            50,
-            -53,
-            124,
-            32,
-            -6,
-            14,
-            17,
-            33,
-            38,
-            -1,
-            62,
-            -128,
-            50,
-            -30,
-            12,
-            62,
-            -13,
-            50,
-            -30,
-            12,
-            62,
-            119,
-            50,
-            -30,
-            17,
-            4,
-            1,
-            33,
-            16,
-            -128,
-            26,
-            -51,
-            -72,
-            0,
-            26,
-            -53,
-            55,
-            -51,
-            -72,
-            0,
-            19,
-            123,
-            -2,
-            52,
-            32,
-            -16,
-            17,
-            -52,
-            0,
-            6,
-            8,
-            26,
-            19,
-            34,
-            35,
-            5,
-            32,
-            -7,
-            33,
-            4,
-            -103,
-            1,
-            12,
-            1,
-            -51,
-            -79,
-            0,
-            62,
-            25,
-            119,
-            33,
-            36,
-            -103,
-            14,
-            12,
-            -51,
-            -79,
-            0,
-            62,
-            -111,
-            -32,
-            64,
-            6,
-            16,
-            17,
-            -44,
-            0,
-            120,
-            -32,
-            67,
-            5,
-            123,
-            -2,
-            -40,
-            40,
-            4,
-            26,
-            -32,
-            71,
-            19,
-            14,
-            28,
-            -51,
-            -89,
-            0,
-            -81,
-            -112,
-            -32,
-            67,
-            5,
-            14,
-            28,
-            -51,
-            -89,
-            0,
-            -81,
-            -80,
-            32,
-            -32,
-            -32,
-            67,
-            62,
-            -125,
-            -51,
-            -97,
-            0,
-            14,
-            39,
-            -51,
-            -89,
-            0,
-            62,
-            -63,
-            -51,
-            -97,
-            0,
-            17,
-            -118,
-            1,
-            -16,
-            68,
-            -2,
-            -112,
-            32,
-            -6,
-            27,
-            122,
-            -77,
-            32,
-            -11,
-            24,
-            73,
-            14,
-            19,
-            -30,
-            12,
-            62,
-            -121,
-            -30,
-            -55,
-            -16,
-            68,
-            -2,
-            -112,
-            32,
-            -6,
-            13,
-            32,
-            -9,
-            -55,
-            120,
-            34,
-            4,
-            13,
-            32,
-            -6,
-            -55,
-            71,
-            14,
-            4,
-            -81,
-            -59,
-            -53,
-            16,
-            23,
-            -63,
-            -53,
-            16,
-            23,
-            13,
-            32,
-            -11,
-            34,
-            35,
-            34,
-            35,
-            -55,
-            60,
-            66,
-            -71,
-            -91,
-            -71,
-            -91,
-            66,
-            60,
-            0,
-            84,
-            -88,
-            -4,
-            66,
-            79,
-            79,
-            84,
-            73,
-            88,
-            46,
-            68,
-            77,
-            71,
-            32,
-            118,
-            49,
-            46,
-            50,
-            0,
-            62,
-            -1,
-            -58,
-            1,
-            11,
-            30,
-            -40,
-            33,
-            77,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            62,
-            1,
-            -32,
-            80
+            49, -2, -1, 33, -1, -97, -81, 50, -53, 124, 32, -6, 14, 17, 33, 38, -1, 62, -128, 50, -30, 12, 62, -13, 50, -30,
+            12, 62, 119, 50, -30, 17, 4, 1, 33, 16, -128, 26, -51, -72, 0, 26, -53, 55, -51, -72, 0, 19, 123, -2, 52, 32, -16,
+            17, -52, 0, 6, 8, 26, 19, 34, 35, 5, 32, -7, 33, 4, -103, 1, 12, 1, -51, -79, 0, 62, 25, 119, 33, 36, -103, 14, 12,
+            -51, -79, 0, 62, -111, -32, 64, 6, 16, 17, -44, 0, 120, -32, 67, 5, 123, -2, -40, 40, 4, 26, -32, 71, 19, 14, 28,
+            -51, -89, 0, -81, -112, -32, 67, 5, 14, 28, -51, -89, 0, -81, -80, 32, -32, -32, 67, 62, -125, -51, -97, 0, 14,
+            39, -51, -89, 0, 62, -63, -51, -97, 0, 17, -118, 1, -16, 68, -2, -112, 32, -6, 27, 122, -77, 32, -11, 24, 73, 14,
+            19, -30, 12, 62, -121, -30, -55, -16, 68, -2, -112, 32, -6, 13, 32, -9, -55, 120, 34, 4, 13, 32, -6, -55, 71, 14,
+            4, -81, -59, -53, 16, 23, -63, -53, 16, 23, 13, 32, -11, 34, 35, 34, 35, -55, 60, 66, -71, -91, -71, -91, 66, 60,
+            0, 84, -88, -4, 66, 79, 79, 84, 73, 88, 46, 68, 77, 71, 32, 118, 49, 46, 50, 0, 62, -1, -58, 1, 11, 30, -40, 33,
+            77, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 1, -32, 80
         )
     }
 }

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:53 PM.
+ * This file was last modified at 3/19/21, 11:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,7 +13,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
-import xyz.angm.gamelin.isBit
+import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.system.io.MMU
 
 internal actual class TileRenderer actual constructor(private val mmu: MMU, width: Int, height: Int, scale: Float) : Actor() {
@@ -33,7 +33,7 @@ internal actual class TileRenderer actual constructor(private val mmu: MMU, widt
             val low = mmu.read(tilePtr + (line * 2) + 1).toByte()
 
             for (pixel in 0 until TILE_SIZE) {
-                val colorIdx = (high.isBit(7 - pixel) shl 1) + low.isBit(7 - pixel)
+                val colorIdx = (high.bit(7 - pixel) shl 1) + low.bit(7 - pixel)
                 drawPixel((posX * 8) + pixel, (posY * 8) + line, colorMap(colorIdx))
             }
         }
