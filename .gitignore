@@ -4,6 +4,7 @@
 /assets/gamelin.log
 /assets/web/gamelin*
 
+*.sav
 */out/
 
 ## Java
