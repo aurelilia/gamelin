@@ -8,23 +8,23 @@
 package xyz.angm.gamelin.interfaces
 
 import com.badlogic.gdx.files.FileHandle
-import ktx.assets.file
 
 actual object FileSystem {
 
-    var gamePath = file("")
+    var gamePath: FileHandle? = null
 
     actual fun saveRAM(game: String, ram: ByteArray) {
-        saveFileHandle().writeBytes(ram, false)
+        saveFileHandle()?.writeBytes(ram, false)
     }
 
     actual fun loadRAM(game: String): ByteArray? {
         val file = saveFileHandle()
-        return if (file.exists()) file.readBytes() else null
+        return if (file?.exists() == true) file.readBytes() else null
     }
 
-    private fun saveFileHandle(): FileHandle {
-        val directory = gamePath.parent()
-        return directory.child("${gamePath.nameWithoutExtension()}.sav")
+    private fun saveFileHandle(): FileHandle? {
+        val path = gamePath ?: return null
+        val directory = path.parent()
+        return directory.child("${path.nameWithoutExtension()}.sav")
     }
 }
