@@ -11,6 +11,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
 - Full APU/Sound emulation (7/12 blargg dmg_sound tests pass)
 - Most MBC1 cartridge mapper behavior (MBC3/5 still missing)
+- Game saving support (to `.sav` file on desktop, into local browser storage on web)
 
 ##### Desktop Version
 - Reset and ROM changing support

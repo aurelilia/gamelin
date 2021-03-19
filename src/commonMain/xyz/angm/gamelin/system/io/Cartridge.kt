@@ -8,6 +8,7 @@
 package xyz.angm.gamelin.system.io
 
 import xyz.angm.gamelin.int
+import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.isBit
 import kotlin.math.max
 
@@ -22,7 +23,7 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
         5 -> 8
         else -> throw UnsupportedOperationException("Unknown cartridge controller")
     }
-    protected val ram = ByteArray(ramBankCount * 0x2000)
+    protected val ram = loadRAM()
     protected var ramEnable = false
     protected var romBank = 1
     protected var ramBank = 0
@@ -52,6 +53,16 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
             str.append(value.toChar())
         }
         return str.toString()
+    }
+
+    fun save() {
+        if (ramBankCount > 0) FileSystem.saveRAM("${getTitle(extended = true)}${rom[DESTINATION]}", ram)
+    }
+
+    private fun loadRAM(): ByteArray {
+        var ram: ByteArray? = null
+        if (ramBankCount > 0) ram = FileSystem.loadRAM("${getTitle(extended = true)}${rom[DESTINATION]}")
+        return ram ?: ByteArray(ramBankCount * 0x2000)
     }
 
     companion object {

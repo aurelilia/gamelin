@@ -41,6 +41,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     }
 
     fun reset() {
+        cart.save()
         timer.reset()
         joypad.reset()
         sound.reset()
@@ -53,6 +54,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     }
 
     override fun dispose() {
+        cart.save()
         sound.dispose()
         ppu.dispose()
     }

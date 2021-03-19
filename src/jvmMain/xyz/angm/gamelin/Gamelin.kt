@@ -75,6 +75,7 @@ class Gamelin : ApplicationAdapter() {
             chooser.fadeIn()
         }
         file.item("Reset", 0) { gb.reset() }
+        file.item("Save Game to disk", 8) { gb.mmu.cart.save() }
         file.item("Exit", Input.Keys.F4 - Input.Keys.NUM_0) { Gdx.app.exit() }
 
         fun windowItem(name: String, shortcut: Int, create: () -> Window) {
@@ -110,9 +111,9 @@ class Gamelin : ApplicationAdapter() {
         chooser.setFileTypeFilter(filter)
         chooser.setListener(object : StreamingFileChooserListener() {
             override fun selected(file: FileHandle) {
+                FileSystem.gamePath = file
                 gb.loadGame(file.readBytes())
                 gbWindow.updateTitle(gb)
-                FileSystem.gamePath = file
             }
         })
         return chooser
