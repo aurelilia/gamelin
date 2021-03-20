@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 2:30 AM.
+ * This file was last modified at 3/20/21, 4:53 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,6 +12,9 @@ import xyz.angm.gamelin.int
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
+import xyz.angm.gamelin.system.io.ppu.CgbPPU
+import xyz.angm.gamelin.system.io.ppu.DmgPPU
+import xyz.angm.gamelin.system.io.ppu.PPU
 import xyz.angm.gamelin.system.io.sound.Sound
 
 class MMU(private val gb: GameBoy) : Disposable {
@@ -28,7 +31,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     internal lateinit var cart: Cartridge
     val sound = Sound()
     internal val joypad = Joypad(this)
-    internal val ppu = PPU(this)
+    internal var ppu: PPU = DmgPPU(this)
     private val timer = Timer(this)
     private val dma = DMA(this)
 
@@ -49,9 +52,9 @@ class MMU(private val gb: GameBoy) : Disposable {
         timer.reset()
         joypad.reset()
         sound.reset()
-        ppu.reset()
         dma.reset()
 
+        ppu = if (gb.cgbMode) CgbPPU(this, ppu.renderer) else DmgPPU(this, ppu.renderer)
         vram = ByteArray(8_192 * if (gb.cgbMode) 2 else 1)
         vramBank = 0
         wram = ByteArray(8_192 * if (gb.cgbMode) 8 else 1)

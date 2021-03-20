@@ -1,11 +1,11 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/20/21, 5:28 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.system.io
+package xyz.angm.gamelin.system.io.ppu
 
 import xyz.angm.gamelin.Disposable
 import xyz.angm.gamelin.bit
@@ -13,20 +13,20 @@ import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.cpu.Interrupt
-import xyz.angm.gamelin.system.io.GPUMode.*
+import xyz.angm.gamelin.system.io.IODevice
+import xyz.angm.gamelin.system.io.MMU
+import xyz.angm.gamelin.system.io.ppu.GPUMode.*
 
-internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
-
-    val renderer = TileRenderer(mmu, 20, 18, 4f)
+internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : IODevice(), Disposable {
 
     private var mode = OAMScan
     private var modeclock = 0
 
     private var lcdc = 0
-    private var displayEnable = false
-    private var bgEnable = false
-    private var objEnable = false
-    private var windowEnable = false
+    protected var displayEnable = false
+    protected var bgEnable = false
+    protected var objEnable = false
+    protected var windowEnable = false
     private var bigObjMode = false
     private var altBgTileData = false
     private var bgMapAddr = 0x9800
@@ -45,8 +45,8 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
     private var objPalette1 = 0b11100100
     private var objPalette2 = 0b11100100
 
-    // All pixels in the current render cycle that have a non-null BG color (objects render under it)
-    private val bgOccupiedPixels = Array(160 * 144) { false }
+    // All pixels in the current render cycle that have a non-zero BG color (objects render under it)
+    protected val bgOccupiedPixels = Array(160 * 144) { false }
 
     override fun read(addr: Int): Int {
         return when (addr) {
@@ -139,7 +139,7 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
         if (lineCompare == line) statInterrupt(6)
     }
 
-    private fun renderLine() {
+    protected open fun renderLine() {
         if (!displayEnable) return
         if (bgEnable) {
             renderBG()
@@ -150,11 +150,11 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
         if (objEnable) renderObjs()
     }
 
-    private fun renderBG() {
+    protected fun renderBG() {
         renderBGOrWindow(scrollX, 0, bgMapAddr, (scrollY + line) and 0xFF) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
     }
 
-    private fun renderWindow() {
+    protected fun renderWindow() {
         if (windowY > line) return
         renderBGOrWindow(0, windowX, windowMapAddr, line) { it }
     }
@@ -189,7 +189,7 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
         }
     }
 
-    private fun renderObjs() {
+    protected fun renderObjs() {
         var objCount = 0
         for (loc in 0xFE00 until 0xFEA0 step 4) {
             Sprite.dat = mmu.read16(loc) + (mmu.read16(loc + 2) shl 16)
@@ -224,7 +224,7 @@ internal class PPU(private val mmu: MMU) : IODevice(), Disposable {
         }
     }
 
-    private fun setPixelOccupied(x: Int, y: Int) {
+    protected open fun setPixelOccupied(x: Int, y: Int) {
         bgOccupiedPixels[(x * 144) + y] = true
     }
 
