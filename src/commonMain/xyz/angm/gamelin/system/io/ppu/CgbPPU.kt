@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 8:53 PM.
+ * This file was last modified at 3/20/21, 10:51 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,8 +35,8 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
 
     private fun readCPD(index: Int, palettes: Array<Color>): Int {
         val palette = palettes[index and 0x3E]
-        return if (index.isBit(0)) ((palette.green ushr 3) and 3) or (palette.blue shl 2)
-        else palette.red or ((palette.green shl 5) and 7)
+        return if (index.isBit(0)) ((rgbToGB(palette.green) ushr 3) and 3) or (rgbToGB(palette.blue) shl 2)
+        else rgbToGB(palette.red) or ((rgbToGB(palette.green) shl 5) and 7)
     }
 
     override fun write(addr: Int, value: Int) {
@@ -64,11 +64,11 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
     private fun writeCPD(index: Int, palettes: Array<Color>, value: Int) {
         val palette = palettes[index and 0x1F]
         if (index.isBit(0)) {
-            palette.green = (palette.green and 7) or ((value and 3) shl 3)
-            palette.blue = (value ushr 2) and 0x1F
+            palette.green = gbToRGB((rgbToGB(palette.green) and 7) or ((value and 3) shl 3))
+            palette.blue = gbToRGB((value ushr 2) and 0x1F)
         } else {
-            palette.red = value and 0x1F
-            palette.green = (palette.green and 0b11000) or (value ushr 5)
+            palette.red = gbToRGB(value and 0x1F)
+            palette.green = gbToRGB((rgbToGB(palette.green) and 0b11000) or (value ushr 5))
         }
     }
 
@@ -86,7 +86,12 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
     override fun setPixelOccupied(x: Int, y: Int) {
         bgOccupiedPixels[(x * 144) + y] = bgEnable
     }
+
+    // Convert a 5-bit GBC color to 8-bit RGB
+    private fun gbToRGB(gb: Int) = (gb shl 3) or (gb ushr 2)
+    // Convert an 8-bit RGB color to a 5-bit GBC color
+    private fun rgbToGB(rgb: Int) = rgb ushr 3
 }
 
-// Color in RGB555 format; each color in 0-31 range
-internal data class Color(var red: Int = 31, var green: Int = 31, var blue: Int = 31)
+// Color in RGG888 format; each color in 0-255 range
+internal data class Color(var red: Int = 255, var green: Int = 255, var blue: Int = 255)

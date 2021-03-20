@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/20/21, 10:51 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.system.io.MMU
+import xyz.angm.gamelin.system.io.ppu.PPU
 
 internal actual class TileRenderer actual constructor(private val mmu: MMU, width: Int, height: Int, scale: Float) : Actor() {
 
@@ -27,20 +28,21 @@ internal actual class TileRenderer actual constructor(private val mmu: MMU, widt
         setSize(TILE_SIZE * width * scale, TILE_SIZE * height * scale)
     }
 
-    fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
+    inline fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
         for (line in 0 until TILE_SIZE) {
             val high = mmu.read(tilePtr + (line * 2)).toByte()
             val low = mmu.read(tilePtr + (line * 2) + 1).toByte()
 
             for (pixel in 0 until TILE_SIZE) {
                 val colorIdx = (high.bit(7 - pixel) shl 1) + low.bit(7 - pixel)
-                drawPixel((posX * 8) + pixel, (posY * 8) + line, colorMap(colorIdx))
+                val c = PPU.dmgColors[colorMap(colorIdx)]
+                drawPixel((posX * 8) + pixel, (posY * 8) + line, c, c, c)
             }
         }
     }
 
-    actual fun drawPixel(x: Int, y: Int, colorIdx: Int) {
-        val color = colors[colorIdx]
+    actual fun drawPixel(x: Int, y: Int, r: Int, g: Int, b: Int) {
+        val color = (r shl 24) or (g shl 16) or (b shl 8) or 255 // RGBA8888
         current.setColor(color)
         current.drawPixel(x, y)
     }

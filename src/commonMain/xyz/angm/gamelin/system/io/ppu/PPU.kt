@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 10:16 PM.
+ * This file was last modified at 3/20/21, 10:44 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -171,7 +171,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
         for (tileIdxAddr in startX until 160) {
             val colorIdx = (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX)
             if (colorIdx != 0) setPixelOccupied(tileIdxAddr, line)
-            renderer.drawPixel(tileIdxAddr, line, getBGColorIdx(colorIdx))
+            renderer.drawPixel(tileIdxAddr, line, getBGColor(colorIdx))
 
             if (++tileX == 8) {
                 tileX = 0
@@ -186,7 +186,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
 
     private fun clearLine() {
         for (tileIdxAddr in 0 until 160) {
-            renderer.drawPixel(tileIdxAddr, line, 0)
+            renderer.drawPixel(tileIdxAddr, line, dmgColors[0])
         }
     }
 
@@ -221,7 +221,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
             val colorIdx = if (!xFlip) (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX) else (high.bit(tileX) shl 1) + low.bit(tileX)
             val screenX = x + tileX
             if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || !getPixelOccupied(screenX, line)))
-                renderer.drawPixel(screenX, line, getColorIdx(palette, colorIdx))
+                renderer.drawPixel(screenX, line, getColor(palette, colorIdx))
         }
     }
 
@@ -240,9 +240,11 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
 
     private fun objTileOffset(idx: Int) = 0x8000 + (idx * 0x10)
 
-    private fun getBGColorIdx(color: Int) = getColorIdx(bgPalette, color)
+    private fun getBGColor(color: Int) = getColor(bgPalette, color)
 
-    private fun getColorIdx(palette: Int, color: Int) = (palette ushr (color * 2)) and 0b11
+    private fun getColor(palette: Int, color: Int) = dmgColors[(palette ushr (color * 2)) and 0b11]
+
+    private fun TileRenderer.drawPixel(x: Int, y: Int, c: Int) = drawPixel(x, y, c, c, c)
 
     fun reset() {
         mode = OAMScan
@@ -273,6 +275,10 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
     }
 
     override fun dispose() = renderer.dispose()
+
+    companion object {
+        val dmgColors = intArrayOf(255, 191, 63, 0)
+    }
 }
 
 private enum class GPUMode(val cycles: Int, val idx: Int) {
