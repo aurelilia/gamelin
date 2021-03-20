@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:26 AM.
+ * This file was last modified at 3/20/21, 8:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -62,7 +62,7 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
     }
 
     private fun writeCPD(index: Int, palettes: Array<Color>, value: Int) {
-        val palette = palettes[index and 0x3E]
+        val palette = palettes[index and 0x1F]
         if (index.isBit(0)) {
             palette.green = (palette.green and 7) or ((value and 3) shl 3)
             palette.blue = (value ushr 2) and 0x1F

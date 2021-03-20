@@ -1,11 +1,10 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:55 PM.
+ * This file was last modified at 3/20/21, 9:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import com.soywiz.korge.gradle.*
 
 buildscript {
@@ -50,10 +49,6 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = "1.8"
         }
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-        withJava()
     }
     js(IR) {
         browser {
@@ -103,11 +98,8 @@ kotlin {
         val jvmTest by getting {
             kotlin.srcDir("src/jvmTest")
             dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
-
                 implementation("io.kotest:kotest-runner-junit5:4.4.3")
+                implementation("io.mockk:mockk:1.10.6")
                 implementation("com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion")
                 implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop")
             }
@@ -164,4 +156,9 @@ tasks.register<Jar>("dist") {
     manifest {
         attributes(mapOf("Main-Class" to mainClassName))
     }
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+    workingDir = assetsDir
 }

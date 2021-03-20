@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:40 AM.
+ * This file was last modified at 3/20/21, 6:21 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -52,6 +52,11 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         debugger.preAdvance(this)
         cpu.nextInstruction()
         debugger.postAdvance(this)
+    }
+
+    fun skipBios() {
+        cpu.pc = 0x100
+        mmu.inBios = false
     }
 
     fun getNextInst(): Inst {

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/20/21, 9:28 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -54,13 +54,15 @@ class BlarggTest : FunSpec({
 
         override fun dispose() {}
     }
+    val gb = GameBoy(debugger)
 
     for (dir in file("roms/test/blargg").list(FileFilter { it.isDirectory && !it.name.contains("disabled") })) {
         context(dir.name()) {
             for (test in dir.list(FileFilter { it.extension == "gb" })) {
                 test(test.name()) {
+                    gb.loadGame(test.readBytes())
+                    gb.skipBios()
                     debugger.reset()
-                    val gb = GameBoy(test.readBytes(), debugger)
 
                     for (i in 0 until TEST_TIMEOUT_SECONDS) {
                         gb.advanceDelta(1f)
@@ -68,7 +70,6 @@ class BlarggTest : FunSpec({
                         else if (debugger.failed()) fail(debugger.data.toString())
                     }
 
-                    gb.dispose()
                     debugger.success() shouldBe true
                 }
             }

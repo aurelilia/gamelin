@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:36 PM.
+ * This file was last modified at 3/20/21, 9:04 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,6 +35,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     private val timer = Timer(this)
     private val dma = DMA(this)
     private val hdma = HDMA()
+    private var regIF = 0
 
     fun load(game: ByteArray) {
         cart = Cartridge.ofRom(game)
@@ -56,6 +57,7 @@ class MMU(private val gb: GameBoy) : Disposable {
         sound.reset()
         dma.reset()
         hdma.reset()
+        regIF = 0
 
         ppu = if (gb.cgbMode) CgbPPU(this, ppu.renderer) else DmgPPU(this, ppu.renderer)
         vram = ByteArray(8_192 * if (gb.cgbMode) 2 else 1)
@@ -104,9 +106,8 @@ class MMU(private val gb: GameBoy) : Disposable {
             in 0xD000..0xDFFF -> wram[(a and 0x0FFF) + (wramBank * 0x1000)]
             in 0xE000..0xFDFF -> wram[a and 0x1FFF]
             in 0xFE00..0xFE9F -> oam[a and 0xFF]
-            in 0xFF00..0xFF7F -> mmIO[a and 0x7F]
+            IF -> regIF.toByte()
             in 0xFF80..0xFFFF -> zram[a and 0x7F]
-
             else -> INVALID_READ.toByte()
         }
     }
@@ -136,14 +137,14 @@ class MMU(private val gb: GameBoy) : Disposable {
             in LCDC..OCPD -> ppu.write(addr, value)
 
             // Special behavior
-            IE, IF -> zram[a and 0x7F] = (value.int() and 0x1F).toByte()
+            IF -> regIF = value.int() and 0x1F
+            IE -> zram[a and 0x7F] = (value.int() and 0x1F).toByte()
 
             // Direct writes
             in 0x8000..0x9FFF -> vram[(a and 0x1FFF) + (vramBank * 0x2000)] = value
             in 0xC000..0xCFFF -> wram[(a and 0x0FFF)] = value
             in 0xD000..0xDFFF -> wram[(a and 0x0FFF) + (wramBank * 0x1000)] = value
             in 0xFE00..0xFE9F -> oam[a and 0xFF] = value
-            in 0xFF00..0xFF7F -> mmIO[a and 0x7F] = value
             in 0xFF80..0xFFFF -> zram[a and 0x7F] = value
         }
     }

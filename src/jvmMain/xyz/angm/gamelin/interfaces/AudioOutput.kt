@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:56 PM.
+ * This file was last modified at 3/20/21, 8:58 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,21 +17,6 @@ actual class AudioOutput actual constructor() {
     private var bufferIndex = 0
     private var buffer = ShortArray(BUFFER_SIZE)
 
-    @Volatile
-    private var play = false
-        @Synchronized set
-
-    init {
-        Thread {
-            while (true) {
-                if (play) {
-                    device.writeSamples(buffer, 0, BUFFER_SIZE)
-                    play = false
-                }
-            }
-        }.start()
-    }
-
     actual fun reset() {
         counter = 0
         bufferIndex = 0
@@ -42,12 +27,12 @@ actual class AudioOutput actual constructor() {
         buffer[bufferIndex++] = (left * 32).toShort()
         buffer[bufferIndex++] = (right * 32).toShort()
         if (bufferIndex >= BUFFER_SIZE) {
-            play = true
+            device.writeSamples(buffer, 0, BUFFER_SIZE)
             bufferIndex = 0
         }
     }
 
-    actual fun needsSamples() = !play
+    actual fun needsSamples() = true
 
     actual fun dispose() = device.dispose()
 

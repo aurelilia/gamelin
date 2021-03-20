@@ -76,9 +76,9 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ```
 
 ## Testing
-Blargg ROMs can be run automatically using gradle:
+Blargg and mooneye ROMs can be run automatically using gradle:
 ```bash
-gradle test
+gradle jvmTest
 ```
 
 #### Blargg test results
