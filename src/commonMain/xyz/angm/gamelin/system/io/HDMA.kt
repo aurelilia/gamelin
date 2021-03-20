@@ -1,12 +1,13 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:51 AM.
+ * This file was last modified at 3/20/21, 10:28 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io
 
+import xyz.angm.gamelin.int
 import xyz.angm.gamelin.isBit
 
 class HDMA : IODevice() {
@@ -27,7 +28,7 @@ class HDMA : IODevice() {
             MMU.HDMA_SRC_LOW -> source and 0xFF
             MMU.HDMA_DEST_HIGH -> dest ushr 8
             MMU.HDMA_DEST_LOW -> dest and 0xFF
-            MMU.HDMA_START -> transferLeft
+            MMU.HDMA_START -> transferLeft or (transferring.int() shl 7)
             else -> MMU.INVALID_READ
         }
     }
