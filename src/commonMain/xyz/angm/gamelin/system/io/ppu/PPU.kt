@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:28 AM.
+ * This file was last modified at 3/20/21, 10:16 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -91,6 +91,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
     }
 
     fun step(tCycles: Int) {
+        if (!displayEnable) return
         modeclock += tCycles
         if (modeclock < mode.cycles) return
         modeclock -= mode.cycles
