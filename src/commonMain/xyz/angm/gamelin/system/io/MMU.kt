@@ -1,21 +1,21 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 1:25 AM.
+ * This file was last modified at 3/20/21, 2:06 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io
 
-import xyz.angm.gamelin.*
+import xyz.angm.gamelin.Disposable
+import xyz.angm.gamelin.int
+import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.sound.Sound
 
 class MMU(private val gb: GameBoy) : Disposable {
 
-    // Is there any real reason to have so many byte arrays instead
-    // of just one big one?
     private val vram = ByteArray(8_192) // 8000-9FFF
     private val ram = ByteArray(8_192) // C000-DFFF
     private val oam = ByteArray(160) // FE00-FE9F
@@ -69,14 +69,6 @@ class MMU(private val gb: GameBoy) : Disposable {
         // Ensure BIOS gets disabled once it's done
         if (gb.cpu.pc.int() == BIOS_PC_END) inBios = false
         return when (val a = addr.int()) {
-            // Cannot read from:
-            // FF46: DMA Transfer
-            // FF18, FF1D: Sound Channels
-            0xFF18, 0xFF46, 0xFF1D -> {
-                GameBoy.debug { "Attempted to read write-only memory at ${a.hex16()}, giving ${INVALID_READ.hex8()}. (PC: ${gb.cpu.pc.hex16()})" }
-                INVALID_READ.toByte()
-            }
-
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> {
                 if (inBios && addr < 0x0100) bootix[addr.toInt()]
@@ -85,7 +77,7 @@ class MMU(private val gb: GameBoy) : Disposable {
             JOYP -> joypad.read()
             DMA -> dma.read(addr)
             in DIV..TAC -> timer.read(addr)
-            in NR10..NR52 -> sound.read(addr)
+            in NR10..NR52, in WAVE_SAMPLES -> sound.read(addr)
             in LCDC..OCPD -> ppu.read(addr)
 
             // Direct reads
@@ -111,16 +103,12 @@ class MMU(private val gb: GameBoy) : Disposable {
     fun write(addr: Short, value: Byte) {
         gb.debugger.writeOccurred(addr, value)
         when (val a = addr.int()) {
-            // Cannot write to:
-            // FF44: Current PPU scan line
-            0xFF44 -> GameBoy.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
-
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
             JOYP -> joypad.write(value)
             DMA -> dma.write(addr, value)
             in DIV..TAC -> timer.write(addr, value)
-            in NR10..NR52 -> sound.write(addr, value)
+            in NR10..NR52, in WAVE_SAMPLES -> sound.write(addr, value)
             in LCDC..OCPD -> ppu.write(addr, value)
 
             // Direct writes
@@ -199,6 +187,8 @@ class MMU(private val gb: GameBoy) : Disposable {
         const val NR50 = 0xFF24
         const val NR51 = 0xFF25
         const val NR52 = 0xFF26
+
+        private val WAVE_SAMPLES = 0xFF30..0xFF3F
 
         // BOOT ROM, Bootix made by Hacktix: https://github.com/Hacktix/Bootix
         // Thank you, Hacktix!

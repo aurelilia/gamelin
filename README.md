@@ -32,46 +32,39 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ##### Perfect with no observable issues
 - Tic-Tac-Toe (1996, Norman Nithman)
 - Dr. Mario (Global version, 1990, Nintendo)
+- Tetris (JP and Global versions, 1989, Nintendo)
+- Super Mario Land (Global, Nintendo)
+    - Played until 2-1
 - The Legend of Zelda: Link's Awakening (Global, 1993, Nintendo)
     - Played until shortly after obtaining your sword at the shore
+- Donkey Kong* (Global, 1994, Nintendo)
 
-##### Small sound/bootup issues, otherwise perfect
-- Tetris (JP and Global versions, 1989, Nintendo)
-    - The "fail" sound effect played while the playing field is filled does not play
-- Super Mario Land (Global, Nintendo)
-    - Background music is off at times, missing some effects in it
-- Pokemon Blue (Global, 1996, Game Freak)
-    - Game displays some garbage before copyrights/GF logo/intro
-    - Gameplay seems to work fine (tested until getting the Pokedex)
-    - Some music has missing sound effects
-    - Menu screen is a bit buggy on first load
-- Donkey Kong Land (Global, 1995, Nintendo/RARE)
-    - Game displays garbage on boot
+##### Barely noticeable issues, fully playable
+- Pokemon Blue* (Global, 1996, Game Freak)
+    - Menu screen shows a line of garbage before sliding in Pokemon Blue logo
+    - Jumping off ledges does not have dust particles
+    - "Defeated pokemon" noise does not play
+    - Tested until Viridian Forest
+- Donkey Kong Land* (Global, 1995, Nintendo/RARE)
+    - Palette on title screen is wrong
     - Tested for the first 2 levels: perfect
 
-##### Playable with some small other issues
-- Tetris DX (Global, 1998, Nintendo)
-    - Game briefly displays garbage on boot
+##### Fully playable but with obvious issues
+- Tetris DX* (Global, 1998, Nintendo)
     - Some parts of the UI are blacked out
-    - Some sound effects missing
-
-##### Somewhat playable with big issues
-- Donkey Kong (Global, 1994, Nintendo)
-    - Game displays some garbage before copyright/intro
-    - Works well until starting first level, most of map is invisible and
-    sprites are cut off (still playable though)
 
 ##### Not really playable
-- Pokemon Silver (Global, 2000, Game Freak)
-    - Game displays some garbage before copyrights/GF logo/intro
+- Pokemon Silver* (Global, 2000, Game Freak)
+    - Marill sprite in opening is cut in half
     - Playable inside the player's room, any screen transition crashes
 
 ##### Does not reach gameplay/not playable
 - Kirby's Dream Land (Global, Nintendo/HAL)
     - Starting gameplay hangs on empty first level or white screen, inconsistent (interrupt timing issue?)
-
 - Yoshi (Global, 1992, Nintendo)
     - Only shows white screen
+
+\* briefly displays garbage on boot
 
 ## Build
 ``` bash
