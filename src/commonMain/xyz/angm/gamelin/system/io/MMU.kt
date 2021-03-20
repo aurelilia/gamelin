@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 12:39 AM.
+ * This file was last modified at 3/20/21, 1:25 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -28,6 +28,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     internal val joypad = Joypad(this)
     internal val ppu = PPU(this)
     private val timer = Timer(this)
+    private val dma = DMA(this)
 
     fun load(game: ByteArray) {
         cart = Cartridge.ofRom(game)
@@ -38,6 +39,7 @@ class MMU(private val gb: GameBoy) : Disposable {
         ppu.step(cycles)
         sound.step(cycles)
         timer.step(cycles)
+        dma.step(cycles)
     }
 
     fun reset() {
@@ -81,6 +83,7 @@ class MMU(private val gb: GameBoy) : Disposable {
                 else cart.read(addr)
             }
             JOYP -> joypad.read()
+            DMA -> dma.read(addr)
             in DIV..TAC -> timer.read(addr)
             in NR10..NR52 -> sound.read(addr)
             in LCDC..OCPD -> ppu.read(addr)
@@ -112,15 +115,10 @@ class MMU(private val gb: GameBoy) : Disposable {
             // FF44: Current PPU scan line
             0xFF44 -> GameBoy.debug { "Attempted to write ${value.hex8()} to read-only memory location ${a.hex16()}, ignored. (PC: ${gb.cpu.pc.hex16()})" }
 
-            // Special behavior
-            DMA -> { //TODO timing & blocking reads
-                var source = value.int() shl 8
-                for (dest in 0xFE00..0xFE9F) write(dest.toShort(), read(source++.toShort()))
-            }
-
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
             JOYP -> joypad.write(value)
+            DMA -> dma.write(addr, value)
             in DIV..TAC -> timer.write(addr, value)
             in NR10..NR52 -> sound.write(addr, value)
             in LCDC..OCPD -> ppu.write(addr, value)
