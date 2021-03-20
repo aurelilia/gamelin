@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 4:53 AM.
+ * This file was last modified at 3/20/21, 5:53 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -34,6 +34,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     internal var ppu: PPU = DmgPPU(this)
     private val timer = Timer(this)
     private val dma = DMA(this)
+    private val hdma = HDMA()
 
     fun load(game: ByteArray) {
         cart = Cartridge.ofRom(game)
@@ -45,6 +46,7 @@ class MMU(private val gb: GameBoy) : Disposable {
         sound.step(cycles)
         timer.step(cycles)
         dma.step(cycles)
+        hdma.step(cycles)
     }
 
     fun reset() {
@@ -53,6 +55,7 @@ class MMU(private val gb: GameBoy) : Disposable {
         joypad.reset()
         sound.reset()
         dma.reset()
+        hdma.reset()
 
         ppu = if (gb.cgbMode) CgbPPU(this, ppu.renderer) else DmgPPU(this, ppu.renderer)
         vram = ByteArray(8_192 * if (gb.cgbMode) 2 else 1)
@@ -90,6 +93,7 @@ class MMU(private val gb: GameBoy) : Disposable {
             }
             JOYP -> joypad.read()
             DMA -> dma.read(addr)
+            in HDMA -> if (gb.cgbMode) hdma.read(addr) else INVALID_READ.toByte()
             in DIV..TAC -> timer.read(addr)
             in NR10..NR52, in WAVE_SAMPLES -> sound.read(addr)
             in LCDC..OCPD -> ppu.read(addr)
@@ -126,6 +130,7 @@ class MMU(private val gb: GameBoy) : Disposable {
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
             JOYP -> joypad.write(value)
             DMA -> dma.write(addr, value)
+            in HDMA -> if (gb.cgbMode) hdma.write(addr, value)
             in DIV..TAC -> timer.write(addr, value)
             in NR10..NR52, in WAVE_SAMPLES -> sound.write(addr, value)
             in LCDC..OCPD -> ppu.write(addr, value)
@@ -177,8 +182,13 @@ class MMU(private val gb: GameBoy) : Disposable {
         // Joypad
         const val JOYP = 0xFF00
 
-        // DMA
+        // (H)DMA
         const val DMA = 0xFF46
+        const val HDMA_SRC_HIGH = 0xFF51
+        const val HDMA_SRC_LOW = 0xFF52
+        const val HDMA_DEST_HIGH = 0xFF53
+        const val HDMA_DEST_LOW = 0xFF54
+        const val HDMA_START = 0xFF55
 
         // Sound
         const val NR10 = 0xFF10
@@ -211,8 +221,8 @@ class MMU(private val gb: GameBoy) : Disposable {
 
         // CGB
         private const val VRAM_SELECT = 0xFF4F
-        private val HDMA = 0xFF51..0xFF55
         private const val WRAM_SELECT = 0xFF70
+        private val HDMA = HDMA_SRC_HIGH..HDMA_START
 
         // BOOT ROM, Bootix made by Hacktix: https://github.com/Hacktix/Bootix
         // Thank you, Hacktix!
