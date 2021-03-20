@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:53 AM.
+ * This file was last modified at 3/20/21, 5:36 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -134,6 +134,9 @@ class MMU(private val gb: GameBoy) : Disposable {
             in DIV..TAC -> timer.write(addr, value)
             in NR10..NR52, in WAVE_SAMPLES -> sound.write(addr, value)
             in LCDC..OCPD -> ppu.write(addr, value)
+
+            // Special behavior
+            IE, IF -> zram[a and 0x7F] = (value.int() and 0x1F).toByte()
 
             // Direct writes
             in 0x8000..0x9FFF -> vram[(a and 0x1FFF) + (vramBank * 0x2000)] = value

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:15 PM.
+ * This file was last modified at 3/20/21, 5:41 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -48,14 +48,17 @@ internal class Timer(private val mmu: MMU) : IODevice() {
             MMU.DIV -> (divCycleCount ushr 8) and 0xFF
             MMU.TIMA -> counter
             MMU.TMA -> modulo
-            MMU.TAC -> control
+            MMU.TAC -> control or 0xF8
             else -> addrOutOfBounds(addr)
         }
     }
 
     override fun write(addr: Int, value: Int) {
         when (addr) {
-            MMU.DIV -> divCycleCount = 0
+            MMU.DIV -> {
+                divCycleCount = 0
+                counterTimer = 0
+            }
             MMU.TIMA -> counter = value
             MMU.TMA -> modulo = value
             MMU.TAC -> {
@@ -78,6 +81,7 @@ internal class Timer(private val mmu: MMU) : IODevice() {
 
         counter = 0
         modulo = 0
+        control = 0
         running = false
         counterDivider = 64
     }
