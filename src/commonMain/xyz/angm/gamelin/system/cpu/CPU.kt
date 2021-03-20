@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/20/21, 4:09 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -29,7 +29,9 @@ internal class CPU(private val gb: GameBoy) {
             halt = (gb.read(MMU.IF) and gb.read(MMU.IE) and 0x1F) == 0
             gb.advanceClock(1)
         } else {
-            val cyclesTaken = when (val inst = gb.getNextInst()) {
+            val inst = gb.getNextInst()
+            if (inst.preCycles != 0) gb.advanceClock(inst.preCycles)
+            val cyclesTaken = when (inst)  {
                 is BrInst -> {
                     if (inst.executeBr(gb)) inst.cyclesWithBranch
                     else {

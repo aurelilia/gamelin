@@ -84,6 +84,7 @@ gradle test
 #### Blargg test results
 - `cpu_instrs`: 11/11 pass
 - `dmg_sound`: 7/12 pass (01, 07, 09, 10, 12 fail)
+- `mem_timing`/`mem_timing-2`: 2/3 pass (03-modify fails)
 - Others: Not tested yet
 
 ## Thanks To

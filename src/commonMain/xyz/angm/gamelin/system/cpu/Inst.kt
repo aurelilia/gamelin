@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:31 PM.
+ * This file was last modified at 3/20/21, 4:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,10 +15,10 @@ import xyz.angm.gamelin.system.cpu.Flag.*
 import xyz.angm.gamelin.system.cpu.Reg.*
 import xyz.angm.gamelin.system.io.MMU
 
-open class Inst(val size: Short, val cycles: Int, val name: String, val incPC: Boolean = true, val execute: GameBoy.() -> Unit)
+open class Inst(val size: Short, val cycles: Int, val name: String, val preCycles: Int = 0, val incPC: Boolean = true, val execute: GameBoy.() -> Unit)
 
 class BrInst(size: Short, cycles: Int, val cyclesWithBranch: Int, name: String, val executeBr: GameBoy.() -> Boolean) :
-    Inst(size, cycles, name, true, { executeBr() })
+    Inst(size, cycles, name, 0, true, { executeBr() })
 
 object InstSet {
 
@@ -63,13 +63,13 @@ private fun fillSet() = InstSet.apply {
     op[0x33] = Inst(1, 2, "INC SP") { writeSP(cpu.sp + 1) }
 
     bdh.forEachIndexed { i, r -> op[0x04 + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, add(read(r), 1)) } }
-    op[0x34] = Inst(1, 3, "INC (HL)") { write(read16(HL), add(read(read16(HL)), 1)) }
+    op[0x34] = Inst(1, 2, "INC (HL)", preCycles = 1) { write(read16(HL), add(read(read16(HL)), 1)) }
 
     bdh.forEachIndexed { i, r -> op[0x05 + (i shl 4)] = Inst(1, 1, "DEC $r") { write(r, sub(read(r), 1)) } }
-    op[0x35] = Inst(1, 3, "DEC (HL)") { write(read16(HL), sub(read(read16(HL)), 1)) }
+    op[0x35] = Inst(1, 2, "DEC (HL)", preCycles = 1) { write(read16(HL), sub(read(read16(HL)), 1)) }
 
     bdh.forEachIndexed { i, r -> op[0x06 + (i shl 4)] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
-    op[0x36] = Inst(2, 3, "LD (HL), d8") { write(read16(HL), read(cpu.pc + 1)) }
+    op[0x36] = Inst(2, 2, "LD (HL), d8", preCycles = 1) { write(read16(HL), read(cpu.pc + 1)) }
 
     op[0x07] = Inst(1, 1, "RLCA") { write(A, rlc(read(A).toByte(), false)) }
     op[0x17] = Inst(1, 1, "RLA") { write(A, rl(read(A).toByte(), false)) }
@@ -197,8 +197,8 @@ private fun fillSet() = InstSet.apply {
     // -----------------------------------
     op[0xC0] = BrInst(1, 2, 5, "RET NZ") { if (!cpu.flag(Zero)) ret() else false }
     op[0xD0] = BrInst(1, 2, 5, "RET NC") { if (!cpu.flag(Carry)) ret() else false }
-    op[0xE0] = Inst(2, 3, "LD (a8), A") { write(0xFF00 + read(cpu.pc + 1), read(A)) }
-    op[0xF0] = Inst(2, 3, "LD A, (a8)") { write(A, read(0xFF00 + read(cpu.pc + 1))) }
+    op[0xE0] = Inst(2, 2, "LD (a8), A", preCycles = 1) { write(0xFF00 + read(cpu.pc + 1), read(A)) }
+    op[0xF0] = Inst(2, 2, "LD A, (a8)", preCycles = 1) { write(A, read(0xFF00 + read(cpu.pc + 1))) }
 
     DReg.values().forEachIndexed { i, r -> op[0xC1 + (i shl 4)] = Inst(1, 3, "POP $r") { write16(r, popS()) } }
 
@@ -245,8 +245,8 @@ private fun fillSet() = InstSet.apply {
 
     op[0xCA] = BrInst(3, 3, 4, "JP Z, a16") { if (cpu.flag(Zero)) jp() else false }
     op[0xDA] = BrInst(3, 3, 4, "JP C, a16") { if (cpu.flag(Carry)) jp() else false }
-    op[0xEA] = Inst(3, 4, "LD (a16), A") { write(read16(cpu.pc + 1), read(A)) }
-    op[0xFA] = Inst(3, 4, "LD A, (a16)") { write(A, read(read16(cpu.pc + 1))) }
+    op[0xEA] = Inst(3, 2, "LD (a16), A", preCycles = 2) { write(read16(cpu.pc + 1), read(A)) }
+    op[0xFA] = Inst(3, 2, "LD A, (a16)", preCycles = 2) { write(A, read(read16(cpu.pc + 1))) }
 
     op[0xFB] = Inst(1, 1, "EI") { cpu.ime = true }
 
@@ -288,7 +288,7 @@ private fun fillExt() = InstSet.apply {
         val exec = inst.second
         for (bit in 0 until 8) {
             for (reg in regs) ep[idx++] = Inst(2, 2, "$name $bit, $reg") { write(reg, exec(read(reg).toByte(), bit)) }
-            ep[idx++] = Inst(2, 4, "$name $bit, (HL)") { write(read16(HL), exec(read(read16(HL)).toByte(), bit)) }
+            ep[idx++] = Inst(2, 3, "$name $bit, (HL)", preCycles = 1) { write(read16(HL), exec(read(read16(HL)).toByte(), bit)) }
             ep[idx++] = Inst(2, 2, "$name $bit, A") { write(A, exec(read(A).toByte(), bit)) }
         }
     }
