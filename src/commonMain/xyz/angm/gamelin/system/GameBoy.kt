@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/20/21, 2:11 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,8 +19,9 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
 
     internal val cpu = CPU(this)
     val mmu = MMU(this)
-    internal var gameLoaded = false
+    var gameLoaded = false
     var disposed = false
+    var cgbMode = false
     private var clock = 0
 
     constructor(game: ByteArray, debugger: Debugger) : this(debugger) {
@@ -64,6 +65,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     fun reset() {
         cpu.reset()
         mmu.reset()
+        cgbMode = mmu.cart.supportsCGB
         clock = 0
     }
 

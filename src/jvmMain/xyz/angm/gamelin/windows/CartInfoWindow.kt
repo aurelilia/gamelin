@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 10:56 PM.
+ * This file was last modified at 3/20/21, 2:12 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -38,8 +38,8 @@ class CartInfoWindow(private val gb: GameBoy) : DelayedUpdateWindow("Cartridge I
                 visLabel(
                     "CGB Flag: ${gb.read(Cartridge.CGB_FLAG).hex8()} (${
                         when (gb.read(Cartridge.CGB_FLAG)) {
-                            0x80 -> "Supports CGB Mode"
-                            0xC0 -> "CGB only"
+                            Cartridge.DMG_AND_CGB -> "Supports CGB Mode"
+                            Cartridge.CGB_ONLY -> "CGB only"
                             else -> "DMG only"
                         }
                     })"

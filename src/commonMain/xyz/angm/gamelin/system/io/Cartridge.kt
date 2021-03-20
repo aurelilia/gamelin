@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/20/21, 2:13 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,6 +23,7 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
         5 -> 8
         else -> throw UnsupportedOperationException("Unknown cartridge controller")
     }
+    internal val supportsCGB = read(CGB_FLAG).isBit(7)
 
     private val ram = loadRAM()
     protected var ramEnable = false
@@ -70,6 +71,9 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
     companion object {
 
         const val CGB_FLAG = 0x0143
+        const val CGB_ONLY = 0xC0
+        const val DMG_AND_CGB = 0x80
+
         const val KIND = 0x0147
         const val ROM_BANKS = 0x0148
         const val RAM_BANKS = 0x0149

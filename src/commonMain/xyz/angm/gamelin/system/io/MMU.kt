@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 2:06 AM.
+ * This file was last modified at 3/20/21, 2:30 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,8 +16,10 @@ import xyz.angm.gamelin.system.io.sound.Sound
 
 class MMU(private val gb: GameBoy) : Disposable {
 
-    private val vram = ByteArray(8_192) // 8000-9FFF
-    private val ram = ByteArray(8_192) // C000-DFFF
+    private var vram = ByteArray(8_192) // 8000-9FFF
+    private var vramBank = 0
+    private var wram = ByteArray(8_192) // C000-DFFF
+    private var wramBank = 1
     private val oam = ByteArray(160) // FE00-FE9F
     private val mmIO = ByteArray(128) // FF00-FF7F
     private val zram = ByteArray(128) // FF80-FFFF
@@ -48,10 +50,15 @@ class MMU(private val gb: GameBoy) : Disposable {
         joypad.reset()
         sound.reset()
         ppu.reset()
+        dma.reset()
 
-        ram.fill(0)
+        vram = ByteArray(8_192 * if (gb.cgbMode) 2 else 1)
+        vramBank = 0
+        wram = ByteArray(8_192 * if (gb.cgbMode) 8 else 1)
+        wramBank = 1
         oam.fill(0)
-        vram.fill(0)
+        mmIO.fill(0)
+        zram.fill(0)
         inBios = true
     }
 
@@ -69,6 +76,10 @@ class MMU(private val gb: GameBoy) : Disposable {
         // Ensure BIOS gets disabled once it's done
         if (gb.cpu.pc.int() == BIOS_PC_END) inBios = false
         return when (val a = addr.int()) {
+            // Bank Selectors
+            VRAM_SELECT -> (vramBank or 0xFE).toByte()
+            WRAM_SELECT -> (wramBank or 0xF8).toByte()
+
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> {
                 if (inBios && addr < 0x0100) bootix[addr.toInt()]
@@ -81,9 +92,10 @@ class MMU(private val gb: GameBoy) : Disposable {
             in LCDC..OCPD -> ppu.read(addr)
 
             // Direct reads
-            in 0x8000..0x9FFF -> vram[a and 0x1FFF]
-            in 0xC000..0xDFFF -> ram[a and 0x1FFF]
-            in 0xE000..0xFDFF -> ram[a and 0x1FFF]
+            in 0x8000..0x9FFF -> vram[(a and 0x1FFF) + (vramBank * 0x2000)]
+            in 0xC000..0xCFFF -> wram[(a and 0x0FFF)]
+            in 0xD000..0xDFFF -> wram[(a and 0x0FFF) + (wramBank * 0x1000)]
+            in 0xE000..0xFDFF -> wram[a and 0x1FFF]
             in 0xFE00..0xFE9F -> oam[a and 0xFF]
             in 0xFF00..0xFF7F -> mmIO[a and 0x7F]
             in 0xFF80..0xFFFF -> zram[a and 0x7F]
@@ -103,6 +115,10 @@ class MMU(private val gb: GameBoy) : Disposable {
     fun write(addr: Short, value: Byte) {
         gb.debugger.writeOccurred(addr, value)
         when (val a = addr.int()) {
+            // Bank Selectors
+            VRAM_SELECT -> if (gb.cgbMode) vramBank = value.int() and 1
+            WRAM_SELECT -> if (gb.cgbMode) wramBank = (value.int() and 7) or 1
+
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
             JOYP -> joypad.write(value)
@@ -112,9 +128,9 @@ class MMU(private val gb: GameBoy) : Disposable {
             in LCDC..OCPD -> ppu.write(addr, value)
 
             // Direct writes
-            in 0x8000..0x9FFF -> vram[a and 0x1FFF] = value
-            in 0xC000..0xDFFF -> ram[a and 0x1FFF] = value
-            in 0xE000..0xFDFF -> ram[a and 0x1FFF] = value
+            in 0x8000..0x9FFF -> vram[(a and 0x1FFF) + (vramBank * 0x2000)] = value
+            in 0xC000..0xCFFF -> wram[(a and 0x0FFF)] = value
+            in 0xD000..0xDFFF -> wram[(a and 0x0FFF) + (wramBank * 0x1000)] = value
             in 0xFE00..0xFE9F -> oam[a and 0xFF] = value
             in 0xFF00..0xFF7F -> mmIO[a and 0x7F] = value
             in 0xFF80..0xFFFF -> zram[a and 0x7F] = value
@@ -189,6 +205,11 @@ class MMU(private val gb: GameBoy) : Disposable {
         const val NR52 = 0xFF26
 
         private val WAVE_SAMPLES = 0xFF30..0xFF3F
+
+        // CGB
+        private const val VRAM_SELECT = 0xFF4F
+        private val HDMA = 0xFF51..0xFF55
+        private const val WRAM_SELECT = 0xFF70
 
         // BOOT ROM, Bootix made by Hacktix: https://github.com/Hacktix/Bootix
         // Thank you, Hacktix!

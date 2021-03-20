@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 1:25 AM.
+ * This file was last modified at 3/20/21, 2:08 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -27,5 +27,11 @@ class DMA(private val mmu: MMU): IODevice() {
         reg = value
         transferFrom = (value * 0x100) and 0xFFFF
         transferTimeLeft = 640
+    }
+
+    fun reset() {
+        reg = 0xFF
+        transferTimeLeft = 0
+        transferFrom = 0
     }
 }
