@@ -1,17 +1,21 @@
 # Gamelin
-A Gameboy emulator written in Kotlin, able to run on desktop (LibGDX + VisUI) and in browser (KORGE).
+A Gameboy (Color) emulator written in Kotlin, able to run on desktop (LibGDX + VisUI) and in browser (KORGE).
 
 ## Status
 The emulator is in an early, but usable state. At the moment, the following is implemented and works:
 
 ##### Console
 - Full SM83 CPU instruction set (All blargg cpu_instr tests pass)
-- All of the PPU except the window and some finer details
+- All of the PPU
 - Most of the timers as well as PPU interrupts
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
 - Full APU/Sound emulation (7/12 blargg dmg_sound tests pass)
 - Most MBC1 cartridge mapper behavior (MBC3/5 still missing)
 - Game saving support (to `.sav` file on desktop, into local browser storage on web)
+- Game Boy Color:
+    - Detection of GBC games, support for running them in GBC mode
+    - Additional WRAM/VRAM banks
+    - Most of the additional PPU features, full color support
 
 ##### Desktop Version
 - Reset and ROM changing support
@@ -54,7 +58,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ##### Fully playable but with obvious issues
 - Tetris DX* (Global, 1998, Nintendo)
     - Some parts of the UI are blacked out
-- Pokemon Silver* (Global, 2000, Game Freak)
+- Pokemon Silver ** (Global, 2000, Game Freak)
     - Some Pokemon sprites have a few incorrect/garbage tiles
     - Otherwise works, played until after meeting Mr. Pokemon/Prof. Oak
 
@@ -63,6 +67,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Starting gameplay hangs on empty first level or white screen, inconsistent (interrupt timing issue?)
 
 \* briefly displays garbage on boot
+\** Works in GBC mode
 
 ## Build
 ``` bash

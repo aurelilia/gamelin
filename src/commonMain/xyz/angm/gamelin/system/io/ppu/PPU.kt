@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 10:44 PM.
+ * This file was last modified at 3/21/21, 1:47 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,7 +17,7 @@ import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
 import xyz.angm.gamelin.system.io.ppu.GPUMode.*
 
-internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : IODevice(), Disposable {
+internal abstract class PPU(protected val mmu: MMU, val renderer: TileRenderer) : IODevice(), Disposable {
 
     private var mode = OAMScan
     private var modeclock = 0
@@ -140,16 +140,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
         if (lineCompare == line) statInterrupt(6)
     }
 
-    protected open fun renderLine() {
-        if (!displayEnable) return
-        if (bgEnable) {
-            renderBG()
-            if (windowEnable) renderWindow()
-        } else {
-            clearLine()
-        }
-        if (objEnable) renderObjs()
-    }
+    protected abstract fun renderLine()
 
     protected fun renderBG() {
         renderBGOrWindow(scrollX, 0, bgMapAddr, (scrollY + line) and 0xFF) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
@@ -160,7 +151,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
         renderBGOrWindow(0, windowX, windowMapAddr, line) { it }
     }
 
-    private inline fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
+    private fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
         var tileX = scrollX and 7
         val tileY = mapLine and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
@@ -171,7 +162,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
         for (tileIdxAddr in startX until 160) {
             val colorIdx = (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX)
             if (colorIdx != 0) setPixelOccupied(tileIdxAddr, line)
-            renderer.drawPixel(tileIdxAddr, line, getBGColor(colorIdx))
+            drawBGorWindowPixel(tileIdxAddr, line, colorIdx, tileAddr)
 
             if (++tileX == 8) {
                 tileX = 0
@@ -184,7 +175,9 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
         }
     }
 
-    private fun clearLine() {
+    protected abstract fun drawBGorWindowPixel(x: Int, y: Int, colorIdx: Int, tileAddr: Int)
+
+    protected fun clearLine() {
         for (tileIdxAddr in 0 until 160) {
             renderer.drawPixel(tileIdxAddr, line, dmgColors[0])
         }
@@ -203,7 +196,7 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
     }
 
     private fun renderObj() = Sprite.run {
-        val palette = if (altPalette) objPalette2 else objPalette1
+        val dmgPalette = if (dmgPalette) objPalette2 else objPalette1
         val tileYOp = (line - y) and 0x07
         val tileY = if (yFlip) 7 - tileYOp else tileYOp
 
@@ -213,21 +206,24 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
             else -> tilenum
         }
 
-        val tileDataAddr = objTileOffset(tileNum) + (tileY * 2)
-        val high = mmu.read(tileDataAddr + 1).toByte()
-        val low = mmu.read(tileDataAddr).toByte()
+        val tileDataAddr = objTileOffset(tileNum) + (tileY * 2) + vramSpriteAddrOffset()
+        val high = mmu.vram[tileDataAddr + 1]
+        val low = mmu.vram[tileDataAddr]
 
         for (tileX in 0 until 8) {
             val colorIdx = if (!xFlip) (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX) else (high.bit(tileX) shl 1) + low.bit(tileX)
             val screenX = x + tileX
-            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || !getPixelOccupied(screenX, line)))
-                renderer.drawPixel(screenX, line, getColor(palette, colorIdx))
+            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || !getPixelOccupied(screenX, line))) {
+                drawObjPixel(screenX, line, colorIdx, dmgPalette)
+            }
         }
     }
 
-    protected open fun setPixelOccupied(x: Int, y: Int) {
-        bgOccupiedPixels[(x * 144) + y] = true
-    }
+    protected abstract fun drawObjPixel(x: Int, y: Int, colorIdx: Int, dmgPalette: Int)
+
+    protected abstract fun vramSpriteAddrOffset(): Int
+
+    protected abstract fun setPixelOccupied(x: Int, y: Int)
 
     private fun getPixelOccupied(x: Int, y: Int) = bgOccupiedPixels[(x * 144) + y]
 
@@ -238,13 +234,13 @@ internal abstract class PPU(private val mmu: MMU, val renderer: TileRenderer) : 
         else 0x9000 + (idx.toByte() * 0x10)
     }
 
-    private fun objTileOffset(idx: Int) = 0x8000 + (idx * 0x10)
+    private fun objTileOffset(idx: Int) = (idx * 0x10)
 
-    private fun getBGColor(color: Int) = getColor(bgPalette, color)
+    protected fun getBGColor(color: Int) = getColor(bgPalette, color)
 
-    private fun getColor(palette: Int, color: Int) = dmgColors[(palette ushr (color * 2)) and 0b11]
+    protected fun getColor(palette: Int, color: Int) = dmgColors[(palette ushr (color * 2)) and 0b11]
 
-    private fun TileRenderer.drawPixel(x: Int, y: Int, c: Int) = drawPixel(x, y, c, c, c)
+    protected fun TileRenderer.drawPixel(x: Int, y: Int, c: Int) = drawPixel(x, y, c, c, c)
 
     fun reset() {
         mode = OAMScan
@@ -285,14 +281,16 @@ private enum class GPUMode(val cycles: Int, val idx: Int) {
     HBlank(204, 0), VBlank(456, 1), OAMScan(80, 2), Upload(172, 3)
 }
 
-private object Sprite {
+internal object Sprite {
     var dat = 0
     val x get() = ((dat ushr 8) and 0xFF) - 8
     val y get() = (dat and 0xFF) - 16
     val tilenum get() = (dat ushr 16) and 0xFF
     val options get() = (dat ushr 24) and 0xFF
-    val altPalette get() = options.isBit(4)
+    val dmgPalette get() = options.isBit(4)
     val xFlip get() = options.isBit(5)
     val yFlip get() = options.isBit(6)
     val priority get() = !options.isBit(7)
+    val cgbBank get() = options.bit(3)
+    val cgbPalette get() = options and 3
 }
