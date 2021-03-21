@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 3:38 AM.
+ * This file was last modified at 3/21/21, 6:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,14 +14,15 @@ import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.io.MMU
 import kotlin.math.min
 
+/** The GameBoy Color's PPU. */
 internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
 
     private var bgPaletteIndex = 0
     private var bgPaletteIncrement = false
-    val bgPalettes = Array(4 * 8) { Color() } // 8 palettes with 4 colors each.
+    private val bgPalettes = Array(4 * 8) { Color() } // 8 palettes with 4 colors each.
     private var objPaletteIndex = 0
     private var objPaletteIncrement = false
-    val objPalettes = Array(4 * 8) { Color() } // 8 palettes with 4 colors each.
+    private val objPalettes = Array(4 * 8) { Color() } // 8 palettes with 4 colors each.
 
     override fun read(addr: Int): Int {
         return when (addr) {
@@ -96,23 +97,22 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
 
     override fun vramSpriteAddrOffset() = Sprite.cgbBank * 0x2000
 
-    // LCDC.0 on CGB doesn't actually disable the BG and window,
-    // it instead just makes them lose priority; therefore simply
-    // don't set occupied pixels if LCDC.0 == 0
+    /** LCDC.0 on CGB doesn't actually disable the BG and window,
+     * it instead just makes them lose priority; therefore simply
+     * don't set occupied pixels if LCDC.0 == 0. */
     override fun setPixelOccupied(x: Int, y: Int) {
         bgOccupiedPixels[(x * 144) + y] = bgEnable
     }
-
-    // Convert a 5-bit GBC color to 8-bit RGB
-    private fun gbToRGB(gb: Int) = (gb shl 3) or (gb ushr 2)
 }
 
-// Color in RGG888 format; each color in 0-255 range
+/** Color in RGG888 format; each color in 0-255 range.
+ * Also contains the 2 raw color registers. */
 data class Color(
     var red: Int = 255, var green: Int = 255, var blue: Int = 255,
     var rawLow: Int = 0xFF, var rawHigh: Int = 0x7F
 ) {
 
+    /** Recalculate the RGB colors based off of raw registers. */
     fun recalculate() {
         setToGBColors()
         if (configuration.cgbColorCorrection) {
@@ -130,11 +130,15 @@ data class Color(
         }
     }
 
+    /** Temporarily set r, g, b to 0-31 GB colors */
     private fun setToGBColors() {
         red = rawLow and 0x1F
         green = ((rawHigh and 3) shl 3) or (rawLow ushr 5)
         blue = (rawHigh ushr 2) and 0x1F
     }
 
-    private fun toRGBdirect(gb: Int) = (gb shl 3) or (gb ushr 2)
+    companion object {
+        /** Simple linear mapping of 0-31 to 0-255. */
+        private fun toRGBdirect(gb: Int) = (gb shl 3) or (gb ushr 2)
+    }
 }

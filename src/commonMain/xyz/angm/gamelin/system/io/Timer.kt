@@ -1,16 +1,16 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:41 PM.
+ * This file was last modified at 3/21/21, 7:25 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io
 
-import xyz.angm.gamelin.addrOutOfBounds
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.cpu.Interrupt
 
+/** The internal DIV and timer counters */
 internal class Timer(private val mmu: MMU) : IODevice() {
 
     private var divCycleCount = 0
@@ -20,8 +20,7 @@ internal class Timer(private val mmu: MMU) : IODevice() {
     private var counter = 0
     private var modulo = 0
     private var control = 0
-
-    private var running = false
+    private var counterRunning = false
     private var counterDivider = 64
 
     fun step(tCycles: Int) {
@@ -34,7 +33,7 @@ internal class Timer(private val mmu: MMU) : IODevice() {
             }
         }
 
-        if (running) {
+        if (counterRunning) {
             counterTimer += tCycles
             while (counterTimer >= counterDivider) {
                 counterTimer -= counterDivider
@@ -49,7 +48,7 @@ internal class Timer(private val mmu: MMU) : IODevice() {
             MMU.TIMA -> counter
             MMU.TMA -> modulo
             MMU.TAC -> control or 0xF8
-            else -> addrOutOfBounds(addr)
+            else -> MMU.INVALID_READ
         }
     }
 
@@ -63,7 +62,7 @@ internal class Timer(private val mmu: MMU) : IODevice() {
             MMU.TMA -> modulo = value
             MMU.TAC -> {
                 control = (value and 7)
-                running = control.isBit(2)
+                counterRunning = control.isBit(2)
                 counterDivider = when (control and 3) {
                     0 -> 1024 // 4K
                     1 -> 16 // 256K
@@ -82,7 +81,7 @@ internal class Timer(private val mmu: MMU) : IODevice() {
         counter = 0
         modulo = 0
         control = 0
-        running = false
+        counterRunning = false
         counterDivider = 64
     }
 }

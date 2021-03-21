@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 3:59 AM.
+ * This file was last modified at 3/21/21, 8:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,8 +16,11 @@ import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
 import xyz.angm.gamelin.system.io.ppu.GPUMode.*
+import xyz.angm.gamelin.system.io.ppu.Sprite.dat
 import kotlin.jvm.Transient
 
+/** The Pixel Processing Unit of the system. This is an abstract class due to the different
+ * PPUs of DMG and CGB. */
 internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: TileRenderer) : IODevice(), Disposable {
 
     private var mode = OAMScan
@@ -130,17 +133,18 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
             }
         }
 
-        stat = (stat.toByte().setBit(2, if (lineCompare == line) 1 else 0) and 0b11111100) or mode.idx
+        stat = (stat.toByte().setBit(2, if (lineCompare == line) 1 else 0) and 0b11111100) or mode.ordinal
     }
 
     private fun statInterrupt(index: Int) {
-        if (stat.toByte().isBit(index)) mmu.requestInterrupt(Interrupt.LCDC)
+        if (stat.toByte().isBit(index)) mmu.requestInterrupt(Interrupt.STAT)
     }
 
     private fun lycInterrupt() {
         if (lineCompare == line) statInterrupt(6)
     }
 
+    /** Called right before HBLANK starts, render the current line to the buffer. */
     protected abstract fun renderLine()
 
     protected fun renderBG() {
@@ -176,6 +180,9 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         }
     }
 
+    /** Draw a pixel of the BG or window to the buffer..
+     * @param colorIdx The color of the palette to use
+     * @param tileAddr The tile address of the tile this pixel is in, used for retrieving additional tile data on CGB */
     protected abstract fun drawBGorWindowPixel(x: Int, y: Int, colorIdx: Int, tileAddr: Int)
 
     protected fun clearLine() {
@@ -220,10 +227,15 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         }
     }
 
+    /** Draw a pixel of the current sprite.
+     * @param colorIdx The color of the palette to use
+     * @param dmgPalette The selected DMG palette, not applicable to CGB color palettes */
     protected abstract fun drawObjPixel(x: Int, y: Int, colorIdx: Int, dmgPalette: Int)
 
+    /** Should return the VRAM bank offset of the current sprite; always 0x0 on DMG. */
     protected abstract fun vramSpriteAddrOffset(): Int
 
+    /** Set a pixel to be 'occupied' by the BG, preventing sprites without priority to draw above it. */
     protected abstract fun setPixelOccupied(x: Int, y: Int)
 
     private fun getPixelOccupied(x: Int, y: Int) = bgOccupiedPixels[(x * 144) + y]
@@ -278,16 +290,19 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     }
 }
 
-private enum class GPUMode(val cycles: Int, val idx: Int) {
-    HBlank(204, 0), VBlank(456, 1), OAMScan(80, 2), Upload(172, 3)
+private enum class GPUMode(val cycles: Int) {
+    HBlank(204), VBlank(456), OAMScan(80), Upload(172)
 }
 
+/** Sprite data from OAM.
+ * @property dat Integer containing the 4 bytes that make up this sprite's OAM data. */
 internal object Sprite {
     var dat = 0
     val x get() = ((dat ushr 8) and 0xFF) - 8
     val y get() = (dat and 0xFF) - 16
     val tilenum get() = (dat ushr 16) and 0xFF
-    val options get() = (dat ushr 24) and 0xFF
+
+    private val options get() = (dat ushr 24) and 0xFF
     val dmgPalette get() = options.isBit(4)
     val xFlip get() = options.isBit(5)
     val yFlip get() = options.isBit(6)

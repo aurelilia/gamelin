@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 3:18 AM.
+ * This file was last modified at 3/21/21, 7:31 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -51,6 +51,7 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
     }
 
     while (!gb.gameLoaded) delay(100.milliseconds)
+    // TODO: Any better method of syncing this?
     window.setInterval({
         gb.advanceDelta(1 / 30f)
     }, 33)

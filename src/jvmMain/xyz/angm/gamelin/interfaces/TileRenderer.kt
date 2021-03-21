@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:01 PM.
+ * This file was last modified at 3/21/21, 7:34 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,6 +18,10 @@ import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.system.io.MMU
 import xyz.angm.gamelin.system.io.ppu.PPU
 
+/** TileRenderer using 2 pixmaps for buffering the image, as well as a texture
+ * that contains the last finished pixmap.
+ * Each time a frame is finished, the current pixmap is swapped.
+ * This causes a 2-3 frame lag, but prevents the user from seeing mid-frame display states. */
 internal actual class TileRenderer actual constructor(mmu: MMU, width: Int, height: Int, scale: Float) : Actor() {
 
     private val pixmapA = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)

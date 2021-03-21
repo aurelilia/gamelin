@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 3:16 AM.
+ * This file was last modified at 3/21/21, 7:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,14 +24,19 @@ fun Int.setBit(bit: Int, bitState: Boolean) = (this and ((1 shl bit) xor 0xFF)) 
 
 fun Boolean.int() = if (this) 1 else 0
 
+/** Display a byte as padded hex, format `0xXX` */
 expect fun Number.hex8(): String
+/** Display 2 bytes as padded hex, format `0xXXXX` */
 expect fun Number.hex16(): String
 
-fun addrOutOfBounds(addr: Int): Nothing = throw IllegalArgumentException("Index out of bounds: ${addr.hex16()}")
-
+/** Simple interface for classes that hold some form of platform/native
+ * resouces that need to be disposed manually.
+ * Usually, object become unusable after calling dispose. */
 interface Disposable {
     fun dispose()
 }
 
+/** Save [configuration] to platform-appropriate storage. */
 expect fun saveConfiguration()
+/** Load [configuration] from platform storage. */
 expect fun loadConfiguration(): Configuration

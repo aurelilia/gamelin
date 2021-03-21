@@ -1,12 +1,15 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 2:08 AM.
+ * This file was last modified at 3/21/21, 7:04 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io
 
+/** DMA transfer, as part of both DMG and CGB.
+ * This implementation simply ticks down the transfer time
+ * and transfers everything at once at the end. */
 class DMA(private val mmu: MMU): IODevice() {
 
     private var reg = 0xFF

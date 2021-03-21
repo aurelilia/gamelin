@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:15 PM.
+ * This file was last modified at 3/21/21, 7:23 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,7 +8,7 @@
 package xyz.angm.gamelin.system.io.sound
 
 import xyz.angm.gamelin.isBit
-import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
+import xyz.angm.gamelin.system.GameBoy
 
 class LengthCounter(private val fullLength: Int, private val soundChannel: SoundChannel) {
 
@@ -73,6 +73,6 @@ class LengthCounter(private val fullLength: Int, private val soundChannel: Sound
     }
 
     companion object {
-        private const val DIVIDER = CLOCK_SPEED_HZ / 256
+        private const val DIVIDER = GameBoy.T_CLOCK_HZ / 256
     }
 }

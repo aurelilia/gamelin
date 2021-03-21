@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 10:28 PM.
+ * This file was last modified at 3/21/21, 7:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,6 +10,7 @@ package xyz.angm.gamelin.system.io
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.isBit
 
+/** CGB-only HDMA transfer. TODO: Actual transfer still unimplemented. */
 class HDMA : IODevice() {
 
     private var source = 0

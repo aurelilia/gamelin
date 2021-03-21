@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 9:49 PM.
+ * This file was last modified at 3/21/21, 7:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,9 +16,11 @@ import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Reg
 import java.io.FileFilter
 
-private const val TEST_TIMEOUT_SECONDS = 5
+/** The amount of time to run the system for before considering a test to have timeouted/failed. */
+private const val TEST_TIMEOUT_SECONDS = 10
 private val gb = GameBoy()
 
+/** Test runner for all mooneye-gb tests at assets/roms/test/mooneye. */
 class MooneyeTest : FunSpec({
     for (dir in file("roms/test/mooneye").list(FileFilter { it.isDirectory && !it.name.contains("disabled") })) {
         context(dir.name()) {
@@ -32,7 +34,7 @@ suspend fun FunSpecContextScope.runDir(dir: FileHandle) {
         if (file.extension() == "gb") {
             test(file.name()) {
                 gb.loadGame(file.readBytes())
-                gb.skipBios()
+                gb.skipBootRom()
 
                 for (i in 0 until TEST_TIMEOUT_SECONDS) {
                     gb.advanceDelta(1f)
@@ -50,6 +52,7 @@ suspend fun FunSpecContextScope.runDir(dir: FileHandle) {
     }
 }
 
+/** All mooneye-gb tests set registers to these values to indicate test success. */
 fun GameBoy.mooneyeFinished() = this.read(Reg.A) == 0 && this.read(Reg.B) == 3
         && this.read(Reg.C) == 5 && this.read(Reg.D) == 8
         && this.read(Reg.E) == 13 && this.read(Reg.H) == 21

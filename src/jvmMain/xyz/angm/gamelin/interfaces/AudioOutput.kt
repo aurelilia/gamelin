@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:03 PM.
+ * This file was last modified at 3/21/21, 7:32 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,10 +8,11 @@
 package xyz.angm.gamelin.interfaces
 
 import com.badlogic.gdx.Gdx
-import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
 private val device = Gdx.audio.newAudioDevice(AudioOutput.SAMPLE_RATE, false)
 
+/** Audio output using libGDX audio devices. Will block on [play] to allow
+ * synchronizing the entire emulator around the audio buffer. */
 actual class AudioOutput actual constructor() {
 
     @Transient
@@ -35,7 +36,6 @@ actual class AudioOutput actual constructor() {
 
     actual companion object {
         actual val SAMPLE_RATE = 22050
-        actual val BUFFER_SIZE = 1024
-        actual val DIVIDER = CLOCK_SPEED_HZ / SAMPLE_RATE
+        private const val BUFFER_SIZE = 1024
     }
 }

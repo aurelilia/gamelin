@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 4:09 PM.
+ * This file was last modified at 3/21/21, 6:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,6 +13,7 @@ import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.io.MMU
 import kotlin.experimental.and
 
+/** Container for the SM83 CPU found in the GameBoy. */
 internal class CPU(private val gb: GameBoy) {
 
     var pc: Short = 0
@@ -22,6 +23,10 @@ internal class CPU(private val gb: GameBoy) {
     var haltBug = false
     val regs = ByteArray(Reg.values().size)
 
+    /** Execute the next instruction, stepping the entire system forward
+     * as required. Will also check interrupts after executing an instruction and possibly
+     * advance the clock to account for interrupt handling; making the exact amount
+     * that this steps the internal clock by undeterministic. */
     fun nextInstruction() {
         val ime = this.ime
 
@@ -53,12 +58,14 @@ internal class CPU(private val gb: GameBoy) {
         if (checkInterrupts(ime && this.ime)) gb.advanceClock(5)
     }
 
+    /** Checks for interrupts and returns true if one has been fired,
+     * to allow the CPU to step the system 5 more M-Cycles forward (SM83 takes 5 cycles to handle interrupts). */
     private fun checkInterrupts(ime: Boolean): Boolean {
         if (!ime) return false
         for (interrupt in Interrupt.values()) {
             if (interrupt.isSet(gb.read(MMU.IE)) && interrupt.isSet(gb.read(MMU.IF))) {
                 halt = false
-                gb.write(MMU.IF, gb.read(MMU.IF) xor (1 shl interrupt.position))
+                gb.write(MMU.IF, gb.read(MMU.IF) xor (1 shl interrupt.ordinal))
                 this.ime = false
                 gb.pushS(pc.int())
                 pc = interrupt.handlerAddr
@@ -71,14 +78,14 @@ internal class CPU(private val gb: GameBoy) {
     fun write(reg: Reg, value: Byte) {
         // Register F only allows writing the 4 high/flag bits
         val regVal = if (reg == Reg.F) (value.int() and 0xF0).toByte() else value
-        regs[reg.idx] = regVal
+        regs[reg.ordinal] = regVal
     }
 
     fun flag(flag: Flag) = flagVal(flag) == 1
-    fun flagVal(flag: Flag) = ((regs[Reg.F.idx].int() ushr flag.position) and 1)
+    fun flagVal(flag: Flag) = ((regs[Reg.F.ordinal].int() ushr flag.position) and 1)
 
     fun flag(flag: Flag, value: Int) {
-        regs[Reg.F.idx] = ((regs[Reg.F.idx] and flag.invMask.toByte()) + flag.from(value)).toByte()
+        regs[Reg.F.ordinal] = ((regs[Reg.F.ordinal] and flag.invMask.toByte()) + flag.from(value)).toByte()
     }
 
     fun reset() {
@@ -89,17 +96,13 @@ internal class CPU(private val gb: GameBoy) {
     }
 }
 
-internal enum class Reg(val idx: Int) {
-    A(0),
-    B(1),
-    C(2),
-    D(3),
-    E(4),
-    F(5),
-    H(6),
-    L(7),
+/** All the CPU registers of the SM83 */
+internal enum class Reg {
+    A, B, C, D, E, F, H, L
 }
 
+/** All the "double" registers. Order is chosen for [Inst],
+ * to allow easy iteration for creating the instruction set. */
 internal enum class DReg(val high: Reg, val low: Reg) {
     BC(Reg.B, Reg.C),
     DE(Reg.D, Reg.E),
@@ -107,6 +110,7 @@ internal enum class DReg(val high: Reg, val low: Reg) {
     AF(Reg.A, Reg.F)
 }
 
+/** All math flags in the F register. */
 internal enum class Flag(val position: Int) {
     Zero(7),
     Negative(6),
@@ -121,12 +125,13 @@ internal enum class Flag(val position: Int) {
     fun from(value: Int) = (if (value != 0) 1 else 0) shl position
 }
 
-internal enum class Interrupt(val position: Int, val handlerAddr: Short) {
-    VBlank(0, 0x0040),
-    LCDC(1, 0x0048),
-    Timer(2, 0x0050),
-    Serial(3, 0x0058),
-    Joypad(4, 0x0060);
+/** All interrupts the SM83 can process. */
+internal enum class Interrupt(val handlerAddr: Short) {
+    VBlank(0x0040),
+    STAT(0x0048),
+    Timer(0x0050),
+    Serial(0x0058),
+    Joypad(0x0060);
 
-    fun isSet(reg: Int) = reg.isBit(position)
+    fun isSet(reg: Int) = reg.isBit(ordinal)
 }

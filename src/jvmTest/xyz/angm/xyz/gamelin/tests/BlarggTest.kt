@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 9:28 PM.
+ * This file was last modified at 3/21/21, 7:41 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,8 +16,10 @@ import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.system.GameBoy
 import java.io.FileFilter
 
+/** The amount of time to run the system for before considering a test to have timeouted/failed. */
 private const val TEST_TIMEOUT_SECONDS = 60
 
+/** Test runner for all blargg tests at assets/roms/test/blargg. */
 class BlarggTest : FunSpec({
     // Debugger that reads serial output into a string.
     val debugger = object : Debugger() {
@@ -61,7 +63,7 @@ class BlarggTest : FunSpec({
             for (test in dir.list(FileFilter { it.extension == "gb" })) {
                 test(test.name()) {
                     gb.loadGame(test.readBytes())
-                    gb.skipBios()
+                    gb.skipBootRom()
                     debugger.reset()
 
                     for (i in 0 until TEST_TIMEOUT_SECONDS) {

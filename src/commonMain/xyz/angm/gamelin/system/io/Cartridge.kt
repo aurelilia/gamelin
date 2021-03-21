@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 2:13 AM.
+ * This file was last modified at 3/21/21, 7:03 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,6 +12,10 @@ import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.isBit
 import kotlin.math.max
 
+/** A game that the system is playing.
+ * TODO: Implement more MBCs.
+ *
+ * @property rom The raw ROM file of this game. */
 abstract class Cartridge(private val rom: ByteArray) : IODevice() {
 
     internal val romBankCount = (2 shl rom[ROM_BANKS].int())
@@ -58,10 +62,12 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
         return str.toString()
     }
 
+    /** Save the game RAM to disk, if applicable. */
     fun save() {
         if (ramBankCount > 0) FileSystem.saveRAM("${getTitle(extended = true)}${rom[DESTINATION]}", ram)
     }
 
+    /** Tries to load the RAM from disk. */
     private fun loadRAM(): ByteArray {
         var ram: ByteArray? = null
         if (ramBankCount > 0) ram = FileSystem.loadRAM("${getTitle(extended = true)}${rom[DESTINATION]}")
@@ -90,8 +96,10 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
     }
 }
 
+/** Cartridges with no MBC: 1 ROM bank, no RAM */
 class NoMBC(rom: ByteArray) : Cartridge(rom)
 
+/** Cartridges with the MBC1 controller. */
 class MBC1(rom: ByteArray) : Cartridge(rom) {
 
     private var ramMode = false
@@ -121,6 +129,7 @@ class MBC1(rom: ByteArray) : Cartridge(rom) {
     }
 }
 
+/** Cartridges with the MBC3 controller. */
 class MBC3(rom: ByteArray) : Cartridge(rom) {
 
     override fun write(addr: Int, value: Int) {

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:10 PM.
+ * This file was last modified at 3/21/21, 7:35 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,6 +14,7 @@ import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.hex8
 import xyz.angm.gamelin.system.io.Cartridge
 
+/** Window that displays various info from the current cart header. */
 class CartInfoWindow : DelayedUpdateWindow("Cartridge Info", 1f) {
 
     private val tab = KVisTable(true)

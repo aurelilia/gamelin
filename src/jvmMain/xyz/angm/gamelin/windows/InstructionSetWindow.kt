@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 4:09 PM.
+ * This file was last modified at 3/21/21, 7:36 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.Color
 import com.kotcrab.vis.ui.widget.VisTextButton
 import xyz.angm.gamelin.system.cpu.Inst
 
+/** Table displaying the given instruction set in a 16x16 table. */
 class InstructionSetWindow(name: String, set: Array<Inst?>) : Window(name) {
 
     init {

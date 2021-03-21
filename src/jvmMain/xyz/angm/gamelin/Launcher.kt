@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 3:22 AM.
+ * This file was last modified at 3/21/21, 7:40 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,7 +19,11 @@ val emu = Gamelin()
 /** Initialize and launch the emulator. */
 fun main() {
     Thread.setDefaultUncaughtExceptionHandler(::handleException)
-    Lwjgl3Application(emu, makeConfiguration())
+    val configuration = Lwjgl3ApplicationConfiguration()
+    configuration.setIdleFPS(15)
+    configuration.useVsync(true)
+    configuration.setTitle("Gamelin")
+    Lwjgl3Application(emu, configuration)
 }
 
 /** Handle exceptions */
@@ -32,22 +36,10 @@ private fun handleException(thread: Thread, throwable: Throwable) {
     System.err.println("Gamelin is exiting.")
 
     val builder = StringBuilder()
-    builder.append("The emulator encountered an exception, and is forced to close.\n")
-    builder.append("Exception: ${throwable.javaClass.name}: ${throwable.localizedMessage}\n")
-    builder.append("For more information, see the console output or log.")
+    builder.appendLine("The emulator encountered an exception, and is forced to close.")
+    builder.appendLine("For more information, see the console output or log.")
+    builder.appendLine("Exception: ${throwable.javaClass.name}: ${throwable.localizedMessage}")
 
-    showDialog(builder.toString(), JOptionPane.ERROR_MESSAGE)
+    JOptionPane.showMessageDialog(null, builder.toString(), "Gamelin", JOptionPane.ERROR_MESSAGE)
     exitProcess(-1)
-}
-
-/** Simple method for showing a dialog. Type should be a type from JOptionPane */
-private fun showDialog(text: String, type: Int) = JOptionPane.showMessageDialog(null, text, "Gamelin", type)
-
-/** Returns the LWJGL configuration. */
-private fun makeConfiguration(): Lwjgl3ApplicationConfiguration {
-    val configuration = Lwjgl3ApplicationConfiguration()
-    configuration.setIdleFPS(60)
-    configuration.useVsync(true)
-    configuration.setTitle("Gamelin")
-    return configuration
 }

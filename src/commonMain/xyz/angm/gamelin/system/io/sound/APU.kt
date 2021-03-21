@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:10 PM.
+ * This file was last modified at 3/21/21, 7:23 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,10 +10,15 @@ package xyz.angm.gamelin.system.io.sound
 import xyz.angm.gamelin.interfaces.AudioOutput
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
+import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
 
-class Sound : IODevice() {
+/** The APU of the GameBoy, containg all 4 channels and responsible for providing the output with audio.
+ * This implementation is abridged from stan-roelofs's emulator: https://github.com/stan-roelofs/Kotlin-Gameboy-Emulator
+ * Who probably abridged it from trekawek's coffee-gb: https://github.com/trekawek/coffee-gb
+ * Thank you to both stan-roelofs and trekawek! */
+class APU : IODevice() {
 
     var output = AudioOutput()
     private var outDiv = 0
@@ -52,10 +57,10 @@ class Sound : IODevice() {
 
     fun step(tCycles: Int) {
         outDiv += tCycles
-        if (outDiv < AudioOutput.DIVIDER) {
+        if (outDiv < DIVIDER) {
             for (i in 0 until 4) channels[i].cycle(tCycles)
         } else {
-            outDiv -= AudioOutput.DIVIDER
+            outDiv -= DIVIDER
             var left = 0
             var right = 0
 
@@ -145,5 +150,10 @@ class Sound : IODevice() {
                 }
             }
         }
+    }
+
+    companion object {
+        /** The amount of ticks that need to pass per sample sent to the output. */
+        val DIVIDER = GameBoy.T_CLOCK_HZ / AudioOutput.SAMPLE_RATE
     }
 }

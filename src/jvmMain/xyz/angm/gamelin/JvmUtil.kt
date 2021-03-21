@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:04 PM.
+ * This file was last modified at 3/21/21, 7:39 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -49,6 +49,7 @@ private val kryo = Kryo().apply {
     instantiatorStrategy = DefaultInstantiatorStrategy(StdInstantiatorStrategy())
 }
 
+/** Save the current global system to a file. */
 fun saveGb() {
     val out = Output(FileOutputStream("gb.bin"))
     kryo.writeObject(out, gb)
@@ -56,6 +57,7 @@ fun saveGb() {
     out.close()
 }
 
+/** Read the file saved by [saveGb] into the global system, replacing it. */
 fun loadGb() {
     val input = Input(FileInputStream("gb.bin"))
     val oldGb = gb

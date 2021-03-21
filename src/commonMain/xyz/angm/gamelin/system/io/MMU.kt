@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:02 PM.
+ * This file was last modified at 3/21/21, 7:09 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,8 +15,11 @@ import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.ppu.CgbPPU
 import xyz.angm.gamelin.system.io.ppu.DmgPPU
 import xyz.angm.gamelin.system.io.ppu.PPU
-import xyz.angm.gamelin.system.io.sound.Sound
+import xyz.angm.gamelin.system.io.sound.APU
 
+/** The system's MMU, containing all devices and memory that
+ * the CPU can reach on the address bus.
+ * @property bootromOn If the boot rom is still mapped into memory. */
 class MMU(private val gb: GameBoy) : Disposable {
 
     internal var vram = ByteArray(8_192) // 8000-9FFF
@@ -29,7 +32,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     internal var bootromOn = true
 
     internal lateinit var cart: Cartridge
-    val sound = Sound()
+    private val sound = APU()
     internal val joypad = Joypad(this)
     internal var ppu: PPU = DmgPPU(this)
     private val timer = Timer(this)
@@ -76,7 +79,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     }
 
     internal fun requestInterrupt(interrupt: Interrupt) {
-        write(IF.toShort(), read(IF.toShort()).setBit(interrupt.position, 1).toByte())
+        write(IF.toShort(), read(IF.toShort()).setBit(interrupt.ordinal, 1).toByte())
     }
 
     fun read(addr: Short): Byte {

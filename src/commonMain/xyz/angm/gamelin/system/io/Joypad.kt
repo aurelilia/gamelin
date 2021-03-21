@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:37 PM.
+ * This file was last modified at 3/21/21, 7:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,6 +14,7 @@ import xyz.angm.gamelin.system.cpu.Interrupt
 private val row0Btns = arrayOf(Button.A, Button.B, Button.Select, Button.Start).reversedArray()
 private val row1Btns = arrayOf(Button.Right, Button.Left, Button.Up, Button.Down).reversedArray()
 
+/** The joypad, along with it's 2 registers. */
 internal class Joypad(private val mmu: MMU) {
 
     private var column = 0

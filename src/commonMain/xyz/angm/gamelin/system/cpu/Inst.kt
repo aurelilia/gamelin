@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 4:10 PM.
+ * This file was last modified at 3/21/21, 6:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,8 +15,17 @@ import xyz.angm.gamelin.system.cpu.Flag.*
 import xyz.angm.gamelin.system.cpu.Reg.*
 import xyz.angm.gamelin.system.io.MMU
 
+/** An instruction the SM83 CPU can execute.
+ * @property size The size of the instruction total, including itself and all arguments.
+ * @property cycles The amount of M-cycles to step forward *after* the instruction.
+ * @property name The mnemonic of the instruction.
+ * @property preCycles How many M-cycles to step forward *before* executing the instruction.
+ * @property incPC If the PC should be incremented by [Inst.size] after executing the instruction (false for jumps). */
 open class Inst(val size: Short, val cycles: Int, val name: String, val preCycles: Int = 0, val incPC: Boolean = true, val execute: GameBoy.() -> Unit)
 
+/** A branching instruction that might take a differing amount of time depending on branch.
+ * @property cyclesWithBranch The amount of cycles to step after the instruction if it branched
+ * @property executeBr Execute the instruction; return value indicates if the instruction branched. */
 class BrInst(size: Short, cycles: Int, val cyclesWithBranch: Int, name: String, val executeBr: GameBoy.() -> Boolean) :
     Inst(size, cycles, name, 0, true, { executeBr() })
 
@@ -30,6 +39,10 @@ object InstSet {
         fillExt()
     }
 
+    /** Returns the instruction for the given 2 bytes, where
+     * first = cpu.pc
+     * second = cpu.pc + 1
+     * Unknown opcodes will return null. */
     fun instOf(first: Int, second: Int): Inst? {
         return when (first) {
             0xCB -> ep[second]

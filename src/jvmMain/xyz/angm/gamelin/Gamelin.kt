@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:10 PM.
+ * This file was last modified at 3/21/21, 7:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -31,8 +31,12 @@ import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.windows.*
 import kotlin.system.exitProcess
 
+/** The global GameBoy instance the program is currently operating on.
+ * This was decided to be implmeneted as global state to allow switching out the
+ * GB at any point, for features like save states. */
 var gb = GameBoy(DesktopDebugger())
 
+/** The libGDX application driving the desktop emulator. */
 class Gamelin : ApplicationAdapter() {
 
     private lateinit var stage: Stage

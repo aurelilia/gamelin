@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:01 PM.
+ * This file was last modified at 3/21/21, 8:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,13 +8,16 @@
 package xyz.angm.gamelin.system
 
 import xyz.angm.gamelin.*
+import xyz.angm.gamelin.interfaces.AudioOutput
 import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.system.cpu.*
 import xyz.angm.gamelin.system.io.MMU
 import kotlin.experimental.and
 
-const val CLOCK_SPEED_HZ = 4194304
-
+/** The entire GB system.
+ * @property gameLoaded If a game has been loaded and the system is ready to be emulated/used
+ * @property disposed If the system is disposed and should cease all activities.
+ * @property cgbMode If the system is running in CGB mode instead of DMG */
 class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
 
     internal val cpu = CPU(this)
@@ -28,6 +31,8 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         loadGame(game)
     }
 
+    /** Load a game and reset the system.
+     * Will set [Debugger.emuHalt] to `true`. */
     fun loadGame(game: ByteArray) {
         mmu.load(game)
         gameLoaded = true
@@ -35,12 +40,19 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         debugger.emuHalt = false
     }
 
+    /** Advance the system by at least the given delta.
+     * Might advance a few dozen T-cycles more due to the non-deterministic nature of the CPU */
     fun advanceDelta(delta: Float) {
         if (debugger.emuHalt) return
-        val target = clock + (CLOCK_SPEED_HZ * delta)
+        val target = clock + (T_CLOCK_HZ * delta)
         while (clock < target && !debugger.emuHalt) advance()
     }
 
+    /** Advance the system forever until it's disposed.
+     * For this to work, some other timing mechanism needs to be used
+     * that halts execution; on the desktop, this is done by making
+     * [AudioOutput.play] block until almost all samples have been played.
+     * @param sleep Called when [Debugger.emuHalt] is true. */
     inline fun advanceIndefinitely(sleep: () -> Unit) {
         while (!disposed) {
             if (debugger.emuHalt) sleep()
@@ -48,17 +60,23 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         }
     }
 
+    /** Advance the system by a single CPu instruction. */
     fun advance() {
         debugger.preAdvance(this)
         cpu.nextInstruction()
         debugger.postAdvance(this)
     }
 
-    fun skipBios() {
+    /** Skip the boot rom, and start the game immediately.
+     * Not supported in CGB mode. */
+    fun skipBootRom() {
+        if (cgbMode) throw UnsupportedOperationException("Can only skip DMG bootrom")
         cpu.pc = 0x100
         mmu.bootromOn = false
     }
 
+    /** Returns the next instruction the CPU will execute.
+     * Will stop the system and return NOP if it is an unknown opcode. */
     fun getNextInst(): Inst {
         val inst = InstSet.instOf(read(cpu.pc), read(cpu.pc + 1))
         return if (inst == null) {
@@ -89,7 +107,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     // -----------------------------------
     internal fun read(addr: Short) = mmu.read(addr).int()
     internal fun read(addr: Int) = read(addr.toShort())
-    internal fun read(reg: Reg) = cpu.regs[reg.idx].int()
+    internal fun read(reg: Reg) = cpu.regs[reg.ordinal].int()
     private fun readSigned(addr: Int) = mmu.read(addr.toShort()).toInt()
     internal fun read16(reg: DReg) = (read(reg.low) or (read(reg.high) shl 8))
 
@@ -125,7 +143,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     // Math/ALU
     // -----------------------------------
     // c is the value of the carry, only used by ADC
-    fun add(a: Int, b: Int, c: Int = 0, setCarry: Boolean = false): Int {
+    internal fun add(a: Int, b: Int, c: Int = 0, setCarry: Boolean = false): Int {
         val result = a + b + c
         cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
         cpu.flag(Flag.Negative, 0)
@@ -135,7 +153,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     }
 
     // c is the value of the carry, only used by SBC
-    fun sub(a: Int, b: Int, c: Int = 0, setCarry: Boolean = false): Int {
+    internal fun sub(a: Int, b: Int, c: Int = 0, setCarry: Boolean = false): Int {
         val result = a - b - c
         cpu.flag(Flag.Zero, if ((result and 0xFF) == 0) 1 else 0)
         cpu.flag(Flag.Negative, 1)
@@ -144,7 +162,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         return result.toByte().int()
     }
 
-    fun add16HL(other: Int) {
+    internal fun add16HL(other: Int) {
         val hl = read16(DReg.HL)
         val result = hl + other
         cpu.flag(Flag.Negative, 0)
@@ -153,7 +171,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         write16(DReg.HL, result)
     }
 
-    fun modRetHL(mod: Short): Short {
+    internal fun modRetHL(mod: Short): Short {
         val ret = read16(DReg.HL)
         write16(DReg.HL, ret + mod)
         return ret.toShort()
@@ -170,64 +188,64 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         return cpu.sp + value
     }
 
-    fun rlc(value: Byte, maybeSetZ: Boolean): Byte {
+    internal fun rlc(value: Byte, maybeSetZ: Boolean): Byte {
         val result = value.rotLeft(1)
         write(Reg.F, Flag.Carry.from(value.bit(7)) + if (maybeSetZ && result == 0.toByte()) Flag.Zero.mask else 0)
         return result
     }
 
-    fun rrc(value: Byte, maybeSetZ: Boolean): Byte {
+    internal fun rrc(value: Byte, maybeSetZ: Boolean): Byte {
         val result = value.rotRight(1)
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (maybeSetZ && result == 0.toByte()) Flag.Zero.mask else 0)
         return result
     }
 
-    fun rl(value: Byte, maybeSetZ: Boolean): Byte {
+    internal fun rl(value: Byte, maybeSetZ: Boolean): Byte {
         val result = value.rotLeft(1).setBit(0, cpu.flagVal(Flag.Carry))
         write(Reg.F, Flag.Carry.from(value.bit(7)) + if (maybeSetZ && result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
-    fun rr(value: Byte, maybeSetZ: Boolean): Byte {
+    internal fun rr(value: Byte, maybeSetZ: Boolean): Byte {
         val result = value.rotRight(1).setBit(7, cpu.flagVal(Flag.Carry))
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (maybeSetZ && result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
-    fun sla(value: Byte): Byte {
+    internal fun sla(value: Byte): Byte {
         val result = (value.int() shl 1) and 0xFF
         write(Reg.F, Flag.Carry.from(value.bit(7)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
-    fun sra(value: Byte): Byte {
+    internal fun sra(value: Byte): Byte {
         val a = ((value.int() ushr 1) and 0xFF).toByte()
         val result = a.setBit(7, value.bit(7))
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
-    fun swap(value: Byte): Byte {
+    internal fun swap(value: Byte): Byte {
         val upper = value.int() shr 4
         val lower = (value.int() and 0xF) shl 4
         write(Reg.F, if ((upper + lower) == 0) Flag.Zero.mask else 0)
         return (lower + upper).toByte()
     }
 
-    fun srl(value: Byte): Byte {
+    internal fun srl(value: Byte): Byte {
         val result = (value.int() shr 1) and 0xFF
         write(Reg.F, Flag.Carry.from(value.bit(0)) + if (result == 0) Flag.Zero.mask else 0)
         return result.toByte()
     }
 
-    fun bit(value: Byte, bit: Int): Byte {
+    internal fun bit(value: Byte, bit: Int): Byte {
         cpu.flag(Flag.Zero, value.bit(bit) xor 1)
         cpu.flag(Flag.Negative, 0)
         cpu.flag(Flag.HalfCarry, 1)
         return value
     }
 
-    fun zFlagOnly(value: Int) {
+    internal fun zFlagOnly(value: Int) {
         if (value == 0) write(Reg.F, Flag.Zero.mask)
         else write(Reg.F, 0)
     }
@@ -235,13 +253,13 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     // -----------------------------------
     // Stack Pointer operations
     // -----------------------------------
-    fun popS(): Int {
+    internal fun popS(): Int {
         val value = read16(cpu.sp.int())
         cpu.sp = (cpu.sp + 2).toShort()
         return value
     }
 
-    fun pushS(value: Int) {
+    internal fun pushS(value: Int) {
         cpu.sp = (cpu.sp - 2).toShort()
         write16(cpu.sp, value)
     }
@@ -249,23 +267,23 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     // -----------------------------------
     // Control Flow
     // -----------------------------------
-    fun jr(): Boolean {
+    internal fun jr(): Boolean {
         // All JR instructions are 2 bytes long
         cpu.pc = (cpu.pc + read(cpu.pc + 1).toByte() + 2).toShort()
         return true
     }
 
-    fun jp(): Boolean {
+    internal fun jp(): Boolean {
         cpu.pc = read16(cpu.pc + 1).toShort()
         return true
     }
 
-    fun call(): Boolean {
+    internal fun call(): Boolean {
         pushS(cpu.pc + 3) // Call opcodes are 3 bytes long
         return jp()
     }
 
-    fun ret(): Boolean {
+    internal fun ret(): Boolean {
         cpu.pc = popS().toShort()
         return true
     }
@@ -277,5 +295,11 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         mmu.dispose()
         debugger.dispose()
         disposed = true
+    }
+
+    companion object {
+        /** The clock speed of the GB's internal clock ("T-cycles") in HZ.
+         * Does not account for CGB double speed mode. */
+        const val T_CLOCK_HZ = 4194304
     }
 }
