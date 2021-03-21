@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 12:38 AM.
+ * This file was last modified at 3/21/21, 3:27 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -60,7 +60,7 @@ class Gamelin : ApplicationAdapter() {
         createMenus(root)
         root.add().expand().fill()
 
-        Thread { gb.advanceIndefinitely { Thread.sleep(16) } } .start()
+        Thread { gb.advanceIndefinitely { Thread.sleep(16) } }.start()
     }
 
     private fun createMenus(root: VisTable) {
@@ -152,6 +152,7 @@ class Gamelin : ApplicationAdapter() {
     }
 
     override fun dispose() {
+        saveConfiguration()
         gb.dispose()
         stage.dispose()
         exitProcess(0)

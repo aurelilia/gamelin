@@ -1,13 +1,13 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 2:47 AM.
+ * This file was last modified at 3/21/21, 3:38 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io.ppu
 
-import xyz.angm.gamelin.Configuration
+import xyz.angm.gamelin.configuration
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
@@ -115,7 +115,7 @@ data class Color(
 
     fun recalculate() {
         setToGBColors()
-        if (Configuration.cgbColorCorrection) {
+        if (configuration.cgbColorCorrection) {
             // https://near.sh/articles/video/color-emulation
             red = (red * 26 + green * 4 + blue * 2)
             green = (green * 24 + blue * 8)

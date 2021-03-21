@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 11:34 PM.
+ * This file was last modified at 3/21/21, 3:18 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,6 +17,7 @@ import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.ImageData
 import org.w3c.files.FileReader
+import xyz.angm.gamelin.saveConfiguration
 import xyz.angm.gamelin.stringToBytes
 import xyz.angm.gamelin.system.GameBoy
 
@@ -44,7 +45,10 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
         })
         reader.readAsBinaryString(file)
     })
-    window.onunload = { gb.mmu.cart.save() }
+    window.onunload = {
+        gb.mmu.cart.save()
+        saveConfiguration()
+    }
 
     while (!gb.gameLoaded) delay(100.milliseconds)
     window.setInterval({

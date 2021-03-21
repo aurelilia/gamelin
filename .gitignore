@@ -3,6 +3,7 @@
 !/assets/roms/test
 /assets/gamelin.log
 /assets/web/gamelin*
+/assets/gamelin.config.json
 
 *.sav
 */out/

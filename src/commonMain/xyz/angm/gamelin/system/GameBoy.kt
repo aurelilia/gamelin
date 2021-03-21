@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 12:05 AM.
+ * This file was last modified at 3/21/21, 3:03 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -30,8 +30,8 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
 
     fun loadGame(game: ByteArray) {
         mmu.load(game)
-        reset()
         gameLoaded = true
+        reset()
         debugger.emuHalt = false
     }
 
@@ -68,6 +68,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     }
 
     fun reset() {
+        if (!gameLoaded) return
         cgbMode = mmu.cart.supportsCGB
         cpu.reset()
         mmu.reset()

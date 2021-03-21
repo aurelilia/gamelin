@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 5:03 AM.
+ * This file was last modified at 3/21/21, 3:16 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -32,3 +32,6 @@ fun addrOutOfBounds(addr: Int): Nothing = throw IllegalArgumentException("Index 
 interface Disposable {
     fun dispose()
 }
+
+expect fun saveConfiguration()
+expect fun loadConfiguration(): Configuration
