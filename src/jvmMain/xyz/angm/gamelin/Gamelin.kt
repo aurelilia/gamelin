@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 3:27 AM.
+ * This file was last modified at 3/21/21, 6:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -31,18 +31,18 @@ import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.windows.*
 import kotlin.system.exitProcess
 
+var gb = GameBoy(DesktopDebugger())
+
 class Gamelin : ApplicationAdapter() {
 
     private lateinit var stage: Stage
     private val windows = HashMap<String, Window>()
     private val hotkeyHandler = HotkeyHandler()
-    private lateinit var gb: GameBoy
     private lateinit var gbWindow: GameBoyWindow
     private lateinit var saveGameBtn: MenuItem
 
     override fun create() {
         VisUI.load()
-        gb = GameBoy(DesktopDebugger())
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
         val root = VisTable()
 
@@ -52,7 +52,7 @@ class Gamelin : ApplicationAdapter() {
         multi.addProcessor(hotkeyHandler)
         Gdx.input.inputProcessor = multi
 
-        gbWindow = GameBoyWindow(gb)
+        gbWindow = GameBoyWindow()
         stage.addActor(gbWindow)
         stage.addActor(root)
 
@@ -60,47 +60,61 @@ class Gamelin : ApplicationAdapter() {
         createMenus(root)
         root.add().expand().fill()
 
-        Thread { gb.advanceIndefinitely { Thread.sleep(16) } }.start()
+        Thread {
+            while (!gb.disposed) {
+                gb.advanceIndefinitely { Thread.sleep(16) }
+            }
+        }.start()
     }
 
     private fun createMenus(root: VisTable) {
         val menuBar = MenuBar()
         val file = Menu("File")
         val view = Menu("View")
+        val options = Menu("Options")
 
         val chooser = createFileChooser()
-        file.item("Load ROM", 1) {
+        file.item("Load ROM", Input.Keys.O) {
             stage.addActor(chooser)
             chooser.fadeIn()
         }
-        file.item("Reset", 0) { gb.reset() }
-        saveGameBtn = file.item("Save Game to disk", 8) { gb.mmu.cart.save() }
+        file.item("Reset", Input.Keys.R) { gb.reset() }
+        saveGameBtn = file.item("Save Game to disk", Input.Keys.S) { gb.mmu.cart.save() }
         saveGameBtn.isDisabled = true
-        file.item("Exit", Input.Keys.F4 - Input.Keys.NUM_0) { Gdx.app.exit() }
+        file.item("Exit", Input.Keys.F4) { Gdx.app.exit() }
 
-        fun windowItem(name: String, shortcut: Int, create: () -> Window) {
+        fun windowItem(name: String, shortcut: Int?, create: () -> Window) {
             view.item(name, shortcut) { toggleWindow(name, create) }
         }
 
-        windowItem("Debugger", 2) { DebuggerWindow(gb) }
-        windowItem("BG Map Viewer", 3) { BGMapViewer(gb) }
-        windowItem("VRAM Viewer", 4) { VRAMViewer(gb) }
-        windowItem("Cartridge Info", 5) { CartInfoWindow(gb) }
-        windowItem("Instruction Set", 6) { InstructionSetWindow("Instruction Set", InstSet.op) }
-        windowItem("Extended InstSet", 7) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
+        windowItem("Debugger", Input.Keys.D) { DebuggerWindow() }
+        windowItem("BG Map Viewer", Input.Keys.B) { BGMapViewer() }
+        windowItem("VRAM Viewer", Input.Keys.V) { VRAMViewer() }
+        windowItem("Cartridge Info", Input.Keys.I) { CartInfoWindow() }
+        windowItem("Instruction Set", null) { InstructionSetWindow("Instruction Set", InstSet.op) }
+        windowItem("Extended InstSet", null) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
+
+        options.item("Save State", Input.Keys.NUM_0) { saveGb() }
+        options.item("Load State", Input.Keys.NUM_1) {
+            loadGb()
+            gameLoaded()
+        }
 
         menuBar.addMenu(file)
         menuBar.addMenu(view)
+        menuBar.addMenu(options)
         root.add(menuBar.table).expandX().fillX().row()
     }
 
-    private fun Menu.item(name: String, shortcut: Int, click: () -> Unit): MenuItem {
+    private fun Menu.item(name: String, shortcut: Int?, click: () -> Unit): MenuItem {
         val item = MenuItem(name, object : ChangeListener() {
             override fun changed(event: ChangeEvent?, actor: Actor?) = click()
         })
-        item.setShortcut(Input.Keys.NUM_0 + shortcut)
+        if (shortcut != null) {
+            item.setShortcut(shortcut)
+            hotkeyHandler.register(shortcut, click)
+        }
         addItem(item)
-        hotkeyHandler.register(Input.Keys.NUM_0 + shortcut, click)
         return item
     }
 
@@ -115,9 +129,8 @@ class Gamelin : ApplicationAdapter() {
         chooser.setListener(object : StreamingFileChooserListener() {
             override fun selected(file: FileHandle) {
                 FileSystem.gamePath = file
-                saveGameBtn.isDisabled = false
                 gb.loadGame(file.readBytes())
-                gbWindow.updateTitle(gb)
+                gameLoaded()
             }
         })
         return chooser
@@ -137,6 +150,11 @@ class Gamelin : ApplicationAdapter() {
                 toggleWindow(name, create)
             }
         }
+    }
+
+    private fun gameLoaded() {
+        saveGameBtn.isDisabled = false
+        gbWindow.refresh()
     }
 
     override fun render() {

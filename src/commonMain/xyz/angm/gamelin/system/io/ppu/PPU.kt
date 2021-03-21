@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 1:47 AM.
+ * This file was last modified at 3/21/21, 3:59 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,8 +16,9 @@ import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
 import xyz.angm.gamelin.system.io.ppu.GPUMode.*
+import kotlin.jvm.Transient
 
-internal abstract class PPU(protected val mmu: MMU, val renderer: TileRenderer) : IODevice(), Disposable {
+internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: TileRenderer) : IODevice(), Disposable {
 
     private var mode = OAMScan
     private var modeclock = 0

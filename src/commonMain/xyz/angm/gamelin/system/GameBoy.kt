@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 3:03 AM.
+ * This file was last modified at 3/21/21, 6:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -44,7 +44,7 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     inline fun advanceIndefinitely(sleep: () -> Unit) {
         while (!disposed) {
             if (debugger.emuHalt) sleep()
-            else if (mmu.sound.output.needsSamples()) advance()
+            else advance()
         }
     }
 
@@ -276,9 +276,6 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
     override fun dispose() {
         mmu.dispose()
         debugger.dispose()
-    }
-
-    internal companion object Log {
-        fun debug(cls: () -> String) = println(cls())
+        disposed = true
     }
 }

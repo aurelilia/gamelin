@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 8:58 PM.
+ * This file was last modified at 3/21/21, 6:03 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -10,15 +10,16 @@ package xyz.angm.gamelin.interfaces
 import com.badlogic.gdx.Gdx
 import xyz.angm.gamelin.system.CLOCK_SPEED_HZ
 
+private val device = Gdx.audio.newAudioDevice(AudioOutput.SAMPLE_RATE, false)
+
 actual class AudioOutput actual constructor() {
 
-    private var device = Gdx.audio.newAudioDevice(SAMPLE_RATE, false)
-    private var counter = 0
+    @Transient
     private var bufferIndex = 0
+    @Transient
     private var buffer = ShortArray(BUFFER_SIZE)
 
     actual fun reset() {
-        counter = 0
         bufferIndex = 0
         buffer.fill(0)
     }
@@ -31,10 +32,6 @@ actual class AudioOutput actual constructor() {
             bufferIndex = 0
         }
     }
-
-    actual fun needsSamples() = true
-
-    actual fun dispose() = device.dispose()
 
     actual companion object {
         actual val SAMPLE_RATE = 22050

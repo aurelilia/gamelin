@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 2:12 AM.
+ * This file was last modified at 3/21/21, 6:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,12 +9,12 @@ package xyz.angm.gamelin.windows
 
 import ktx.scene2d.vis.KVisTable
 import ktx.scene2d.vis.visLabel
+import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.hex8
-import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.io.Cartridge
 
-class CartInfoWindow(private val gb: GameBoy) : DelayedUpdateWindow("Cartridge Info", 1f) {
+class CartInfoWindow : DelayedUpdateWindow("Cartridge Info", 1f) {
 
     private val tab = KVisTable(true)
 

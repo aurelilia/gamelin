@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/20/21, 9:49 PM.
+ * This file was last modified at 3/21/21, 5:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -93,6 +93,8 @@ kotlin {
                 implementation("io.github.libktx:ktx-vis-style:$ktxVersion")
                 implementation("io.github.libktx:ktx-vis:$ktxVersion")
                 implementation("com.kotcrab.vis:vis-ui:1.4.11")
+
+                implementation("com.esotericsoftware:kryo:5.0.4")
             }
         }
         val jvmTest by getting {

@@ -19,6 +19,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 
 ##### Desktop Version
 - Reset and ROM changing support
+- Basic save states (save/load entire console state at any point)
 - Instruction Set Viewer
 - Tileset and BG Map Viewers
 - Cartridge Info Viewer
