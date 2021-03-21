@@ -60,6 +60,8 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Some parts of the UI are blacked out
 - Pokemon Silver ** (Global, 2000, Game Freak)
     - Some Pokemon sprites have a few incorrect/garbage tiles
+    - Map flickers for a second when dialogue box is first displayed (also applies to menu)
+        - Might be related to unimplemented CGB features? Did not occur pre-CGB support 
     - Otherwise works, played until after meeting Mr. Pokemon/Prof. Oak
 
 ##### Does not reach gameplay/not playable
