@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 7:42 PM.
+ * This file was last modified at 3/22/21, 9:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -58,7 +58,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
             MMU.STAT -> stat
             MMU.SCY -> scrollY
             MMU.SCX -> scrollX
-            MMU.LY -> line
+            MMU.LY -> if (displayEnable) line else 0
             MMU.LYC -> lineCompare
             MMU.BGP -> bgPalette
             MMU.OBP0 -> objPalette1
@@ -81,6 +81,10 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
                 windowEnable = lcdc.isBit(5)
                 windowMapAddr = if (!lcdc.isBit(6)) 0x9800 else 0x9C00
                 displayEnable = lcdc.isBit(7)
+
+                if (!displayEnable) {
+                    stat = stat and (0xF8)
+                }
             }
             MMU.STAT -> stat = value
             MMU.SCY -> scrollY = value
