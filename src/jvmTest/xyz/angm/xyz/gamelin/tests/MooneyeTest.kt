@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 6:06 PM.
+ * This file was last modified at 3/22/21, 8:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -34,7 +34,6 @@ suspend fun FunSpecContextScope.runDir(dir: FileHandle) {
         if (file.extension() == "gb") {
             test(file.name()) {
                 gb.loadGame(file.readBytes())
-                gb.skipBootRom()
 
                 for (i in 0 until TEST_TIMEOUT_SECONDS) {
                     gb.advanceDelta(1f)
