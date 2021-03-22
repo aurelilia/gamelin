@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:05 PM.
+ * This file was last modified at 3/22/21, 7:48 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -11,7 +11,7 @@ import xyz.angm.gamelin.int
 import xyz.angm.gamelin.isBit
 
 /** CGB-only HDMA transfer. TODO: Actual transfer still unimplemented. */
-class HDMA : IODevice() {
+class HDMA(private val mmu: MMU) : IODevice() {
 
     private var source = 0
     private var dest = 0
@@ -21,6 +21,8 @@ class HDMA : IODevice() {
 
     fun step(cycles: Int) {
         if (!transferring) return
+        for (i in 0 until transferLeft) mmu.write(dest++, mmu.read(source++))
+        transferring = false
     }
 
     override fun read(addr: Int): Int {
@@ -37,9 +39,9 @@ class HDMA : IODevice() {
     override fun write(addr: Int, value: Int) {
         when (addr) {
             MMU.HDMA_SRC_HIGH -> source = (source and 0xFF) or (value ushr 8)
-            MMU.HDMA_SRC_LOW -> source = (source and 0xFF00) or value
+            MMU.HDMA_SRC_LOW -> source = (source and 0xFF00) or (value and 0xF0)
             MMU.HDMA_DEST_HIGH -> dest = (dest and 0xFF) or (value ushr 8)
-            MMU.HDMA_DEST_LOW -> dest = (dest and 0xFF00) or value
+            MMU.HDMA_DEST_LOW -> dest = (dest and 0xFF00) or (value and 0xF0)
             MMU.HDMA_START -> {
                 if (transferring && isHBlank && !value.isBit(7)) { // abort HBlank transfer
                     transferring = false

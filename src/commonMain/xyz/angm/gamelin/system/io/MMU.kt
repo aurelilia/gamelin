@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:09 PM.
+ * This file was last modified at 3/22/21, 7:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -37,7 +37,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     internal var ppu: PPU = DmgPPU(this)
     private val timer = Timer(this)
     private val dma = DMA(this)
-    private val hdma = HDMA()
+    private val hdma = HDMA(this)
     private var regIF = 0
 
     fun load(game: ByteArray) {
@@ -130,8 +130,8 @@ class MMU(private val gb: GameBoy) : Disposable {
             WRAM_SELECT -> if (gb.cgbMode) wramBank = (value.int() and 7) or 1
 
             // Special behavior
-            IF -> regIF = value.int() and 0x1F
-            IE -> zram[a and 0x7F] = (value.int() and 0x1F).toByte()
+            IF -> regIF = value.int() or 0b11100000
+            IE -> zram[a and 0x7F] = (value.int() or 0b11100000).toByte()
             BOOTROM_DISABLE -> bootromOn = false
 
             // Redirects
