@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:53 PM.
+ * This file was last modified at 3/22/21, 6:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -45,9 +45,11 @@ internal class CPU(private val gb: GameBoy) {
                     }
                 }
                 else -> {
+                    val haltBug = haltBug
+                    this.haltBug = false
+
                     inst.execute(gb)
                     if (inst.incPC && !haltBug) pc = (pc + inst.size).toShort()
-                    haltBug = false
                     inst.cycles
                 }
             }
