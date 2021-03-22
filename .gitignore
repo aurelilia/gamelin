@@ -1,7 +1,7 @@
 /gradle
 /assets/roms/*
 !/assets/roms/test
-/assets/gamelin.log
+/assets/gamelin.cpu.log
 /assets/web/gamelin*
 /assets/gamelin.config.json
 
