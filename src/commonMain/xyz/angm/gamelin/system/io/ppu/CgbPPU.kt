@@ -1,12 +1,13 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:49 PM.
+ * This file was last modified at 3/22/21, 9:36 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io.ppu
 
+import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.configuration
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.interfaces.TileRenderer
@@ -76,6 +77,11 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
         renderBG()
         if (windowEnable) renderWindow()
         if (objEnable) renderObjs()
+    }
+
+    override fun getBGAddrAdjust(tileAddr: Int): Int {
+        val attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
+        return attributes.bit(3) * 0x2000
     }
 
     override fun drawBGorWindowPixel(x: Int, y: Int, colorIdx: Int, tileAddr: Int) {

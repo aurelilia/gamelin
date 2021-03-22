@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:34 PM.
+ * This file was last modified at 3/22/21, 9:44 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,8 +35,9 @@ internal actual class TileRenderer actual constructor(mmu: MMU, width: Int, heig
 
     inline fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
         for (line in 0 until TILE_SIZE) {
-            val high = gb.mmu.read(tilePtr + (line * 2)).toByte()
-            val low = gb.mmu.read(tilePtr + (line * 2) + 1).toByte()
+            val baseAddr = (tilePtr + (line * 2))
+            val high = gb.mmu.vram[baseAddr]
+            val low = gb.mmu.vram[baseAddr + 1]
 
             for (pixel in 0 until TILE_SIZE) {
                 val colorIdx = (high.bit(7 - pixel) shl 1) + low.bit(7 - pixel)

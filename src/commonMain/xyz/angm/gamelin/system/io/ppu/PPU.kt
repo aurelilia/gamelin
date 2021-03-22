@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 9:05 PM.
+ * This file was last modified at 3/22/21, 9:58 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -164,9 +164,9 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         var tileX = scrollX and 7
         val tileY = mapLine and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
-        var tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2)
-        var high = mmu.read(tileDataAddr + 1).toByte()
-        var low = mmu.read(tileDataAddr).toByte()
+        var tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2) + getBGAddrAdjust(tileAddr)
+        var high = mmu.vram[tileDataAddr + 1]
+        var low = mmu.vram[tileDataAddr]
 
         for (tileIdxAddr in startX until 160) {
             val colorIdx = (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX)
@@ -177,12 +177,16 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
                 tileX = 0
                 tileAddr = tileAddrCorrect(tileAddr)
                 tileAddr++
-                tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2)
-                high = mmu.read(tileDataAddr + 1).toByte()
-                low = mmu.read(tileDataAddr).toByte()
+                tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2) + getBGAddrAdjust(tileAddr)
+                high = mmu.vram[tileDataAddr + 1]
+                low = mmu.vram[tileDataAddr]
             }
         }
     }
+
+    /** Returns the amount the BG map tile data pointer should be adjusted by, based
+     * on the tile pointer. Used on CGB to implement bit 3 of the BG map attributes (tile bank selector) */
+    protected abstract fun getBGAddrAdjust(tileAddr: Int): Int
 
     /** Draw a pixel of the BG or window to the buffer..
      * @param colorIdx The color of the palette to use
@@ -244,11 +248,15 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
 
     private fun getPixelOccupied(x: Int, y: Int) = bgOccupiedPixels[(x * 144) + y]
 
-    fun bgIdxTileDataAddr(window: Boolean, idx: Int) = bgTileDataAddr(mmu.read((if (window) windowMapAddr else bgMapAddr) + idx))
+    fun bgIdxTileDataAddr(window: Boolean, idx: Int): Int {
+        val addr = (if (window) windowMapAddr else bgMapAddr) + idx
+        return bgTileDataAddr(mmu.read(addr)) + getBGAddrAdjust(addr)
+    }
+
 
     private fun bgTileDataAddr(idx: Int): Int {
-        return if (altBgTileData) 0x8000 + (idx * 0x10)
-        else 0x9000 + (idx.toByte() * 0x10)
+        return if (altBgTileData) (idx * 0x10)
+        else 0x1000 + (idx.toByte() * 0x10)
     }
 
     private fun objTileOffset(idx: Int) = (idx * 0x10)

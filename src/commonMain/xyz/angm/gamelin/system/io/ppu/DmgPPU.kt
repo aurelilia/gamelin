@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:57 PM.
+ * This file was last modified at 3/22/21, 9:25 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,6 +23,8 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(mmu, 20, 1
         }
         if (objEnable) renderObjs()
     }
+
+    override fun getBGAddrAdjust(tileAddr: Int) = 0
 
     override fun drawBGorWindowPixel(x: Int, y: Int, colorIdx: Int, tileAddr: Int) {
         renderer.drawPixel(x, y, getBGColor(colorIdx))
