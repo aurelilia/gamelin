@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 9:58 PM.
+ * This file was last modified at 3/22/21, 10:55 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -58,7 +58,10 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
             MMU.STAT -> stat
             MMU.SCY -> scrollY
             MMU.SCX -> scrollX
-            MMU.LY -> if (displayEnable) line else 0
+            MMU.LY -> {
+                // Braces are required here - https://youtrack.jetbrains.com/issue/KT-43374
+                if (displayEnable) line else 0
+            }
             MMU.LYC -> lineCompare
             MMU.BGP -> bgPalette
             MMU.OBP0 -> objPalette1
