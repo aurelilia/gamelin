@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 10:23 PM.
+ * This file was last modified at 3/23/21, 7:22 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -38,7 +38,7 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
     private fun readCPS(index: Int, increment: Boolean) = index and (increment.int() shl 7)
 
     private fun readCPD(index: Int, palettes: Array<Color>): Int {
-        val palette = palettes[index and 0x1E]
+        val palette = palettes[(index ushr 1) and 0x1F]
         return if (index.isBit(0)) palette.rawHigh else palette.rawLow
     }
 
@@ -85,15 +85,10 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
     }
 
     override fun drawBGorWindowPixel(x: Int, y: Int, colorIdx: Int, tileAddr: Int) {
-        if (tileAddr < 0x9C00) {
-            val attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
-            val palette = attributes and 7
-            val color = bgPalettes[(palette * 4) + colorIdx]
-            renderer.drawPixel(x, y, color.red, color.green, color.blue)
-        } else {
-            // Does not have additional palette data
-            renderer.drawPixel(x, y, colorIdx)
-        }
+        val attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
+        val palette = attributes and 7
+        val color = bgPalettes[(palette * 4) + colorIdx]
+        renderer.drawPixel(x, y, color.red, color.green, color.blue)
     }
 
     override fun drawObjPixel(x: Int, y: Int, colorIdx: Int, dmgPalette: Int) {

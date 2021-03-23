@@ -35,7 +35,8 @@ The emulator is in an early, but usable state. At the moment, the following is i
 
 ### Working/Tested games
 ##### Perfect with no observable issues
-- Tic-Tac-Toe (1996, Norman Nithman)
+- Pokemon Blue* (Global, 1996, Game Freak)
+    - Tested until Viridian Forest
 - Dr. Mario (Global version, 1990, Nintendo)
 - Tetris (JP and Global versions, 1989, Nintendo)
 - Super Mario Land (Global, Nintendo)
@@ -46,12 +47,9 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Played until shortly after obtaining your sword at the shore
 - Donkey Kong* (Global, 1994, Nintendo)
 - Yoshi (Global, 1992, Nintendo)
+- Tic-Tac-Toe (1996, Norman Nithman)
 
 ##### Barely noticeable issues, fully playable
-- Pokemon Blue* (Global, 1996, Game Freak)
-    - Menu screen shows a line of garbage before sliding in Pokemon Blue logo
-    - "Defeated pokemon" noise does not play
-    - Tested until Viridian Forest
 - Donkey Kong Land* (Global, 1995, Nintendo/RARE)
     - Palette on title screen is wrong
     - Tested for the first 2 levels: perfect
