@@ -37,8 +37,11 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ##### Perfect with no observable issues
 - Pokemon Blue* (Global, 1996, Game Freak)
     - Tested until Viridian Forest
+- Pokemon Silver ** (Global, 2000, Game Freak)
+    - Played until first GYM, including Bellsprout Tower
 - Dr. Mario (Global version, 1990, Nintendo)
 - Tetris (JP and Global versions, 1989, Nintendo)
+- Tetris DX ** (Global, 1998, Nintendo)
 - Super Mario Land (Global, Nintendo)
     - Played until 2-1
 - Super Mario Land 2 (Global, 1992, Nintendo)
@@ -54,13 +57,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Palette on title screen is wrong
     - Tested for the first 2 levels: perfect
 
-##### Fully playable but with obvious issues
-- Tetris DX ** (Global, 1998, Nintendo)
-    - Some parts of the UI are blacked out
-    - Piece color changes when it drops/hits the ground
-- Pokemon Silver ** (Global, 2000, Game Freak)
-    - Some Pokemon sprites have a few incorrect/garbage tiles
-    - Otherwise works, played until after meeting Mr. Pokemon/Prof. Oak
+##### Mostly playable but with big issues
 - Pokemon Crystal ** (Global, 2001, Game Freak)
     - Some Pokemon sprites have a few incorrect/garbage tiles
     - Text tiles in start menu are corrupted, sometimes get corrupted ingame as well

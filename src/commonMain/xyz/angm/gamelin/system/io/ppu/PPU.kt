@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 8:57 PM.
+ * This file was last modified at 3/23/21, 9:15 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -307,5 +307,5 @@ internal object Sprite {
     val yFlip get() = options.isBit(6)
     val priority get() = !options.isBit(7)
     val cgbBank get() = options.bit(3)
-    val cgbPalette get() = options and 3
+    val cgbPalette get() = options and 7
 }
