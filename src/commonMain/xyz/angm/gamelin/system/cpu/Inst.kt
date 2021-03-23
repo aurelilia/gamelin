@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:43 PM.
+ * This file was last modified at 3/24/21, 12:27 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -210,8 +210,16 @@ private fun fillSet() = InstSet.apply {
     // -----------------------------------
     op[0xC0] = BrInst(1, 2, 5, "RET NZ") { if (!cpu.flag(Zero)) ret() else false }
     op[0xD0] = BrInst(1, 2, 5, "RET NC") { if (!cpu.flag(Carry)) ret() else false }
-    op[0xE0] = Inst(2, 2, "LD (a8), A", preCycles = 1) { write(0xFF00 + read(cpu.pc + 1), read(A)) }
-    op[0xF0] = Inst(2, 2, "LD A, (a8)", preCycles = 1) { write(A, read(0xFF00 + read(cpu.pc + 1))) }
+    op[0xE0] = Inst(2, 2, "LD (a8), A") {
+        val addr = 0xFF00 + read(cpu.pc + 1)
+        advanceClock(1)
+        write(addr, read(A))
+    }
+    op[0xF0] = Inst(2, 2, "LD A, (a8)") {
+        val addr = 0xFF00 + read(cpu.pc + 1)
+        advanceClock(1)
+        write(A, read(addr))
+    }
 
     DReg.values().forEachIndexed { i, r -> op[0xC1 + (i shl 4)] = Inst(1, 3, "POP $r") { write16(r, popS()) } }
 
@@ -258,8 +266,16 @@ private fun fillSet() = InstSet.apply {
 
     op[0xCA] = BrInst(3, 3, 4, "JP Z, a16") { if (cpu.flag(Zero)) jp() else false }
     op[0xDA] = BrInst(3, 3, 4, "JP C, a16") { if (cpu.flag(Carry)) jp() else false }
-    op[0xEA] = Inst(3, 2, "LD (a16), A", preCycles = 2) { write(read16(cpu.pc + 1), read(A)) }
-    op[0xFA] = Inst(3, 2, "LD A, (a16)", preCycles = 2) { write(A, read(read16(cpu.pc + 1))) }
+    op[0xEA] = Inst(3, 2, "LD (a16), A") {
+        val addr = read16(cpu.pc + 1)
+        advanceClock(2)
+        write(addr, read(A))
+    }
+    op[0xFA] = Inst(3, 2, "LD A, (a16)") {
+        val addr = read16(cpu.pc + 1)
+        advanceClock(2)
+        write(A, read(addr))
+    }
 
     op[0xFB] = Inst(1, 1, "EI") { cpu.ime = true }
 
@@ -292,16 +308,33 @@ private fun fillExt() = InstSet.apply {
         val name = inst.first
         val exec = inst.second
         for (reg in regs) ep[idx++] = Inst(2, 2, "$name $reg") { write(reg, exec(read(reg).toByte())) }
-        ep[idx++] = Inst(2, 4, "$name (HL)") { write(read16(HL), exec(read(read16(HL)).toByte())) }
+        ep[idx++] = Inst(2, 2, "$name (HL)", preCycles = 1) {
+            val addr = read16(HL)
+            val value = read(addr)
+            advanceClock(1)
+            write(addr, exec(value.toByte()))
+        }
         ep[idx++] = Inst(2, 2, "$name A") { write(A, exec(read(A).toByte())) }
     }
 
     for (inst in bitInst) {
         val name = inst.first
         val exec = inst.second
+        val isBit = inst.first == "BIT"
         for (bit in 0 until 8) {
             for (reg in regs) ep[idx++] = Inst(2, 2, "$name $bit, $reg") { write(reg, exec(read(reg).toByte(), bit)) }
-            ep[idx++] = Inst(2, 3, "$name $bit, (HL)", preCycles = 1) { write(read16(HL), exec(read(read16(HL)).toByte(), bit)) }
+            ep[idx++] = Inst(2, 2, "$name $bit, (HL)", preCycles = 1) {
+                val addr = read16(HL)
+                if (isBit) {
+                    val value = read(addr)
+                    advanceClock(1)
+                    exec(value.toByte(), bit)
+                } else {
+                    val value = read(addr)
+                    advanceClock(1)
+                    write(addr, exec(value.toByte(), bit))
+                }
+            }
             ep[idx++] = Inst(2, 2, "$name $bit, A") { write(A, exec(read(A).toByte(), bit)) }
         }
     }

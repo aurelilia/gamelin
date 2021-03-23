@@ -50,6 +50,8 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Played the first level
 - The Legend of Zelda: Link's Awakening (Global, 1993, Nintendo)
     - Played until shortly after obtaining your sword at the shore
+- Kirby's Dream Land (Global, Nintendo/HAL)
+    - Played until middle of stage 2
 - Donkey Kong* (Global, 1994, Nintendo)
 - Yoshi (Global, 1992, Nintendo)
 - Tic-Tac-Toe (1996, Norman Nithman)
@@ -57,7 +59,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ##### Barely noticeable issues, fully playable
 - Donkey Kong Land* (Global, 1995, Nintendo/RARE)
     - Palette on title screen is wrong
-    - Tested for the first 2 levels: perfect
+    - Tested for the first 2 levels
 
 ##### Mostly playable but with big issues
 - Pokemon Crystal ** (Global, 2001, Game Freak)
@@ -69,8 +71,6 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Played until after meeting Mr. Pokemon
 
 ##### Does not reach gameplay/not playable
-- Kirby's Dream Land (Global, Nintendo/HAL)
-    - Starting gameplay hangs on empty first level or white screen, inconsistent (interrupt timing issue?)
 - Pokemon Yellow ** (Global, Game Freak)
     - Hangs on white screen
 - Wario Land 3 ** (Global, Nintendo)

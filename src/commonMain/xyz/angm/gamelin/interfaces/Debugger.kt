@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 6:43 PM.
+ * This file was last modified at 3/23/21, 11:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -50,8 +50,7 @@ open class Debugger : Disposable {
             }
 
             logger.append("${pc.hex16()} ${inst.name.padEnd(20)} ${gb.read16(pc + 1).hex16()}  ")
-            logger.append("DIV = ${gb.read(MMU.DIV).hex16()} IE = ${gb.read(MMU.IE).hex16()} IF = ${gb.read(MMU.IF).hex16()} ")
-            logger.append("TIMA = ${gb.read(MMU.TIMA).hex16()} TMA = ${gb.read(MMU.TMA).hex16()} TAC = ${gb.read(MMU.TAC).hex16()} ")
+            logger.append("CLK = ${gb.clock} DIV = ${gb.read(MMU.DIV).hex16()} IE = ${gb.read(MMU.IE).hex16()} IF = ${gb.read(MMU.IF).hex16()} ")
             logger.append("AF = ${gb.read16(DReg.AF).hex16()} BC = ${gb.read16(DReg.BC).hex16()} ")
             logger.appendLine("DE = ${gb.read16(DReg.DE).hex16()} HL = ${gb.read16(DReg.HL).hex16()} SP = ${gb.readSP().hex16()}")
 

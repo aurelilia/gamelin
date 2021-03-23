@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 6:06 PM.
+ * This file was last modified at 3/23/21, 11:15 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -26,7 +26,7 @@ class GameBoy(val debugger: Debugger = Debugger(), private val preferCGB: Boolea
     var gameLoaded = false
     var disposed = false
     var cgbMode = false
-    private var clock = 0
+    internal var clock = 0
 
     constructor(game: ByteArray, debugger: Debugger) : this(debugger) {
         loadGame(game)
@@ -293,9 +293,9 @@ class GameBoy(val debugger: Debugger = Debugger(), private val preferCGB: Boolea
     // Interrupts
     // -----------------------------------
     override fun dispose() {
+        disposed = true
         mmu.dispose()
         debugger.dispose()
-        disposed = true
     }
 
     companion object {

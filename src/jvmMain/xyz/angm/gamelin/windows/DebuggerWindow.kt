@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:35 PM.
+ * This file was last modified at 3/23/21, 11:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -21,6 +21,7 @@ import xyz.angm.gamelin.system.cpu.DReg
 import xyz.angm.gamelin.system.cpu.Flag
 import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.system.cpu.Reg
+import xyz.angm.gamelin.system.io.MMU
 
 /** Debugger window that shows a bunch of current system state. */
 class DebuggerWindow : DelayedUpdateWindow("Debugger", 0.5f) {
@@ -131,8 +132,17 @@ class DebuggerWindow : DelayedUpdateWindow("Debugger", 0.5f) {
                 visLabel("Regs: ")
                 for (reg in Reg.values()) visLabel("  $reg = ${gb.read(reg).hex8()}  ")
             }
-            row()
 
+            row()
+            horizontalGroup {
+                visLabel("Timer: ")
+                visLabel("  DIV = ${gb.read(MMU.DIV).hex8()}  ")
+                visLabel("  TIMA = ${gb.read(MMU.TIMA).hex8()}  ")
+                visLabel("  TMA = ${gb.read(MMU.TMA).hex8()}  ")
+                visLabel("  TAC = ${gb.read(MMU.TAC).hex8()}  ")
+            }
+
+            row()
             visTable {
                 it.colspan(2)
                 defaults().pad(5f).padRight(15f)
