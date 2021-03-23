@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 9:44 PM.
+ * This file was last modified at 3/23/21, 10:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,6 +8,7 @@
 package xyz.angm.gamelin.interfaces
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
@@ -61,6 +62,22 @@ internal actual class TileRenderer actual constructor(mmu: MMU, width: Int, heig
             texture?.dispose()
             texture = tex
         }
+    }
+
+    /** Compares the current screen contents to the given PNG file.
+     * Used by acid2 tests to ensure correct PPU output. */
+    fun compareTo(file: FileHandle): Boolean {
+        val cmp = Pixmap(file)
+        for (x in 0 until current.width) {
+            for (y in 0 until current.height) {
+                if (cmp.getPixel(x, y) != current.getPixel(x, y)) {
+                    cmp.dispose()
+                    return false
+                }
+            }
+        }
+        cmp.dispose()
+        return true
     }
 
     override fun draw(batch: Batch, parentAlpha: Float) {

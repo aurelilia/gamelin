@@ -7,15 +7,17 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ##### Console
 - Full SM83 CPU instruction set (All blargg cpu_instr tests pass)
 - All of the PPU
-- Most of the timers as well as PPU interrupts
+- Full DIV/timer, all interrupts
+- DMA transfer
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
 - Full APU/Sound emulation (7/12 blargg dmg_sound tests pass)
-- Most MBC1 cartridge mapper behavior (MBC3/5 still missing)
+- Most MBC1 cartridge mapper behavior; full MBC3 (MBC2/5 and RTC still missing)
 - Game saving support (to `.sav` file on desktop, into local browser storage on web)
 - Game Boy Color:
-    - Detection of GBC games, support for running them in GBC mode
+    - Automatic detection of GBC games
     - Additional WRAM/VRAM banks
-    - Most of the additional PPU features, full color support
+    - All PPU changes/differences
+    - Still missing: Double Speed Mode, HDMA
 
 ##### Desktop Version
 - Reset and ROM changing support
@@ -90,7 +92,7 @@ The emulator is in an early, but usable state. At the moment, the following is i
 ```
 
 ## Testing
-Blargg and mooneye ROMs can be run automatically using gradle:
+Blargg, mooneye and acid2 ROMs can be run automatically using gradle:
 ```bash
 gradle jvmTest
 ```
@@ -101,6 +103,10 @@ gradle jvmTest
 - `mem_timing`/`mem_timing-2`: 2/3 pass (03-modify fails)
 - Others: Not tested yet
 
+#### Acid2
+Both the `dmg-acid2` and `cgb-acid2` test written by Matt Currie pass.
+Thank you to [@mattcurrie](https://github.com/mattcurrie) for creating them!
+
 ## Thanks To
 - [Imran Nazar, for their series of blog posts on GB emulation](http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU)
 - [Michael Steil, for The Ultimate Game Boy Talk](https://media.ccc.de/v/33c3-8029-the_ultimate_game_boy_talk)
@@ -108,5 +114,5 @@ gradle jvmTest
 - [trekawek, for coffee-gb, which I abridged the sound implementation from](https://github.com/trekawek/coffee-gb)
 - [Megan Sullivan, for her list of GB opcodes](https://meganesulli.com/blog/game-boy-opcodes)
 - [gbdev.io for a list of useful resources](https://gbdev.io)
-- blargg and Gekkio for their test ROMs and retrio for hosting blargg's ROMs
+- blargg, Gekkio and mattcurie for their test ROMs and retrio for hosting blargg's ROMs
 - You, for reading this :)
