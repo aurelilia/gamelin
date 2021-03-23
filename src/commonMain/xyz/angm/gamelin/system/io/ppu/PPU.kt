@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 7:00 PM.
+ * This file was last modified at 3/23/21, 8:57 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -33,7 +33,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     private var bgMapAddr = 0x1800
     private var windowMapAddr = 0x1800
 
-    private var line = 0
+    protected var line = 0
     private var lineCompare = 0
 
     private var stat = 0
@@ -129,17 +129,21 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
                 line++
                 if (line > 153) {
                     mode = OAMScan
-                    line = 0
-                    windowLine = 0
-                    statInterrupt(5)
-                    bgOccupiedPixels.fill(false)
-                    renderer.finishFrame()
+                    vblankEnd()
                 }
                 lycInterrupt()
             }
         }
 
         stat = (stat.toByte().setBit(2, if (lineCompare == line) 1 else 0) and 0b11111100) or mode.ordinal
+    }
+
+    protected open fun vblankEnd() {
+        line = 0
+        windowLine = 0
+        statInterrupt(5)
+        bgOccupiedPixels.fill(false)
+        renderer.finishFrame()
     }
 
     private fun statInterrupt(index: Int) {
@@ -162,38 +166,11 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         renderBGOrWindow(0, windowX, windowMapAddr, windowLine++) { it }
     }
 
-    private fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
-        var tileX = scrollX and 7
-        val tileY = mapLine and 7
-        var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
-        var tileDataAddr = bgTileDataAddr(mmu.vram[tileAddr]) + (tileY * 2) + getBGAddrAdjust(tileAddr)
-        var high = mmu.vram[tileDataAddr + 1]
-        var low = mmu.vram[tileDataAddr]
-
-        for (tileIdxAddr in startX until 160) {
-            val colorIdx = (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX)
-            if (colorIdx != 0) setPixelOccupied(tileIdxAddr, line)
-            drawBGorWindowPixel(tileIdxAddr, line, colorIdx, tileAddr)
-
-            if (++tileX == 8) {
-                tileX = 0
-                tileAddr = tileAddrCorrect(tileAddr)
-                tileAddr++
-                tileDataAddr = bgTileDataAddr(mmu.vram[tileAddr]) + (tileY * 2) + getBGAddrAdjust(tileAddr)
-                high = mmu.vram[tileDataAddr + 1]
-                low = mmu.vram[tileDataAddr]
-            }
-        }
-    }
+    protected abstract fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int)
 
     /** Returns the amount the BG map tile data pointer should be adjusted by, based
      * on the tile pointer. Used on CGB to implement bit 3 of the BG map attributes (tile bank selector) */
     protected abstract fun getBGAddrAdjust(tileAddr: Int): Int
-
-    /** Draw a pixel of the BG or window to the buffer..
-     * @param colorIdx The color of the palette to use
-     * @param tileAddr The tile address of the tile this pixel is in, used for retrieving additional tile data on CGB */
-    protected abstract fun drawBGorWindowPixel(x: Int, y: Int, colorIdx: Int, tileAddr: Int)
 
     protected fun clearLine() {
         for (tileIdxAddr in 0 until 160) {
@@ -230,14 +207,14 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
             else -> tilenum
         }
 
-        val tileDataAddr = objTileOffset(tileNum) + (tileY * 2) + vramSpriteAddrOffset()
+        val tileDataAddr = objTileOffset(tileNum) + (tileY * 2) + vramObjAddrOffset()
         val high = mmu.vram[tileDataAddr + 1]
         val low = mmu.vram[tileDataAddr]
 
         for (tileX in 0 until 8) {
             val colorIdx = if (!xFlip) (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX) else (high.bit(tileX) shl 1) + low.bit(tileX)
             val screenX = x + tileX
-            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && (priority || !getPixelOccupied(screenX, line))) {
+            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && isPixelFree(screenX, line, priority)) {
                 drawObjPixel(screenX, line, colorIdx, dmgPalette)
             }
         }
@@ -249,20 +226,21 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     protected abstract fun drawObjPixel(x: Int, y: Int, colorIdx: Int, dmgPalette: Int)
 
     /** Should return the VRAM bank offset of the current sprite; always 0x0 on DMG. */
-    protected abstract fun vramSpriteAddrOffset(): Int
+    protected abstract fun vramObjAddrOffset(): Int
 
     /** Set a pixel to be 'occupied' by the BG, preventing sprites without priority to draw above it. */
     protected abstract fun setPixelOccupied(x: Int, y: Int)
 
-    private fun getPixelOccupied(x: Int, y: Int) = bgOccupiedPixels[(x * 144) + y]
+    /** Is the given pixel free for an obj to render onto?
+     * @param objPriority If the obj's priority bit is set */
+    protected open fun isPixelFree(x: Int, y: Int, objPriority: Boolean) = objPriority || !bgOccupiedPixels[(x * 144) + y]
 
     fun bgIdxTileDataAddr(window: Boolean, idx: Int): Int {
         val addr = (if (window) windowMapAddr else bgMapAddr) + idx
         return bgTileDataAddr(mmu.vram[addr]) + getBGAddrAdjust(addr)
     }
 
-
-    private fun bgTileDataAddr(idx: Byte): Int {
+    protected fun bgTileDataAddr(idx: Byte): Int {
         return if (altBgTileData) (idx.int() * 0x10)
         else 0x1000 + (idx * 0x10)
     }

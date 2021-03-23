@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 7:22 PM.
+ * This file was last modified at 3/23/21, 8:59 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,6 +24,11 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
     private var objPaletteIndex = 0
     private var objPaletteIncrement = false
     private val objPalettes = Array(4 * 8) { Color() } // 8 palettes with 4 colors each.
+
+    // All pixels where either:
+    // - BG bit 7 is set - making all objs render below it
+    // - An obj has already rendered, not allowing other objs to render
+    private val unavailablePixels = Array(160 * 144) { false }
 
     override fun read(addr: Int): Int {
         return when (addr) {
@@ -71,6 +76,11 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
         palette.recalculate()
     }
 
+    override fun vblankEnd() {
+        super.vblankEnd()
+        unavailablePixels.fill(false)
+    }
+
     // See note on `setPixelOccupied` for details on this
     override fun renderLine() {
         if (!displayEnable) return
@@ -79,24 +89,59 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
         if (objEnable) renderObjs()
     }
 
+    override fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
+        var tileX = scrollX and 7
+        var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
+        var attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
+        var hasPrio = attributes.isBit(7) && bgEnable
+        var tileY = if (attributes.isBit(6)) 7 - (mapLine and 7) else (mapLine and 7)
+        var tileDataAddr = bgTileDataAddr(mmu.vram[tileAddr]) + (tileY * 2) + attributes.bit(3) * 0x2000
+        var high = mmu.vram[tileDataAddr + 1]
+        var low = mmu.vram[tileDataAddr]
+
+        for (tileIdxAddr in startX until 160) {
+            val x = if (attributes.isBit(5)) tileX else 7 - tileX
+            val colorIdx = (high.bit(x) shl 1) + low.bit(x)
+            if (colorIdx != 0) {
+                setPixelOccupied(tileIdxAddr, line)
+                unavailablePixels[(tileIdxAddr * 144) + line] = hasPrio
+            }
+
+            val palette = attributes and 7
+            val color = bgPalettes[(palette * 4) + colorIdx]
+            renderer.drawPixel(tileIdxAddr, line, color.red, color.green, color.blue)
+
+            if (++tileX == 8) {
+                tileX = 0
+                tileAddr = tileAddrCorrect(tileAddr)
+                tileAddr++
+                attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
+                hasPrio = attributes.isBit(7) && bgEnable
+                tileY = if (attributes.isBit(6)) 7 - (mapLine and 7) else (mapLine and 7)
+                tileDataAddr = bgTileDataAddr(mmu.vram[tileAddr]) + (tileY * 2) + attributes.bit(3) * 0x2000
+                high = mmu.vram[tileDataAddr + 1]
+                low = mmu.vram[tileDataAddr]
+            }
+        }
+    }
+
     override fun getBGAddrAdjust(tileAddr: Int): Int {
         val attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
         return attributes.bit(3) * 0x2000
     }
 
-    override fun drawBGorWindowPixel(x: Int, y: Int, colorIdx: Int, tileAddr: Int) {
-        val attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
-        val palette = attributes and 7
-        val color = bgPalettes[(palette * 4) + colorIdx]
-        renderer.drawPixel(x, y, color.red, color.green, color.blue)
-    }
-
     override fun drawObjPixel(x: Int, y: Int, colorIdx: Int, dmgPalette: Int) {
+        unavailablePixels[(x * 144) + y] = true
         val color = objPalettes[(Sprite.cgbPalette * 4) + colorIdx]
         renderer.drawPixel(x, y, color.red, color.green, color.blue)
     }
 
-    override fun vramSpriteAddrOffset() = Sprite.cgbBank * 0x2000
+    override fun vramObjAddrOffset() = Sprite.cgbBank * 0x2000
+
+    override fun isPixelFree(x: Int, y: Int, objPriority: Boolean): Boolean {
+        // If the BG has priority at that location, the pixel is never free
+        return super.isPixelFree(x, y, objPriority) && !unavailablePixels[(x * 144) + y]
+    }
 
     /** LCDC.0 on CGB doesn't actually disable the BG and window,
      * it instead just makes them lose priority; therefore simply
