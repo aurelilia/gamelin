@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 6:21 PM.
+ * This file was last modified at 3/23/21, 7:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -41,6 +41,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     private var scrollY = 0
     private var windowX = 0
     private var windowY = 0
+    private var windowLine = 0
 
     private var bgPalette = 0b11100100
     private var objPalette1 = 0b11100100
@@ -129,6 +130,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
                 if (line > 153) {
                     mode = OAMScan
                     line = 0
+                    windowLine = 0
                     statInterrupt(5)
                     bgOccupiedPixels.fill(false)
                     renderer.finishFrame()
@@ -156,8 +158,8 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     }
 
     protected fun renderWindow() {
-        if (windowY > line) return
-        renderBGOrWindow(0, windowX, windowMapAddr, line) { it }
+        if (windowX > 159 || windowY > line) return
+        renderBGOrWindow(0, windowX, windowMapAddr, windowLine++) { it }
     }
 
     private fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
@@ -199,13 +201,19 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         }
     }
 
+    // A list of sprite's X coords; used to ensure overlapping sprites get correct ordering
+    private val usedXObjCoords = IntArray(10)
+
     protected fun renderObjs() {
         var objCount = 0
-        for (loc in 0xFE00 until 0xFEA0 step 4) {
+        sprites@ for (loc in 0xFE00 until 0xFEA0 step 4) {
             Sprite.dat = mmu.read16(loc) + (mmu.read16(loc + 2) shl 16)
             if (Sprite.y <= line && (Sprite.y + if (bigObjMode) 16 else 8) > line) { // If on this line
+                for (idx in 0 until objCount) {
+                    if (usedXObjCoords[idx] == Sprite.x) continue@sprites // X coord already occupied by another sprite
+                }
                 renderObj()
-                objCount++
+                usedXObjCoords[objCount++] = Sprite.x
                 if (objCount == 10) break // At most 10 objects per scanline
             }
         }
@@ -289,6 +297,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         scrollY = 0
         windowX = 0
         windowY = 0
+        windowLine = 0
 
         bgPalette = 0b11100100
         objPalette1 = 0b11100100
