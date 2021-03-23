@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 10:55 PM.
+ * This file was last modified at 3/23/21, 5:41 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -33,8 +33,8 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     protected var windowEnable = false
     private var bigObjMode = false
     private var altBgTileData = false
-    private var bgMapAddr = 0x9800
-    private var windowMapAddr = 0x9800
+    private var bgMapAddr = 0x1800
+    private var windowMapAddr = 0x1800
 
     private var line = 0
     private var lineCompare = 0
@@ -79,10 +79,10 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
                 bgEnable = lcdc.isBit(0)
                 objEnable = lcdc.isBit(1)
                 bigObjMode = lcdc.isBit(2)
-                bgMapAddr = if (!lcdc.isBit(3)) 0x9800 else 0x9C00
+                bgMapAddr = if (!lcdc.isBit(3)) 0x1800 else 0x1C00
                 altBgTileData = lcdc.isBit(4)
                 windowEnable = lcdc.isBit(5)
-                windowMapAddr = if (!lcdc.isBit(6)) 0x9800 else 0x9C00
+                windowMapAddr = if (!lcdc.isBit(6)) 0x1800 else 0x1C00
                 displayEnable = lcdc.isBit(7)
 
                 if (!displayEnable) {
@@ -167,7 +167,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         var tileX = scrollX and 7
         val tileY = mapLine and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
-        var tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2) + getBGAddrAdjust(tileAddr)
+        var tileDataAddr = bgTileDataAddr(mmu.vram[tileAddr]) + (tileY * 2) + getBGAddrAdjust(tileAddr)
         var high = mmu.vram[tileDataAddr + 1]
         var low = mmu.vram[tileDataAddr]
 
@@ -180,7 +180,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
                 tileX = 0
                 tileAddr = tileAddrCorrect(tileAddr)
                 tileAddr++
-                tileDataAddr = bgTileDataAddr(mmu.read(tileAddr)) + (tileY * 2) + getBGAddrAdjust(tileAddr)
+                tileDataAddr = bgTileDataAddr(mmu.vram[tileAddr]) + (tileY * 2) + getBGAddrAdjust(tileAddr)
                 high = mmu.vram[tileDataAddr + 1]
                 low = mmu.vram[tileDataAddr]
             }
@@ -253,13 +253,13 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
 
     fun bgIdxTileDataAddr(window: Boolean, idx: Int): Int {
         val addr = (if (window) windowMapAddr else bgMapAddr) + idx
-        return bgTileDataAddr(mmu.read(addr)) + getBGAddrAdjust(addr)
+        return bgTileDataAddr(mmu.vram[addr]) + getBGAddrAdjust(addr)
     }
 
 
-    private fun bgTileDataAddr(idx: Int): Int {
+    private fun bgTileDataAddr(idx: Byte): Int {
         return if (altBgTileData) (idx * 0x10)
-        else 0x1000 + (idx.toByte() * 0x10)
+        else 0x1000 + (idx * 0x10)
     }
 
     private fun objTileOffset(idx: Int) = (idx * 0x10)
@@ -281,8 +281,8 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         windowEnable = false
         bigObjMode = false
         altBgTileData = false
-        bgMapAddr = 0x9800
-        windowMapAddr = 0x9800
+        bgMapAddr = 0x1800
+        windowMapAddr = 0x1800
 
         line = 0
         lineCompare = 0

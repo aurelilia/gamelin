@@ -57,20 +57,33 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Tested for the first 2 levels: perfect
 
 ##### Fully playable but with obvious issues
-- Tetris DX* (Global, 1998, Nintendo)
+- Tetris DX ** (Global, 1998, Nintendo)
     - Some parts of the UI are blacked out
+    - Piece color changes when it drops/hits the ground
 - Pokemon Silver ** (Global, 2000, Game Freak)
     - Some Pokemon sprites have a few incorrect/garbage tiles
-    - Map flickers for a second when dialogue box is first displayed (also applies to menu)
-        - Might be related to unimplemented CGB features? Did not occur pre-CGB support 
     - Otherwise works, played until after meeting Mr. Pokemon/Prof. Oak
+- Pokemon Crystal ** (Global, 2001, Game Freak)
+    - Some Pokemon sprites have a few incorrect/garbage tiles
+    - Text tiles in start menu are corrupted, sometimes get corrupted ingame as well
+    - Talking to NPCs causes lots of flickering, dialogue boxes don't disappear and are blue (?)
+    - Place signs are just a grey box
+    - Battle tiles and palette are wrong
+    - Played until after meeting Mr. Pokemon
 
 ##### Does not reach gameplay/not playable
 - Kirby's Dream Land (Global, Nintendo/HAL)
     - Starting gameplay hangs on empty first level or white screen, inconsistent (interrupt timing issue?)
+- Pokemon Yellow ** (Global, Game Freak)
+    - Hangs on white screen
+- Wario Land 3 ** (Global, Nintendo)
+    - Hangs on black screen for a while
+    - Does not get past title screen, hangs
+- The Legend of Zelda: Link's Awakening DX ** (Global, 1998, Nintendo)
+    - Hangs on white screen, unknown opcode
 
 \* briefly displays garbage on boot
-\** Works in GBC mode
+\** Tested in GBC mode
 
 ## Build
 ``` bash
