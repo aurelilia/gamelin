@@ -1,17 +1,14 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 5:41 PM.
+ * This file was last modified at 3/23/21, 6:21 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io.ppu
 
-import xyz.angm.gamelin.Disposable
-import xyz.angm.gamelin.bit
+import xyz.angm.gamelin.*
 import xyz.angm.gamelin.interfaces.TileRenderer
-import xyz.angm.gamelin.isBit
-import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
@@ -258,7 +255,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
 
 
     private fun bgTileDataAddr(idx: Byte): Int {
-        return if (altBgTileData) (idx * 0x10)
+        return if (altBgTileData) (idx.int() * 0x10)
         else 0x1000 + (idx * 0x10)
     }
 
