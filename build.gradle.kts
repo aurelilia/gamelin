@@ -35,6 +35,7 @@ repositories {
 }
 
 // JS / KORGE
+/* Uncomment if you want to produce a JS build... todo
 apply<KorgeGradlePlugin>()
 korge {
     id = "xyz.angm.gamelin"
@@ -42,7 +43,7 @@ korge {
     name = "gamelin"
     entryPoint = "main"
     targetJs()
-}
+}*/
 
 kotlin {
     jvm {
