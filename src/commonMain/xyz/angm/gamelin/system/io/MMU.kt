@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 1:26 PM.
+ * This file was last modified at 3/24/21, 6:51 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -27,7 +27,6 @@ class MMU(private val gb: GameBoy) : Disposable {
     private var wram = ByteArray(8_192) // C000-DFFF
     private var wramBank = 1
     private val oam = ByteArray(160) // FE00-FE9F
-    private val mmIO = ByteArray(128) // FF00-FF7F
     private val zram = ByteArray(128) // FF80-FFFF
     internal var bootromOn = true
 
@@ -68,7 +67,6 @@ class MMU(private val gb: GameBoy) : Disposable {
         wram = ByteArray(8_192 * if (gb.cgbMode) 8 else 1)
         wramBank = 1
         oam.fill(0)
-        mmIO.fill(0)
         zram.fill(0)
         bootromOn = true
     }
@@ -108,6 +106,8 @@ class MMU(private val gb: GameBoy) : Disposable {
             in 0xD000..0xDFFF -> wram[(a and 0x0FFF) + (wramBank * 0x1000)]
             in 0xE000..0xFDFF -> wram[a and 0x1FFF]
             in 0xFE00..0xFE9F -> oam[a and 0xFF]
+            SB -> 0
+            SC -> 0x7E
             IF -> regIF.toByte()
             in 0xFF80..0xFFFF -> zram[a and 0x7F]
             else -> INVALID_READ.toByte()
@@ -178,6 +178,10 @@ class MMU(private val gb: GameBoy) : Disposable {
         // Interrupts
         const val IF = 0xFF0F
         const val IE = 0xFFFF
+
+        // Serial
+        const val SB = 0xFF01
+        const val SC = 0xFF02
 
         // Timer
         const val DIV = 0xFF04

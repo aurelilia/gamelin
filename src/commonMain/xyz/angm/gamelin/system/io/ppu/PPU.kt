@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 9:15 PM.
+ * This file was last modified at 3/24/21, 6:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -39,7 +39,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     private var stat = 0
     private var scrollX = 0
     private var scrollY = 0
-    private var windowX = 0
+    private var windowX = -7
     private var windowY = 0
     private var windowLine = 0
 
@@ -273,7 +273,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         stat = 0
         scrollX = 0
         scrollY = 0
-        windowX = 0
+        windowX = -7
         windowY = 0
         windowLine = 0
 
