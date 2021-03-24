@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:23 PM.
+ * This file was last modified at 3/24/21, 1:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,7 +18,7 @@ import xyz.angm.gamelin.system.io.MMU
  * This implementation is abridged from stan-roelofs's emulator: https://github.com/stan-roelofs/Kotlin-Gameboy-Emulator
  * Who probably abridged it from trekawek's coffee-gb: https://github.com/trekawek/coffee-gb
  * Thank you to both stan-roelofs and trekawek! */
-class APU : IODevice() {
+class APU(private val gb: GameBoy) : IODevice() {
 
     var output = AudioOutput()
     private var outDiv = 0
@@ -82,7 +82,7 @@ class APU : IODevice() {
         return when (addr) {
             in MMU.NR10..MMU.NR14 -> square1.readByte(addr)
             in MMU.NR21..MMU.NR24 -> square2.readByte(addr)
-            in MMU.NR30..MMU.NR34, in 0xFF30..0xFF3F -> wave.readByte(addr)
+            in MMU.NR30..MMU.NR34, in MMU.WAVE_SAMPLES -> wave.readByte(addr)
             in MMU.NR41..MMU.NR44 -> noise.readByte(addr)
             MMU.NR50 -> ((volumeRight) or (volumeLeft shl 4)).setBit(7, vinLeft).setBit(3, vinRight)
             MMU.NR51 -> {
@@ -110,14 +110,14 @@ class APU : IODevice() {
         // When powered off, all registers (NR10-NR51) are instantly written with zero and any writes to those
         // registers are ignored while power remains off (except on the DMG, where length counters are
         // unaffected by power and can still be written while off)
-        if (!enabled && addr != MMU.NR52 && addr != MMU.NR11 && addr != MMU.NR21 && addr != MMU.NR31 && addr != MMU.NR41) {
+        if (!enabled && !gb.cgbMode && addr != MMU.NR52 && addr != MMU.NR11 && addr != MMU.NR21 && addr != MMU.NR31 && addr != MMU.NR41) {
             return
         }
 
         when (addr) {
             in MMU.NR10..MMU.NR14 -> square1.writeByte(addr, value)
             in MMU.NR21..MMU.NR24 -> square2.writeByte(addr, value)
-            in MMU.NR30..MMU.NR34, in 0xFF30..0xFF3F -> wave.writeByte(addr, value)
+            in MMU.NR30..MMU.NR34, in MMU.WAVE_SAMPLES -> wave.writeByte(addr, value)
             in MMU.NR41..MMU.NR44 -> noise.writeByte(addr, value)
             MMU.NR50 -> {
                 vinLeft = value.isBit(7)

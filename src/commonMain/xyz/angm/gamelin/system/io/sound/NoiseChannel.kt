@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/18/21, 9:15 PM.
+ * This file was last modified at 3/24/21, 10:39 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -62,19 +62,18 @@ class NoiseChannel : SoundChannel() {
     }
 
     fun writeByte(address: Int, value: Int) {
-        val newVal = value and 0xFF
         when (address) {
-            MMU.NR41 -> lengthCounter.setNr1(newVal and 0b00111111)
+            MMU.NR41 -> lengthCounter.setNr1(value and 0b00111111)
             MMU.NR42 -> {
-                volumeEnvelope.setNr2(newVal)
+                volumeEnvelope.setNr2(value)
                 if (!volumeEnvelope.getDac()) {
                     enabled = false
                 }
             }
-            MMU.NR43 -> polynomialCounter.setNr43(newVal)
+            MMU.NR43 -> polynomialCounter.setNr43(value)
             MMU.NR44 -> {
-                lengthCounter.setNr4(newVal)
-                if (newVal.isBit(7)) trigger()
+                lengthCounter.setNr4(value)
+                if (value.isBit(7)) trigger()
             }
         }
     }

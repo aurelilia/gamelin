@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 7:49 PM.
+ * This file was last modified at 3/24/21, 1:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -32,7 +32,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     internal var bootromOn = true
 
     internal lateinit var cart: Cartridge
-    private val sound = APU()
+    private val sound = APU(gb)
     internal val joypad = Joypad(this)
     internal var ppu: PPU = DmgPPU(this)
     private val timer = Timer(this)
@@ -159,7 +159,6 @@ class MMU(private val gb: GameBoy) : Disposable {
         const val INVALID_READ = 0xFF
 
         // LCD
-        const val VBK = 0xFF4F
         const val LCDC = 0xFF40
         const val LY = 0xFF44
         const val LYC = 0xFF45
@@ -224,7 +223,7 @@ class MMU(private val gb: GameBoy) : Disposable {
         const val NR51 = 0xFF25
         const val NR52 = 0xFF26
 
-        private val WAVE_SAMPLES = 0xFF30..0xFF3F
+        val WAVE_SAMPLES = 0xFF30..0xFF3F
 
         // CGB
         private const val VRAM_SELECT = 0xFF4F

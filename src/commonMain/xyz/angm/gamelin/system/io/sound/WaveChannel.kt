@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:36 PM.
+ * This file was last modified at 3/24/21, 1:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -80,38 +80,35 @@ class WaveChannel : SoundChannel() {
                 result = result.setBit(7, dac)
                 result
             }
-            MMU.NR31 -> 0b11111111
             MMU.NR32 -> 0b10011111 or (volumeCode shl 5)
-            MMU.NR33 -> 0b11111111
             MMU.NR34 -> {
                 var result = 0b10111111
                 result = result.setBit(6, lengthCounter.lengthEnabled)
                 result
             }
-            in 0xFF30..0xFF3F -> this.patternRam[address - 0xFF30]
+            in MMU.WAVE_SAMPLES -> patternRam[address and 0x0F]
             else -> MMU.INVALID_READ
         }
     }
 
     fun writeByte(address: Int, value: Int) {
-        val newVal = value and 0xFF
         when (address) {
             MMU.NR30 -> {
-                dac = newVal.isBit(7)
+                dac = value.isBit(7)
                 enabled = enabled && dac
             }
-            MMU.NR31 -> lengthCounter.setNr1(newVal)
+            MMU.NR31 -> lengthCounter.setNr1(value)
             MMU.NR32 -> {
-                volumeCode = (newVal and 0b01100000) shr 5
+                volumeCode = (value and 0b01100000) shr 5
                 volumeShift = if (volumeCode == 0) 4 else volumeCode - 1
             }
-            MMU.NR33 -> frequency = (frequency and 0b11100000000) or newVal
+            MMU.NR33 -> frequency = (frequency and 0b11100000000) or value
             MMU.NR34 -> {
-                frequency = (frequency and 0b11111111) or ((newVal and 0b111) shl 8)
-                lengthCounter.setNr4(newVal)
-                if (newVal.isBit(7)) trigger()
+                frequency = (frequency and 0b11111111) or ((value and 0b111) shl 8)
+                lengthCounter.setNr4(value)
+                if (value.isBit(7)) trigger()
             }
-            in 0xFF30..0xFF3F -> this.patternRam[address - 0xFF30] = newVal
+            in MMU.WAVE_SAMPLES -> patternRam[address and 0x0F] = value
         }
     }
 }

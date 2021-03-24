@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/24/21, 1:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -64,8 +64,6 @@ abstract class SquareWave : SoundChannel() {
             MMU.NR21 -> (this.duty shl 6) or 0b00111111 // Only bits 6-7 can be read
             MMU.NR12,
             MMU.NR22 -> volumeEnvelope.getNr2()
-            MMU.NR13,
-            MMU.NR23 -> 0xFF
             MMU.NR14,
             MMU.NR24 -> {
                 var result = 0b10111111
@@ -77,28 +75,24 @@ abstract class SquareWave : SoundChannel() {
     }
 
     open fun writeByte(address: Int, value: Int) {
-        val newVal = value and 0xFF
         when (address) {
             MMU.NR11,
             MMU.NR21 -> {
                 // Only write to the length counter if the APU is off
-                if (!off)
-                    duty = (newVal shr 6) and 0b11
-
-                // On DMG the length counters are not affected by power and can still be written while off
-                lengthCounter.setNr1(newVal and 0b00111111)
+                if (!off) duty = (value shr 6) and 0b11
+                lengthCounter.setNr1(value and 0b00111111)
             }
             MMU.NR12,
             MMU.NR22 -> {
-                volumeEnvelope.setNr2(newVal)
+                volumeEnvelope.setNr2(value)
                 if (!volumeEnvelope.getDac()) {
                     enabled = false
                 }
             }
             MMU.NR14,
             MMU.NR24 -> {
-                lengthCounter.setNr4(newVal)
-                if (newVal.isBit(7)) trigger()
+                lengthCounter.setNr4(value)
+                if (value.isBit(7)) trigger()
             }
         }
     }
