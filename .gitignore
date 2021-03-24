@@ -1,4 +1,3 @@
-/gradle
 /assets/roms/*
 !/assets/roms/test
 /assets/gamelin.cpu.log
