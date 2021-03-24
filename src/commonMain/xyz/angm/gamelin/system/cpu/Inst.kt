@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 12:27 AM.
+ * This file was last modified at 3/24/21, 1:35 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -76,10 +76,20 @@ private fun fillSet() = InstSet.apply {
     op[0x33] = Inst(1, 2, "INC SP") { writeSP(cpu.sp + 1) }
 
     bdh.forEachIndexed { i, r -> op[0x04 + (i shl 4)] = Inst(1, 1, "INC $r") { write(r, add(read(r), 1)) } }
-    op[0x34] = Inst(1, 2, "INC (HL)", preCycles = 1) { write(read16(HL), add(read(read16(HL)), 1)) }
+    op[0x34] = Inst(1, 2, "INC (HL)") {
+        val addr = read16(HL)
+        val value = read(addr)
+        advanceClock(1)
+        write(addr, add(value, 1))
+    }
 
     bdh.forEachIndexed { i, r -> op[0x05 + (i shl 4)] = Inst(1, 1, "DEC $r") { write(r, sub(read(r), 1)) } }
-    op[0x35] = Inst(1, 2, "DEC (HL)", preCycles = 1) { write(read16(HL), sub(read(read16(HL)), 1)) }
+    op[0x35] = Inst(1, 2, "DEC (HL)") {
+        val addr = read16(HL)
+        val value = read(addr)
+        advanceClock(1)
+        write(addr, sub(value, 1))
+    }
 
     bdh.forEachIndexed { i, r -> op[0x06 + (i shl 4)] = Inst(2, 2, "LD $r, d8") { write(r, read(cpu.pc + 1)) } }
     op[0x36] = Inst(2, 2, "LD (HL), d8", preCycles = 1) { write(read16(HL), read(cpu.pc + 1)) }
@@ -168,7 +178,7 @@ private fun fillSet() = InstSet.apply {
     for (from in regs) {
         op[idx++] = Inst(1, 1, "LD A, $from") { write(A, read(from)) }
     }
-    op[idx++] = Inst(1, 1, "LD A, (HL)") { write(A, read(read16(HL))) }
+    op[idx++] = Inst(1, 2, "LD A, (HL)") { write(A, read(read16(HL))) }
     op[idx++] = Inst(1, 1, "LD A, A") { write(A, read(A)) }
 
     // -----------------------------------
@@ -254,7 +264,7 @@ private fun fillSet() = InstSet.apply {
     op[0xC8] = BrInst(1, 2, 5, "RET Z") { if (cpu.flag(Zero)) ret() else false }
     op[0xD8] = BrInst(1, 2, 5, "RET C") { if (cpu.flag(Carry)) ret() else false }
     op[0xE8] = Inst(2, 4, "ADD SP, s8") { cpu.sp = addSP().toShort() }
-    op[0xF8] = Inst(2, 4, "LD HL, SP+s8") { write16(HL, addSP()) }
+    op[0xF8] = Inst(2, 3, "LD HL, SP+s8") { write16(HL, addSP()) }
 
     op[0xC9] = Inst(1, 4, "RET", incPC = false) { ret() }
     op[0xD9] = Inst(1, 4, "RETI", incPC = false) {
@@ -262,7 +272,7 @@ private fun fillSet() = InstSet.apply {
         ret()
     }
     op[0xE9] = Inst(1, 1, "JP HL", incPC = false) { cpu.pc = read16(HL).toShort() }
-    op[0xF9] = Inst(1, 1, "LD SP, HL") { cpu.sp = read16(HL).toShort() }
+    op[0xF9] = Inst(1, 2, "LD SP, HL") { cpu.sp = read16(HL).toShort() }
 
     op[0xCA] = BrInst(3, 3, 4, "JP Z, a16") { if (cpu.flag(Zero)) jp() else false }
     op[0xDA] = BrInst(3, 3, 4, "JP C, a16") { if (cpu.flag(Carry)) jp() else false }
@@ -327,7 +337,6 @@ private fun fillExt() = InstSet.apply {
                 val addr = read16(HL)
                 if (isBit) {
                     val value = read(addr)
-                    advanceClock(1)
                     exec(value.toByte(), bit)
                 } else {
                     val value = read(addr)

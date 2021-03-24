@@ -98,13 +98,19 @@ gradle jvmTest
 ```
 
 #### Blargg test results
-- `cpu_instrs`: 11/11 pass
-- `dmg_sound`: 7/12 pass (01, 07, 09, 10, 12 fail)
-- `mem_timing`/`mem_timing-2`: 2/3 pass (03-modify fails)
-- Others: Not tested yet
+- `cpu_instrs`, `mem_timing`, `mem_timing-2`: All pass
+- `dmg_sound`: 8/12 pass (07, 09, 10, 12 fail)
+- `cgb_sound`: 7/12 pass (07, 08, 09, 11, 12 fail)
+- `interrupt_time`: Fails
+- `instr_timing`: Passes, `instr_timing/halt_bug` does not
+- `oam_bug`: Everything but 3 and 7 fail (OAM bug unimplemented)
+
+#### Mooneye test results
+- `acceptance`: 26 out of 75 pass
+- Others untested
 
 #### Acid2
-Both the `dmg-acid2` and `cgb-acid2` test written by Matt Currie pass.
+Both the `dmg-acid2` and `cgb-acid2` test written by Matt Currie pass (CGB in DMG mode untested).
 Thank you to [@mattcurrie](https://github.com/mattcurrie) for creating them!
 
 ## Thanks To

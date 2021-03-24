@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:25 PM.
+ * This file was last modified at 3/24/21, 12:43 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -21,7 +21,7 @@ internal class Timer(private val mmu: MMU) : IODevice() {
     private var modulo = 0
     private var control = 0
     private var counterRunning = false
-    private var counterDivider = 64
+    private var counterDivider = 1024
 
     fun step(tCycles: Int) {
         divCycleCount += tCycles
@@ -82,6 +82,6 @@ internal class Timer(private val mmu: MMU) : IODevice() {
         modulo = 0
         control = 0
         counterRunning = false
-        counterDivider = 64
+        counterDivider = 1024
     }
 }
