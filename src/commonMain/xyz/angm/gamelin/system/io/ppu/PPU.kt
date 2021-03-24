@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 6:52 PM.
+ * This file was last modified at 3/24/21, 11:25 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -20,11 +20,13 @@ import kotlin.jvm.Transient
  * PPUs of DMG and CGB. */
 internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: TileRenderer) : IODevice(), Disposable {
 
-    private var mode = OAMScan
+    internal var mode = OAMScan
+        private set
     private var modeclock = 0
 
     private var lcdc = 0
-    protected var displayEnable = false
+    internal var displayEnable = false
+        private set
     protected var bgEnable = false
     protected var objEnable = false
     protected var windowEnable = false
@@ -110,6 +112,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
 
             Upload -> {
                 mode = HBlank
+                mmu.hdma.gpuInHBlank = true
                 renderLine()
                 statInterrupt(3)
             }
@@ -289,7 +292,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     }
 }
 
-private enum class GPUMode(val cycles: Int) {
+internal enum class GPUMode(val cycles: Int) {
     HBlank(204), VBlank(456), OAMScan(80), Upload(172)
 }
 

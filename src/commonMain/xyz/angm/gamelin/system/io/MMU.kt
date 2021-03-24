@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 6:51 PM.
+ * This file was last modified at 3/24/21, 11:30 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -20,7 +20,7 @@ import xyz.angm.gamelin.system.io.sound.APU
 /** The system's MMU, containing all devices and memory that
  * the CPU can reach on the address bus.
  * @property bootromOn If the boot rom is still mapped into memory. */
-class MMU(private val gb: GameBoy) : Disposable {
+class MMU(val gb: GameBoy) : Disposable {
 
     internal var vram = ByteArray(8_192) // 8000-9FFF
     private var vramBank = 0
@@ -36,7 +36,7 @@ class MMU(private val gb: GameBoy) : Disposable {
     internal var ppu: PPU = DmgPPU(this)
     private val timer = Timer(this)
     private val dma = DMA(this)
-    private val hdma = HDMA(this)
+    internal val hdma = HDMA(this)
     private var regIF = 0
 
     fun load(game: ByteArray) {
@@ -66,7 +66,7 @@ class MMU(private val gb: GameBoy) : Disposable {
         vramBank = 0
         wram = ByteArray(8_192 * if (gb.cgbMode) 8 else 1)
         wramBank = 1
-        oam.fill(0)
+        oam.fill(0xFF.toByte())
         zram.fill(0)
         bootromOn = true
     }

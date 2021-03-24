@@ -67,6 +67,9 @@ At the moment, the following is implemented and works:
 - The Legend of Zelda: Link's Awakening DX ** (Global, 1998, Nintendo)
     - Overworld palettes do not get restored properly after opening start menu, fixed by changing screen
     - Played until finding the toadstool in the mysterious woods
+- Pokemon Yellow ** (Global, Game Freak)
+    - None of the Pikachu sound effects actually play
+    - Played until first rival fight
 
 ##### Mostly playable but with big issues
 - Pokemon Crystal ** (Global, 2001, Game Freak)
@@ -76,12 +79,6 @@ At the moment, the following is implemented and works:
     - Place signs are just a grey box
     - Battle tiles and palette are wrong
     - Played until after meeting Mr. Pokemon
-- Pokemon Yellow * ** (Global, Game Freak)
-    - Intro cutscene has a few missing/incorrect tiles
-    - None of the Pikachu sound effects actually play
-    - Game has big white squares covering the overworld map (window?)
-    - Color palettes seem off
-    - Played until first rival fight
 
 ##### Does not reach gameplay/not playable
 - Wario Land 3 ** (Global, 2000, Nintendo)
