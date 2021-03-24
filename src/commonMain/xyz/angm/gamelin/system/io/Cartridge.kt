@@ -1,22 +1,22 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 6:05 PM.
+ * This file was last modified at 3/24/21, 5:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.io
 
+import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.isBit
+import xyz.angm.gamelin.setBit
 import kotlin.math.max
 
 /** A game that the system is playing.
- * TODO: Implement more MBCs.
- *
  * @property rom The raw ROM file of this game. */
-abstract class Cartridge(private val rom: ByteArray) : IODevice() {
+abstract class Cartridge(protected val rom: ByteArray) : IODevice() {
 
     internal val romBankCount = (2 shl rom[ROM_BANKS].int())
     internal val ramBankCount = when (rom[RAM_BANKS].int()) {
@@ -90,7 +90,9 @@ abstract class Cartridge(private val rom: ByteArray) : IODevice() {
         fun ofRom(rom: ByteArray): Cartridge {
             return when (rom[KIND].int()) {
                 in 0x01..0x03 -> MBC1(rom)
+                in 0x05..0x06 -> MBC2(rom)
                 in 0x0F..0x13 -> MBC3(rom)
+                in 0x19..0x1E -> MBC5(rom)
                 else -> NoMBC(rom)
             }
         }
@@ -104,29 +106,66 @@ class NoMBC(rom: ByteArray) : Cartridge(rom)
 class MBC1(rom: ByteArray) : Cartridge(rom) {
 
     private var ramMode = false
-    private var upperReg = 0
+    private var rom0Bank = 0
+    private var bank2 = 0
+
+    override fun read(addr: Int): Int {
+        return when (addr) {
+            in 0x0000..0x3FFF -> rom[addr + 0x4000 * rom0Bank].int()
+            else -> super.read(addr)
+        }
+    }
 
     override fun write(addr: Int, value: Int) {
         when (addr) {
             in 0x0000..0x1FFF -> ramEnable = (value and 0x0F) == 0x0A
-            in 0x2000..0x3FFF -> romBank = max((value % romBankCount), 1) and 0x1F
+            in 0x2000..0x3FFF -> {
+                romBank = max((value and 0x1F), 1)
+                updateBank2()
+            }
             in 0x4000..0x5FFF -> {
-                upperReg = value and 0x03
-                updateReg()
+                bank2 = value and 0x03
+                updateBank2()
             }
             in 0x6000..0x7FFF -> {
                 ramMode = value.isBit(0)
-                updateReg()
+                updateBank2()
             }
             else -> super.write(addr, value)
         }
     }
 
-    // TODO: Mode 1 (RAM mode) 0000-3FFF mapping
-    private fun updateReg() {
-        ramBank = if (ramBankCount == 4 && ramMode) upperReg else 0
+    private fun updateBank2() {
+        ramBank = if (ramBankCount == 4 && ramMode) bank2 else 0
         romBank = (romBank and 0x1F)
-        if (romBankCount >= BANK_COUNT_1MB && !ramMode) romBank += upperReg shl 5
+        if (romBankCount >= BANK_COUNT_1MB) romBank += bank2 shl 5
+        romBank %= romBankCount
+        rom0Bank = if (ramMode && romBankCount >= BANK_COUNT_1MB) (bank2 shl 5) % romBankCount else 0
+    }
+}
+
+/** Cartridges with the MBC2 controller. */
+class MBC2(rom: ByteArray) : Cartridge(rom) {
+
+    private val mbc2ram = ByteArray(512)
+
+    override fun read(addr: Int): Int {
+        return when (addr) {
+            in 0xA000..0xBFFF -> if (ramEnable) mbc2ram[(addr and 0x1FF)].int() else MMU.INVALID_READ
+            else -> super.read(addr)
+        }
+    }
+
+    override fun write(addr: Int, value: Int) {
+        when (addr) {
+            in 0x0000..0x3FFF -> {
+                if (addr.isBit(8)) romBank = max(value and 0x0F, 1) % romBankCount
+                else ramEnable = (value and 0x0F) == 0x0A
+            }
+            in 0xA000..0xBFFF -> {
+                if (ramEnable) mbc2ram[(addr and 0x1FF)] = (value or 0xF0).toByte()
+            }
+        }
     }
 }
 
@@ -136,7 +175,21 @@ class MBC3(rom: ByteArray) : Cartridge(rom) {
     override fun write(addr: Int, value: Int) {
         when (addr) {
             in 0x0000..0x1FFF -> ramEnable = (value and 0x0F) == 0x0A
-            in 0x2000..0x3FFF -> romBank = max((value % romBankCount), 1)
+            in 0x2000..0x3FFF -> romBank = max(value, 1) % romBankCount
+            in 0x4000..0x5FFF -> ramBank = value and 0x03
+            else -> super.write(addr, value)
+        }
+    }
+}
+
+/** Cartridges with the MBC5 controller. */
+class MBC5(rom: ByteArray) : Cartridge(rom) {
+
+    override fun write(addr: Int, value: Int) {
+        when (addr) {
+            in 0x0000..0x1FFF -> ramEnable = (value and 0x0F) == 0x0A
+            in 0x2000..0x2FFF -> romBank = (romBank and 0x100) or (value % romBankCount)
+            in 0x3000..0x3FFF -> romBank = romBank.setBit(8, value.bit(0)) % romBankCount
             in 0x4000..0x5FFF -> ramBank = value and 0x03
             else -> super.write(addr, value)
         }

@@ -2,7 +2,11 @@
 A Gameboy (Color) emulator written in Kotlin, able to run on desktop (LibGDX + VisUI) and in browser (KORGE).
 
 ## Status
-The emulator is in an early, but usable state. At the moment, the following is implemented and works:
+The emulator is in an early, but usable state. Original GameBoy (DMA) emulation is accurate enough for
+almost all games, and while GameBoy Color (CGB) emulation still unfinished, many games already work.
+The emulator itself still does not have many comfort features like fast-forward or save states though.
+
+At the moment, the following is implemented and works:
 
 ##### Console
 - Full SM83 CPU instruction set (All blargg cpu_instr tests pass)
@@ -10,8 +14,8 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Full DIV/timer, all interrupts
 - DMA transfer
 - Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
-- Full APU/Sound emulation (7/12 blargg dmg_sound tests pass)
-- Most MBC1 cartridge mapper behavior; full MBC3 (MBC2/5 and RTC still missing)
+- Full APU/Sound emulation (8/12 blargg dmg_sound tests pass)
+- Full MBC1, MBC2, MBC3 and MBC5 (RTC still missing)
 - Game saving support (to `.sav` file on desktop, into local browser storage on web)
 - Game Boy Color:
     - Automatic detection of GBC games
@@ -56,10 +60,13 @@ The emulator is in an early, but usable state. At the moment, the following is i
 - Yoshi (Global, 1992, Nintendo)
 - Tic-Tac-Toe (1996, Norman Nithman)
 
-##### Barely noticeable issues, fully playable
+##### Small issues, fully playable
 - Donkey Kong Land* (Global, 1995, Nintendo/RARE)
     - Palette on title screen is wrong
     - Tested for the first 2 levels
+- The Legend of Zelda: Link's Awakening DX ** (Global, 1998, Nintendo)
+    - Overworld palettes do not get restored properly after opening start menu, fixed by changing screen
+    - Played until finding the toadstool in the mysterious woods
 
 ##### Mostly playable but with big issues
 - Pokemon Crystal ** (Global, 2001, Game Freak)
@@ -69,15 +76,16 @@ The emulator is in an early, but usable state. At the moment, the following is i
     - Place signs are just a grey box
     - Battle tiles and palette are wrong
     - Played until after meeting Mr. Pokemon
+- Pokemon Yellow * ** (Global, Game Freak)
+    - Intro cutscene has a few missing/incorrect tiles
+    - None of the Pikachu sound effects actually play
+    - Game has big white squares covering the overworld map (window?)
+    - Color palettes seem off
+    - Played until first rival fight
 
 ##### Does not reach gameplay/not playable
-- Pokemon Yellow ** (Global, Game Freak)
-    - Hangs on white screen
-- Wario Land 3 ** (Global, Nintendo)
-    - Hangs on black screen for a while
-    - Does not get past title screen, hangs
-- The Legend of Zelda: Link's Awakening DX ** (Global, 1998, Nintendo)
-    - Hangs on white screen, unknown opcode
+- Wario Land 3 ** (Global, 2000, Nintendo)
+    - Game hangs after selecting language
 
 \* briefly displays garbage on boot
 \** Tested in GBC mode
@@ -107,6 +115,7 @@ gradle jvmTest
 
 #### Mooneye test results
 - `acceptance`: 26 out of 75 pass
+- `emulator-only`: All pass (except MBC1 multicart; will not be supported)
 - Others untested
 
 #### Acid2
