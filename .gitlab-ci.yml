@@ -1,4 +1,4 @@
-image: java:11-jdk
+image: java:8-jdk
 
 stages:
   - build
