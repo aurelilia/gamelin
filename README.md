@@ -101,8 +101,8 @@ gradle jvmTest
 - `cpu_instrs`, `mem_timing`, `mem_timing-2`: All pass
 - `dmg_sound`: 8/12 pass (07, 09, 10, 12 fail)
 - `cgb_sound`: 7/12 pass (07, 08, 09, 11, 12 fail)
+- `instr_timing`: Both pass
 - `interrupt_time`: Fails
-- `instr_timing`: Passes, `instr_timing/halt_bug` does not
 - `oam_bug`: Everything but 3 and 7 fail (OAM bug unimplemented)
 
 #### Mooneye test results
