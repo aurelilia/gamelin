@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 9:59 PM.
+ * This file was last modified at 3/25/21, 1:24 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -25,14 +25,14 @@ class VRAMViewer : Window("VRAM Viewer") {
 
     override fun act(delta: Float) {
         super.act(delta)
-        step(renderer)
-        if (gb.cgbMode) step(rendererCGB)
+        step(renderer, 0)
+        if (gb.cgbMode) step(rendererCGB, 0x2000)
     }
 
-    private fun step(renderer: TileRenderer) {
+    private fun step(renderer: TileRenderer, offs: Int) {
         for (tile in 0 until 0x1800 step 0x10) {
             val tileIdx = tile / 0x10
-            renderer.drawTile(tileIdx % 0x10, tileIdx / 0x10, tile) { it }
+            renderer.drawTile(tileIdx % 0x10, tileIdx / 0x10, tile + offs) { it }
         }
         renderer.finishFrame()
     }
