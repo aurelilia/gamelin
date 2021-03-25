@@ -21,7 +21,8 @@ At the moment, the following is implemented and works:
     - Automatic detection of GBC games
     - Additional WRAM/VRAM banks
     - All PPU changes/differences
-    - Still missing: Double Speed Mode, HDMA
+    - GDMA & HDMA
+    - Still missing: Double Speed Mode
 
 ##### Desktop Version
 - Reset and ROM changing support
@@ -73,11 +74,10 @@ At the moment, the following is implemented and works:
 
 ##### Mostly playable but with big issues
 - Pokemon Crystal ** (Global, 2001, Game Freak)
-    - Some Pokemon sprites have a few incorrect/garbage tiles
-    - Text tiles in start menu are corrupted, sometimes get corrupted ingame as well
-    - Talking to NPCs causes lots of flickering, dialogue boxes don't disappear and are blue (?)
-    - Place signs are just a grey box
-    - Battle tiles and palette are wrong
+    - Opening any submenu on the START menu and closing it again often results
+    in weird behavior: 
+        - A white screen, BG map shows textbox "No windows available for popping.", [Related glitchcity entry](https://glitchcity.wiki/Event_data_debugging_messages)
+        - Hanging for a few seconds before rebooting and identifying the console as DMG (with the "works only on GBC" message)
     - Played until after meeting Mr. Pokemon
 
 ##### Does not reach gameplay/not playable

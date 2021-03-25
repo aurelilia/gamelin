@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 11:30 PM.
+ * This file was last modified at 3/25/21, 1:24 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -20,7 +20,7 @@ import xyz.angm.gamelin.system.io.sound.APU
 /** The system's MMU, containing all devices and memory that
  * the CPU can reach on the address bus.
  * @property bootromOn If the boot rom is still mapped into memory. */
-class MMU(val gb: GameBoy) : Disposable {
+class MMU(internal val gb: GameBoy) : Disposable {
 
     internal var vram = ByteArray(8_192) // 8000-9FFF
     private var vramBank = 0
@@ -49,7 +49,7 @@ class MMU(val gb: GameBoy) : Disposable {
         sound.step(cycles)
         timer.step(cycles)
         dma.step(cycles)
-        hdma.step(cycles)
+        hdma.step()
     }
 
     fun reset() {
