@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 5:42 PM.
+ * This file was last modified at 3/25/21, 3:07 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -176,7 +176,7 @@ class MBC3(rom: ByteArray) : Cartridge(rom) {
         when (addr) {
             in 0x0000..0x1FFF -> ramEnable = (value and 0x0F) == 0x0A
             in 0x2000..0x3FFF -> romBank = max(value, 1) % romBankCount
-            in 0x4000..0x5FFF -> ramBank = value and 0x03
+            in 0x4000..0x5FFF -> ramBank = (value and 0x03) % ramBankCount
             else -> super.write(addr, value)
         }
     }
@@ -190,7 +190,7 @@ class MBC5(rom: ByteArray) : Cartridge(rom) {
             in 0x0000..0x1FFF -> ramEnable = (value and 0x0F) == 0x0A
             in 0x2000..0x2FFF -> romBank = (romBank and 0x100) or (value % romBankCount)
             in 0x3000..0x3FFF -> romBank = romBank.setBit(8, value.bit(0)) % romBankCount
-            in 0x4000..0x5FFF -> ramBank = value and 0x03
+            in 0x4000..0x5FFF -> ramBank = (value and 0x03) % ramBankCount
             else -> super.write(addr, value)
         }
     }
