@@ -14,6 +14,12 @@ The emulator is in an early, but usable state. Both DMG and CGB emulation is com
 quite accurate, enough to make most commercial games run perfectly.
 The emulator itself still does not have many comfort features like fast-forward or save states though.
 
+##### Missing console features
+- Some MBC3 controllers have a built-in RTC for keeping track of time; Gamelin implements it,
+but in a very simple format incompatible with other emulators that has a high chance of
+not working with most games (it was tested with Pokemon Crystal and successfully kept time
+after turning the game off for 8 minutes - needs more testing).
+
 ##### Desktop Version
 - Reset and ROM changing support
 - Basic save states (save/load entire console state at any point)

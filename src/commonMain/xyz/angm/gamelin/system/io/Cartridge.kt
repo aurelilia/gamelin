@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 3:07 PM.
+ * This file was last modified at 3/25/21, 10:32 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,10 +9,12 @@ package xyz.angm.gamelin.system.io
 
 import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.int
+import xyz.angm.gamelin.interfaces.DateTime
 import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
 import kotlin.math.max
+import kotlin.math.min
 
 /** A game that the system is playing.
  * @property rom The raw ROM file of this game. */
@@ -64,16 +66,18 @@ abstract class Cartridge(protected val rom: ByteArray) : IODevice() {
     }
 
     /** Save the game RAM to disk, if applicable. */
-    fun save() {
-        if (ramBankCount > 0) FileSystem.saveRAM("${getTitle(extended = true)}${rom[DESTINATION]}", ram)
+    open fun save() {
+        if (ramBankCount > 0) FileSystem.saveRAM(getFileSystemName(), ram)
     }
 
     /** Tries to load the RAM from disk. */
     private fun loadRAM(): ByteArray {
         var ram: ByteArray? = null
-        if (ramBankCount > 0) ram = FileSystem.loadRAM("${getTitle(extended = true)}${rom[DESTINATION]}")
+        if (ramBankCount > 0) ram = FileSystem.loadRAM(getFileSystemName())
         return ram ?: ByteArray(ramBankCount * 0x2000)
     }
+
+    protected fun getFileSystemName() = "${getTitle(extended = true)}${rom[DESTINATION]}"
 
     companion object {
 
@@ -91,7 +95,8 @@ abstract class Cartridge(protected val rom: ByteArray) : IODevice() {
             return when (rom[KIND].int()) {
                 in 0x01..0x03 -> MBC1(rom)
                 in 0x05..0x06 -> MBC2(rom)
-                in 0x0F..0x13 -> MBC3(rom)
+                in 0x0F..0x10 -> MBC3Timer(rom)
+                in 0x11..0x13 -> MBC3(rom)
                 in 0x19..0x1E -> MBC5(rom)
                 else -> NoMBC(rom)
             }
@@ -170,7 +175,7 @@ class MBC2(rom: ByteArray) : Cartridge(rom) {
 }
 
 /** Cartridges with the MBC3 controller. */
-class MBC3(rom: ByteArray) : Cartridge(rom) {
+open class MBC3(rom: ByteArray) : Cartridge(rom) {
 
     override fun write(addr: Int, value: Int) {
         when (addr) {
@@ -179,6 +184,53 @@ class MBC3(rom: ByteArray) : Cartridge(rom) {
             in 0x4000..0x5FFF -> ramBank = (value and 0x03) % ramBankCount
             else -> super.write(addr, value)
         }
+    }
+}
+
+/** Cartridges with the MBC3 controller *including a timer*. */
+class MBC3Timer(rom: ByteArray) : MBC3(rom) {
+
+    private val rtc = FileSystem.loadRTC(getFileSystemName()) ?: DateTime()
+    private var rtcRegister = -1
+    private var rtcLatchPrepare = false
+
+    override fun read(addr: Int): Int {
+        return when {
+            addr in 0xA000..0xBFFF && rtcRegister in 0..3 -> rtc.get(rtcRegister)
+            else -> super.read(addr)
+        }
+    }
+
+    override fun write(addr: Int, value: Int) {
+        when (addr) {
+            in 0x4000..0x5FFF -> {
+                if (value in 0x08..0x0C) rtcRegister = min(value - 0x08, 4)
+                else {
+                    ramBank = (value and 0x03) % ramBankCount
+                    rtcRegister = -1
+                }
+            }
+
+            in 0x6000..0x7FFF -> {
+                if (value == 0x01 && rtcLatchPrepare) {
+                    rtcLatchPrepare = false
+                    rtc.latch()
+                }
+                rtcLatchPrepare = rtcLatchPrepare || value == 0x00
+            }
+
+            in 0xA000..0xBFFF -> {
+                if (rtcRegister >= 0) rtc.set(rtcRegister, value)
+                else super.write(addr, value)
+            }
+
+            else -> super.write(addr, value)
+        }
+    }
+
+    override fun save() {
+        super.save()
+        FileSystem.saveRTC(getFileSystemName(), rtc)
     }
 }
 
