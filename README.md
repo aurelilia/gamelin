@@ -1,28 +1,18 @@
 # Gamelin
 A Gameboy (Color) emulator written in Kotlin, able to run on desktop (LibGDX + VisUI) and in browser (KORGE).
 
+## Goals
+The main goals of this emulator is to both learn more about emulation of real-world hardware
+as well as creating a nice-to-use emulator with many comfort features that should be able
+to run well in the browser. Accuracy is only a goal when it fixes issues encountered
+by actual games; implementing complex but ultimately useless hardware details that aren't used by games
+(like the OAM bug or MBC1 multicarts) is not a goal of this emulator, particularly considering
+the speed requirements needed to make it work in the browser.
+
 ## Status
-The emulator is in an early, but usable state. Original GameBoy (DMA) emulation is accurate enough for
-almost all games, and while GameBoy Color (CGB) emulation still unfinished, many games already work.
+The emulator is in an early, but usable state. Both DMG and CGB emulation is complete and 
+quite accurate, enough to make most commercial games run perfectly.
 The emulator itself still does not have many comfort features like fast-forward or save states though.
-
-At the moment, the following is implemented and works:
-
-##### Console
-- Full SM83 CPU instruction set (All blargg cpu_instr tests pass)
-- All of the PPU
-- Full DIV/timer, all interrupts
-- DMA transfer
-- Working keyboard input, mapped to arrow keys, Enter, Space, X and Z
-- Full APU/Sound emulation (8/12 blargg dmg_sound tests pass)
-- Full MBC1, MBC2, MBC3 and MBC5 (RTC still missing)
-- Game saving support (to `.sav` file on desktop, into local browser storage on web)
-- Game Boy Color:
-    - Automatic detection of GBC games
-    - Additional WRAM/VRAM banks
-    - All PPU changes/differences
-    - GDMA & HDMA
-    - Double Speed Mode
 
 ##### Desktop Version
 - Reset and ROM changing support
@@ -38,75 +28,65 @@ At the moment, the following is implemented and works:
 
 ##### Web Version
 - Underlying emulator works fully in browser
-- Everything except sound working fully, sound is choppy
+- Entire emulator working fully, sound is choppy due to slow performance
 
-### Working/Tested games
+### Tested games
+Here's a non-exhaustive list of games I've tested. Results might sometimes be outdated.
+All games that support both DMG/GB and CGB/GBC were tested in GBC mode.
+
 ##### Perfect with no observable issues
-- Pokemon Blue* (Global, 1996, Game Freak)
+- Pokemon Blue (Global, 1996, Game Freak)
     - Tested until Viridian Forest
-- Pokemon Silver ** (Global, 2000, Game Freak)
+- Pokemon Silver (Global, 2000, Game Freak)
     - Played until first GYM, including Bellsprout Tower
+- Pokemon Crystal (Global, 2001, Game Freak)
+    - Played until reaching Bellsprout Tower
 - Dr. Mario (Global version, 1990, Nintendo)
 - Tetris (JP and Global versions, 1989, Nintendo)
-- Tetris DX ** (Global, 1998, Nintendo)
-- Pokemon Pinball ** (Global, 1999, Jupiter)
+- Tetris DX (Global, 1998, Nintendo)
+- Pokemon Pinball (Global, 1999, Jupiter)
 - Super Mario Land (Global, Nintendo)
     - Played until 2-1
 - Super Mario Land 2 (Global, 1992, Nintendo)
     - Played the first level
+- Super Mario Bros. Deluxe (Global, 1999, Nintendo)
+    - Played until 1-3, other modes also briefly tested
+- Wario Land 3 (Global, 2000, Nintendo)
+    - Played the first level
 - The Legend of Zelda: Link's Awakening (Global, 1993, Nintendo)
     - Played until shortly after obtaining your sword at the shore
+- The Legend of Zelda: Link's Awakening DX (Global, 1998, Nintendo)
+    - Played until finding the toadstool in the mysterious woods
+- The Legend of Zelda: Oracle of Ages (Global, 2001, Nintendo)
+    - Played until receiving the wooden sword
 - Kirby's Dream Land (Global, Nintendo/HAL)
     - Played until middle of stage 2
-- Donkey Kong* (Global, 1994, Nintendo)
+- Donkey Kong (Global, 1994, Nintendo)
+- Donkey Kong Land (Global, 1995, Nintendo/RARE)
+    - Tested for the first 2 levels
+- Donkey Kong Country (Global, 2000, RARE)
+    - Played the first level
 - Yoshi (Global, 1992, Nintendo)
 - Tic-Tac-Toe (1996, Norman Nithman)
 
 ##### Small issues, fully playable
-- Donkey Kong Land* (Global, 1995, Nintendo/RARE)
-    - Palette on title screen is wrong
-    - Tested for the first 2 levels
-- The Legend of Zelda: Link's Awakening DX ** (Global, 1998, Nintendo)
-    - Overworld palettes do not get restored properly after opening start menu, fixed by changing screen
-    - Played until finding the toadstool in the mysterious woods
-- Pokemon Yellow ** (Global, Game Freak)
-    - None of the Pikachu sound effects actually play
+- Pokemon Yellow (Global, Game Freak)
+    - None of the Pikachu sound effects actually play (they're just low volume noise)
     - Played until first rival fight
-- Super Mario Bros. Deluxe (Global, 1999, Nintendo)
-    - Bottom right of big mario sprite missing
-    - Played until 1-3, other modes also briefly tested
-    
-##### Mostly playable but with big issues
-- Pokemon Crystal ** (Global, 2001, Game Freak)
-    - Opening any submenu on the START menu and closing it again often results
-    in weird behavior: 
-        - A white screen, BG map shows textbox "No windows available for popping.", [Related glitchcity entry](https://glitchcity.wiki/Event_data_debugging_messages)
-        - Hanging for a few seconds before rebooting and identifying the console as DMG (with the "works only on GBC" message)
-    - Played until after meeting Mr. Pokemon
-
-##### Not really playable
-- The Legend of Zelda: Oracle of Ages ** (Global, 2001, Nintendo)
-    - Game runs at half speed (missing CGB double speed mode)
-    - Some sprites in intro broken
-    - Heavy graphical issues in-game
-- Donkey Kong Country ** (Global, 2000, RARE)
-    - Weird palette glitches on title screen
-    - In-Game: Too slow, map is completely glitched and impossible to make out
-
-##### Does not reach gameplay/not playable
-- Wario Land 3 ** (Global, 2000, Nintendo)
-    - Game hangs after selecting language
-
-\* briefly displays garbage on boot
-\** Tested in GBC mode
 
 ## Build
 ``` bash
 # Run on desktop
-./gradlew desktop:run
+./gradlew run
 
 # Create jarfile
-./gradlew desktop:dist
+./gradlew dist
+
+# Create web build in assets/web
+./js.sh
+# Alternatively:
+./gradlew jsBrowserWebpack
+cp build/distributions/gamelin.* assets/web/
 ```
 
 ## Testing
@@ -116,12 +96,10 @@ gradle jvmTest
 ```
 
 #### Blargg test results
-- `cpu_instrs`, `mem_timing`, `mem_timing-2`: All pass
+- `cpu_instrs`, `mem_timing`, `mem_timing-2`, `instr_timing`, `interrupt_time`: Pass
 - `dmg_sound`: 8/12 pass (07, 09, 10, 12 fail)
 - `cgb_sound`: 7/12 pass (07, 08, 09, 11, 12 fail)
-- `instr_timing`: Both pass
-- `interrupt_time`: Fails
-- `oam_bug`: Everything but 3 and 7 fail (OAM bug unimplemented)
+- `oam_bug`: Everything but 3 and 6 fail (OAM bug won't be implemented)
 
 #### Mooneye test results
 - `acceptance`: 26 out of 75 pass
