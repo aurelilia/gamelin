@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 1:24 PM.
+ * This file was last modified at 3/25/21, 5:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -181,23 +181,20 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         }
     }
 
-    // A list of sprite's X coords; used to ensure overlapping sprites get correct ordering
-    private val usedXObjCoords = IntArray(10)
-
     protected fun renderObjs() {
         var objCount = 0
         sprites@ for (loc in 0xFE00 until 0xFEA0 step 4) {
             Sprite.dat = mmu.read16(loc) + (mmu.read16(loc + 2) shl 16)
-            if (Sprite.y <= line && (Sprite.y + if (bigObjMode) 16 else 8) > line) { // If on this line
-                for (idx in 0 until objCount) {
-                    if (usedXObjCoords[idx] == Sprite.x) continue@sprites // X coord already occupied by another sprite
-                }
+            if (Sprite.y <= line && (Sprite.y + if (bigObjMode) 16 else 8) > line && allowObj(objCount)) { // If on this line and allowed
                 renderObj()
-                usedXObjCoords[objCount++] = Sprite.x
-                if (objCount == 10) break // At most 10 objects per scanline
+                if (++objCount == 10) break // At most 10 objects per scanline
             }
         }
     }
+
+    /** If the current object should be allowed to render.
+     * Only ever `false` on DMG, where 2 objects may not have the same X coordinate. */
+    protected abstract fun allowObj(objCount: Int): Boolean
 
     private fun renderObj() = Sprite.run {
         val dmgPalette = if (dmgPalette) objPalette2 else objPalette1
@@ -217,7 +214,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         for (tileX in 0 until 8) {
             val colorIdx = if (!xFlip) (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX) else (high.bit(tileX) shl 1) + low.bit(tileX)
             val screenX = x + tileX
-            if ((screenX) >= 0 && (screenX) < 160 && colorIdx != 0 && isPixelFree(screenX, line, priority)) {
+            if (screenX in 0..159 && colorIdx != 0 && isPixelFree(screenX, line, priority)) {
                 drawObjPixel(screenX, line, colorIdx, dmgPalette)
             }
         }

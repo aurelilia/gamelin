@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 4:06 PM.
+ * This file was last modified at 3/25/21, 5:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -129,6 +129,8 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
         val attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
         return attributes.bit(3) * 0x2000
     }
+
+    override fun allowObj(objCount: Int) = true
 
     override fun drawObjPixel(x: Int, y: Int, colorIdx: Int, dmgPalette: Int) {
         unavailablePixels[(x * 144) + y] = colorIdx != 0

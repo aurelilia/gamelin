@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 8:42 PM.
+ * This file was last modified at 3/25/21, 5:38 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,10 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(mmu, 20, 1
         } else {
             clearLine()
         }
-        if (objEnable) renderObjs()
+        if (objEnable) {
+            renderObjs()
+            usedXObjCoords.fill(-1)
+        }
     }
 
     override fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
@@ -50,6 +53,17 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(mmu, 20, 1
     }
 
     override fun getBGAddrAdjust(tileAddr: Int) = 0
+
+    // A list of sprite's X coords; used to ensure overlapping sprites get correct ordering
+    private val usedXObjCoords = IntArray(10)
+
+    override fun allowObj(objCount: Int): Boolean {
+        for (idx in 0 until objCount) {
+            if (usedXObjCoords[idx] == Sprite.x) return false // X coord already occupied by another sprite
+        }
+        usedXObjCoords[objCount] = Sprite.x
+        return true
+    }
 
     override fun drawObjPixel(x: Int, y: Int, colorIdx: Int, dmgPalette: Int) {
         renderer.drawPixel(x, y, getColor(dmgPalette, colorIdx))
