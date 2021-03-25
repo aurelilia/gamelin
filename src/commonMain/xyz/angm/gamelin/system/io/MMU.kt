@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 1:24 PM.
+ * This file was last modified at 3/25/21, 3:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,6 +9,7 @@ package xyz.angm.gamelin.system.io
 
 import xyz.angm.gamelin.Disposable
 import xyz.angm.gamelin.int
+import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.Interrupt
@@ -45,8 +46,9 @@ class MMU(internal val gb: GameBoy) : Disposable {
     }
 
     fun step(cycles: Int) {
-        ppu.step(cycles)
-        sound.step(cycles)
+        val adjCycles = cycles / gb.tSpeedMultiplier
+        ppu.step(adjCycles)
+        sound.step(adjCycles)
         timer.step(cycles)
         dma.step(cycles)
         hdma.step()
@@ -93,6 +95,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
                 else if (bootromOn && gb.cgbMode && addr >= 0x0200 && addr < 0x900) gbcBootRom[a - 0x0100].toByte()
                 else cart.read(addr)
             }
+            KEY1 -> gb.cpu.prepareSpeedSwitch.int().setBit(7, gb.tSpeedMultiplier == 2).toByte()
             JOYP -> joypad.read()
             DMA -> dma.read(addr)
             in HDMA -> if (gb.cgbMode) hdma.read(addr) else INVALID_READ.toByte()
@@ -133,6 +136,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
             IF -> regIF = value.int() or 0b11100000
             IE -> zram[a and 0x7F] = (value.int() or 0b11100000).toByte()
             BOOTROM_DISABLE -> bootromOn = false
+            KEY1 -> gb.cpu.prepareSpeedSwitch = value.isBit(0)
 
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> cart.write(addr, value)
@@ -233,6 +237,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
         private const val VRAM_SELECT = 0xFF4F
         private const val WRAM_SELECT = 0xFF70
         private val HDMA = HDMA_SRC_HIGH..HDMA_START
+        private const val KEY1 = 0xFF4D
 
         // DMG BOOT ROM, Bootix made by Hacktix: https://github.com/Hacktix/Bootix
         // Thank you, Hacktix!

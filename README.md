@@ -22,7 +22,7 @@ At the moment, the following is implemented and works:
     - Additional WRAM/VRAM banks
     - All PPU changes/differences
     - GDMA & HDMA
-    - Still missing: Double Speed Mode
+    - Double Speed Mode
 
 ##### Desktop Version
 - Reset and ROM changing support
@@ -49,6 +49,7 @@ At the moment, the following is implemented and works:
 - Dr. Mario (Global version, 1990, Nintendo)
 - Tetris (JP and Global versions, 1989, Nintendo)
 - Tetris DX ** (Global, 1998, Nintendo)
+- Pokemon Pinball ** (Global, 1999, Jupiter)
 - Super Mario Land (Global, Nintendo)
     - Played until 2-1
 - Super Mario Land 2 (Global, 1992, Nintendo)
@@ -71,7 +72,10 @@ At the moment, the following is implemented and works:
 - Pokemon Yellow ** (Global, Game Freak)
     - None of the Pikachu sound effects actually play
     - Played until first rival fight
-
+- Super Mario Bros. Deluxe (Global, 1999, Nintendo)
+    - Bottom right of big mario sprite missing
+    - Played until 1-3, other modes also briefly tested
+    
 ##### Mostly playable but with big issues
 - Pokemon Crystal ** (Global, 2001, Game Freak)
     - Opening any submenu on the START menu and closing it again often results
@@ -79,6 +83,15 @@ At the moment, the following is implemented and works:
         - A white screen, BG map shows textbox "No windows available for popping.", [Related glitchcity entry](https://glitchcity.wiki/Event_data_debugging_messages)
         - Hanging for a few seconds before rebooting and identifying the console as DMG (with the "works only on GBC" message)
     - Played until after meeting Mr. Pokemon
+
+##### Not really playable
+- The Legend of Zelda: Oracle of Ages ** (Global, 2001, Nintendo)
+    - Game runs at half speed (missing CGB double speed mode)
+    - Some sprites in intro broken
+    - Heavy graphical issues in-game
+- Donkey Kong Country ** (Global, 2000, RARE)
+    - Weird palette glitches on title screen
+    - In-Game: Too slow, map is completely glitched and impossible to make out
 
 ##### Does not reach gameplay/not playable
 - Wario Land 3 ** (Global, 2000, Nintendo)

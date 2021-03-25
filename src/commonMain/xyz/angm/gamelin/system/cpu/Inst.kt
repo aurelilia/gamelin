@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 1:35 AM.
+ * This file was last modified at 3/25/21, 3:47 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -60,7 +60,7 @@ private fun fillSet() = InstSet.apply {
     // 0x00 - 0x3F
     // -----------------------------------
     op[0x00] = Inst(1, 1, "NOP") { }
-    op[0x10] = Inst(1, 1, "STOP") { }
+    op[0x10] = Inst(2, 1, "STOP") { if (cpu.prepareSpeedSwitch) cpu.switchSpeed() }
     op[0x20] = BrInst(2, 2, 3, "JR NZ, s8") { if (!cpu.flag(Zero)) jr() else false }
     op[0x30] = BrInst(2, 2, 3, "JR NC, s8") { if (!cpu.flag(Carry)) jr() else false }
 

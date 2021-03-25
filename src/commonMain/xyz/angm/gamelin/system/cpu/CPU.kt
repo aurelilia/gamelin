@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 10:16 AM.
+ * This file was last modified at 3/25/21, 4:08 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -21,6 +21,7 @@ internal class CPU(private val gb: GameBoy) {
     var ime = false
     var halt = false
     var haltBug = false
+    var prepareSpeedSwitch = false
     val regs = ByteArray(Reg.values().size)
 
     /** Execute the next instruction, stepping the entire system forward
@@ -77,6 +78,12 @@ internal class CPU(private val gb: GameBoy) {
         return false
     }
 
+    internal fun switchSpeed() {
+        gb.tSpeedMultiplier = if (gb.tSpeedMultiplier == 1) 2 else 1
+        prepareSpeedSwitch = false
+        for (i in 0 until 1025) gb.advanceClock(2)
+    }
+
     fun write(reg: Reg, value: Byte) {
         // Register F only allows writing the 4 high/flag bits
         val regVal = if (reg == Reg.F) (value.int() and 0xF0).toByte() else value
@@ -95,6 +102,7 @@ internal class CPU(private val gb: GameBoy) {
         sp = 0
         ime = false
         halt = false
+        prepareSpeedSwitch = false
     }
 }
 
