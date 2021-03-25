@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 3:43 PM.
+ * This file was last modified at 3/25/21, 5:03 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,6 +17,7 @@ import xyz.angm.gamelin.system.io.ppu.CgbPPU
 import xyz.angm.gamelin.system.io.ppu.DmgPPU
 import xyz.angm.gamelin.system.io.ppu.PPU
 import xyz.angm.gamelin.system.io.sound.APU
+import kotlin.math.max
 
 /** The system's MMU, containing all devices and memory that
  * the CPU can reach on the address bus.
@@ -130,7 +131,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
         when (val a = addr.int()) {
             // Bank Selectors
             VRAM_SELECT -> if (gb.cgbMode) vramBank = value.int() and 1
-            WRAM_SELECT -> if (gb.cgbMode) wramBank = (value.int() and 7) or 1
+            WRAM_SELECT -> if (gb.cgbMode) wramBank = max(value.int() and 7, 1)
 
             // Special behavior
             IF -> regIF = value.int() or 0b11100000
