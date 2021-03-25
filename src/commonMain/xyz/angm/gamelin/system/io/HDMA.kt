@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 1:24 PM.
+ * This file was last modified at 3/25/21, 5:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -78,7 +78,7 @@ class HDMA(private val mmu: MMU) : IODevice() {
     /** Immediately execute a GDMA transfer. */
     private fun gdmaTransfer() {
         mmu.gb.advanceClock(1)
-        for (i in 0 until transferLeft) {
+        for (i in 0..transferLeft) {
             for (i in 0 until 0x10) {
                 mmu.write(dest++, mmu.read(source++))
             }
