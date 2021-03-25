@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 3:50 PM.
+ * This file was last modified at 3/25/21, 5:33 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -93,6 +93,7 @@ class GameBoy(val debugger: Debugger = Debugger(), private val preferCGB: Boolea
         cpu.reset()
         mmu.reset()
         clock = 0
+        tSpeedMultiplier = 1
     }
 
     // -----------------------------------
