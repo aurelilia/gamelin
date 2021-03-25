@@ -95,6 +95,9 @@ Blargg, mooneye and acid2 ROMs can be run automatically using gradle:
 gradle jvmTest
 ```
 
+Note that by default, only passing tests are run to allow easily catching regressions.
+To run all tests, change `TEST_ALL` in `src/jvmTest/xyz/angm/gamelin/tests/ProjectConfig.kt` to `true`.
+
 #### Blargg test results
 - `cpu_instrs`, `mem_timing`, `mem_timing-2`, `instr_timing`, `interrupt_time`: Pass
 - `dmg_sound`: 8/12 pass (07, 09, 10, 12 fail)
@@ -102,9 +105,8 @@ gradle jvmTest
 - `oam_bug`: Everything but 3 and 6 fail (OAM bug won't be implemented)
 
 #### Mooneye test results
-- `acceptance`: 26 out of 75 pass
+- `acceptance`: 27 out of 75 pass
 - `emulator-only`: All pass (except MBC1 multicart; will not be supported)
-- Others untested
 
 #### Acid2
 Both the `dmg-acid2` and `cgb-acid2` test written by Matt Currie pass (CGB in DMG mode untested).

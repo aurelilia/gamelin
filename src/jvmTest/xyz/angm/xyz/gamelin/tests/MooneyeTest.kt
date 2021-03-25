@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 8:38 PM.
+ * This file was last modified at 3/25/21, 6:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,7 @@ private val gb = GameBoy(preferCGB = false)
 
 /** Test runner for all mooneye-gb tests at assets/roms/test/mooneye. */
 class MooneyeTest : FunSpec({
-    for (dir in file("roms/test/mooneye").list(FileFilter { it.isDirectory && !it.name.contains("disabled") })) {
+    for (dir in file("roms/test/mooneye").list(FileFilter { it.isDirectory })) {
         context(dir.name()) {
             runDir(dir)
         }
@@ -31,6 +31,7 @@ class MooneyeTest : FunSpec({
 
 suspend fun FunSpecContextScope.runDir(dir: FileHandle) {
     for (file in dir.list()) {
+        if (file.name().contains("disabled") && !ProjectConfig.TEST_ALL) continue
         if (file.extension() == "gb") {
             test(file.name()) {
                 gb.loadGame(file.readBytes())

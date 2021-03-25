@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/22/21, 6:06 PM.
+ * This file was last modified at 3/25/21, 6:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -58,9 +58,9 @@ class BlarggTest : FunSpec({
     }
     val gb = GameBoy(debugger, preferCGB = false)
 
-    for (dir in file("roms/test/blargg").list(FileFilter { it.isDirectory && !it.name.contains("disabled") })) {
+    for (dir in file("roms/test/blargg").list(FileFilter { it.isDirectory && (!it.name.contains("disabled") || ProjectConfig.TEST_ALL) })) {
         context(dir.name()) {
-            for (test in dir.list(FileFilter { it.extension == "gb" })) {
+            for (test in dir.list(FileFilter { it.extension == "gb" && (!it.name.contains("disabled") || ProjectConfig.TEST_ALL) })) {
                 test(test.name()) {
                     gb.loadGame(test.readBytes())
                     gb.skipBootRom()
