@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 7:43 PM.
+ * This file was last modified at 3/26/21, 9:40 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -90,7 +90,7 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
             }
 
             for (btn in Button.values()) {
-                visLabel(btn.name) { it.uniform() }
+                leftLabel(btn.name)
 
                 val key = config.keymap[btn.ordinal]
                 visTextButton(Input.Keys.toString(key)) {
@@ -135,6 +135,8 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                 button.alpha = 1f
             }
         }
+
+        pane.switchTab(0)
     }
 
     override fun close() {
@@ -152,7 +154,7 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
         get: () -> Boolean,
         crossinline set: (Boolean) -> Unit
     ): KVisCheckBox {
-        visLabel(text) { it.uniform() }
+        leftLabel(text)
         return visCheckBox("") {
             visTooltip(visLabel(tooltip))
             isChecked = get()
@@ -167,7 +169,7 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
         get: () -> String,
         crossinline set: (String) -> Unit
     ): KVisSelectBox<String> {
-        visLabel(text) { it.uniform() }
+        leftLabel(text)
         val box = KVisSelectBox<String>(defaultStyle)
         box.items = GdxArray(items)
         box.selected = get()
@@ -184,7 +186,7 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
         get: () -> Float,
         crossinline set: (Float) -> Unit
     ): VisSlider {
-        visLabel(text) { it.uniform() }
+        leftLabel(text)
         return visSlider(min, max, step) {
             value = get()
             val tooltip = VisLabel(value.toString())
@@ -195,6 +197,10 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
             }
             it.uniform().row()
         }
+    }
+
+    private fun KVisTable.leftLabel(text: String) {
+        visLabel(text) { it.uniform().left() }
     }
 
     private class OptTab(val title: String, val table: KVisTable = KVisTable(true)) : Tab(false, false) {

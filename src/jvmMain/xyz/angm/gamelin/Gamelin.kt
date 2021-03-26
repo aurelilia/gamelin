@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 9:35 PM.
+ * This file was last modified at 3/26/21, 9:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -98,9 +98,11 @@ class Gamelin : ApplicationAdapter() {
         }
 
         windowItem("Debugger", Input.Keys.F7, disable = true) { DebuggerWindow() }
+        debugger.addSeparator()
         windowItem("BG Map Viewer", Input.Keys.F8) { BGMapViewer() }
         windowItem("VRAM Viewer", Input.Keys.F9) { VRAMViewer() }
         windowItem("Cartridge Info", Input.Keys.I) { CartInfoWindow() }
+        debugger.addSeparator()
         windowItem("Instruction Set", null) { InstructionSetWindow("Instruction Set", InstSet.op) }
         windowItem("Extended InstSet", null) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
 
