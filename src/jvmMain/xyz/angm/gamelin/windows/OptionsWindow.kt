@@ -1,25 +1,28 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 4:19 PM.
+ * This file was last modified at 3/26/21, 4:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.windows
 
-import com.kotcrab.vis.ui.widget.VisLabel
-import com.kotcrab.vis.ui.widget.VisSlider
-import com.kotcrab.vis.ui.widget.VisTable
+import com.badlogic.gdx.Input
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.kotcrab.vis.ui.widget.*
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter
+import ktx.actors.alpha
 import ktx.actors.onChange
+import ktx.actors.onClick
 import ktx.collections.*
 import ktx.scene2d.defaultStyle
 import ktx.scene2d.vis.*
 import xyz.angm.gamelin.config
 import xyz.angm.gamelin.configuration
 import xyz.angm.gamelin.saveConfiguration
+import xyz.angm.gamelin.system.io.Button
 
 class OptionsWindow : Window("Options") {
 
@@ -57,6 +60,47 @@ class OptionsWindow : Window("Options") {
             slider("Volume", 0f, 1f, 0.01f, { config.volume }, { config.volume = it })
             slider("Volume while fast-forwarding", 0f, 1f, 0.01f, { config.fastForwardVolume }, { config.fastForwardVolume = it })
         }
+
+        tab("Input") {
+            var current: Int? = null
+            var button: VisTextButton? = null
+
+            fun resetCurrent(btn: VisTextButton?, key: Int = config.keymap[current ?: 0]) {
+                if (current == null || btn == null) return
+                config.keymap[current ?: 0] = key
+                btn.setText(Input.Keys.toString(key))
+                btn.alpha = 1f
+                current = null
+                button = null
+            }
+
+            for (btn in Button.values()) {
+                visLabel(btn.name) { it.uniform() }
+
+                val key = config.keymap[btn.ordinal]
+                visTextButton(Input.Keys.toString(key)) {
+                    onClick {
+                        setText("...")
+                        alpha = 0.7f
+                        resetCurrent(button)
+                        current = btn.ordinal
+                        button = this@visTextButton
+                        stage.keyboardFocus = this@tab
+                    }
+                    it.width(75f).height(35f).uniform()
+                }
+
+                if (btn.ordinal % 2 == 1) row()
+                else add().width(50f)
+
+                addListener { event ->
+                    if (event is InputEvent && event.type === InputEvent.Type.keyDown && current != null) {
+                        resetCurrent(button, event.keyCode)
+                        true
+                    } else false
+                }
+            }
+        }
     }
 
     override fun close() {
@@ -79,7 +123,7 @@ class OptionsWindow : Window("Options") {
             visTooltip(visLabel(tooltip))
             isChecked = get()
             onChange { set(isChecked) }
-            it.colspan(2).row()
+            it.row()
         }
     }
 
