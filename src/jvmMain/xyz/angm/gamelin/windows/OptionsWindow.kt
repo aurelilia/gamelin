@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 9:53 PM.
+ * This file was last modified at 3/26/21, 11:33 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -115,13 +115,13 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
 
                 if (btn.ordinal % 2 == 1) row()
                 else add().width(50f)
+            }
 
-                addListener { event ->
-                    if (event is InputEvent && event.type === InputEvent.Type.keyDown && current != null) {
-                        resetCurrent(button, event.keyCode)
-                        true
-                    } else false
-                }
+            addListener { event ->
+                if (event is InputEvent && event.type === InputEvent.Type.keyDown && current != null) {
+                    resetCurrent(button, event.keyCode)
+                    true
+                } else false
             }
         }
 

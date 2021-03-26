@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 9:42 PM.
+ * This file was last modified at 3/26/21, 11:33 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,6 +8,7 @@
 package xyz.angm.gamelin
 
 import com.badlogic.gdx.*
+import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -32,7 +33,6 @@ import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.windows.*
-import kotlin.system.exitProcess
 
 /** The global GameBoy instance the program is currently operating on.
  * This was decided to be implmeneted as global state to allow switching out the
@@ -59,6 +59,7 @@ class Gamelin : ApplicationAdapter() {
         multi.addProcessor(stage)
         multi.addProcessor(hotkeyHandler)
         Gdx.input.inputProcessor = multi
+        Controllers.addListener(Keyboard)
 
         gbWindow = GameBoyWindow()
         stage.addActor(gbWindow)
@@ -218,8 +219,8 @@ class Gamelin : ApplicationAdapter() {
         saveConfiguration()
         gb.dispose()
         Thread.sleep(20)
+        Controllers.clearListeners()
         stage.dispose()
-        exitProcess(0)
     }
 
     class HotkeyHandler : InputAdapter() {

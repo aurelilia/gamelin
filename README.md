@@ -10,7 +10,7 @@ by actual games; implementing complex but ultimately useless hardware details th
 the speed requirements needed to make it work in the browser.
 
 ## Status
-The emulator is in an early, but usable state. Both DMG and CGB emulation is complete and 
+The emulator is in a good and usable state. Both DMG and CGB emulation is complete and 
 quite accurate, enough to make most commercial games run perfectly.
 
 ##### Missing console features
@@ -21,8 +21,9 @@ after turning the game off overnight - needs more testing).
 
 ##### Desktop Version
 - Upscaling with HQ2X, HQ3X and HQ4X
-- Basic save states
+- Save states with "undo last load" function
 - Fast-forwarding at any integer multiplier by holding a configurable key
+- Basic controller support
 - Debugger with:
     - Tileset and BG Map Viewers
     - Cartridge Info Viewer

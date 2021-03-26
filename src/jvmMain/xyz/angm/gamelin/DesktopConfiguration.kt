@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 7:30 PM.
+ * This file was last modified at 3/26/21, 11:30 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,6 +14,8 @@ val config = loadDesktopConfiguration()
 
 /** Additional configuration only applicable to desktop.
  * @property keymap The keys mapping to the GB joypad. Order is same as [Button].
+ * @property buttonMap Same as [keymap] but for controller buttons
+ * @property axisMap
  * @property fastForwardKey Key to be held to fast-forward.
  * @property fastForwardSpeed Fast-forward speed - 1. (1 = 2x, 2 = 3x, ...)
  * @property volume Volume of audio output
@@ -22,8 +24,11 @@ val config = loadDesktopConfiguration()
  * @property hqxLevel Which type of hqx scaling to apply. Values 1-4; 1 is linear scaling. */
 class DesktopConfiguration {
     val keymap = arrayOf(Input.Keys.Z, Input.Keys.X, Input.Keys.ENTER, Input.Keys.SPACE, Input.Keys.RIGHT, Input.Keys.LEFT, Input.Keys.UP, Input.Keys.DOWN)
+    val buttonMap = arrayOf(0, 1, 9, 8, 14, 13, 11, 12)
+    val axisMap = arrayOf(0, 1)
 
     var fastForwardKey = Input.Keys.C
+    var fastForwardButton = 3
     var fastForwardSpeed = 3
 
     var volume = 0.5f
