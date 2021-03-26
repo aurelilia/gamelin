@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:53 PM.
+ * This file was last modified at 3/26/21, 9:02 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -36,15 +36,15 @@ import kotlin.system.exitProcess
  * GB at any point, for features like save states. */
 var gb = GameBoy(DesktopDebugger())
 
-/** The libGDX application driving the desktop emulator. */
+/** The libGDX application driving the desktop emulator.
+ * @property disabledButtons Buttons that are only enabled once a game is loaded. */
 class Gamelin : ApplicationAdapter() {
 
     private lateinit var stage: Stage
     private val windows = HashMap<String, Window>()
     private val hotkeyHandler = HotkeyHandler()
     private lateinit var gbWindow: GameBoyWindow
-    private lateinit var pauseBtn: MenuItem
-    private lateinit var saveGameBtn: MenuItem
+    private val disabledButtons = GdxArray<MenuItem>()
 
     override fun create() {
         VisUI.load()
@@ -83,18 +83,16 @@ class Gamelin : ApplicationAdapter() {
             stage.addActor(chooser)
             chooser.fadeIn()
         }
-        pauseBtn = file.item("Pause", Input.Keys.P) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
-        pauseBtn.isDisabled = true
-        file.item("Reset", Input.Keys.R) { gb.reset() }
-        saveGameBtn = file.item("Save Game to disk", Input.Keys.S) { gb.mmu.cart.save() }
-        saveGameBtn.isDisabled = true
+        file.item("Pause", Input.Keys.P, disable = true) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
+        file.item("Reset", Input.Keys.R, disable = true) { gb.reset() }
+        file.item("Save Game to disk", Input.Keys.S, disable = true) { gb.mmu.cart.save() }
         file.item("Exit", Input.Keys.F4) { Gdx.app.exit() }
 
-        fun windowItem(name: String, shortcut: Int?, menu: Menu = debugger, create: () -> Window) {
-            menu.item(name, shortcut) { toggleWindow(name, create) }
+        fun windowItem(name: String, shortcut: Int?, menu: Menu = debugger, disable: Boolean = false, create: () -> Window) {
+            menu.item(name, shortcut, disable) { toggleWindow(name, create) }
         }
 
-        windowItem("Debugger", Input.Keys.F7) { DebuggerWindow() }
+        windowItem("Debugger", Input.Keys.F7, disable = true) { DebuggerWindow() }
         windowItem("BG Map Viewer", Input.Keys.F8) { BGMapViewer() }
         windowItem("VRAM Viewer", Input.Keys.F9) { VRAMViewer() }
         windowItem("Cartridge Info", Input.Keys.I) { CartInfoWindow() }
@@ -102,8 +100,8 @@ class Gamelin : ApplicationAdapter() {
         windowItem("Extended InstSet", null) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
 
         windowItem("Options", Input.Keys.F10, options) { OptionsWindow(this) }
-        options.item("Save State", Input.Keys.NUM_0) { FileSystem.saveState("0") }
-        options.item("Load State", Input.Keys.NUM_1) {
+        options.item("Save State", Input.Keys.NUM_0, disable = true) { FileSystem.saveState("0") }
+        options.item("Load State", Input.Keys.NUM_1, disable = true) {
             FileSystem.loadState("0")
             gameLoaded()
         }
@@ -114,13 +112,17 @@ class Gamelin : ApplicationAdapter() {
         root.add(menuBar.table).expandX().fillX().row()
     }
 
-    private inline fun Menu.item(name: String, shortcut: Int?, crossinline click: () -> Unit): MenuItem {
+    private inline fun Menu.item(name: String, shortcut: Int?, disable: Boolean = false, crossinline click: () -> Unit): MenuItem {
         val item = MenuItem(name, object : ChangeListener() {
             override fun changed(event: ChangeEvent?, actor: Actor?) = click()
         })
         if (shortcut != null) {
             item.setShortcut(shortcut)
             hotkeyHandler.register(shortcut) { if (!item.isDisabled) click() }
+        }
+        if (disable) {
+            disabledButtons.add(item)
+            item.isDisabled = true
         }
         addItem(item)
         return item
@@ -161,8 +163,7 @@ class Gamelin : ApplicationAdapter() {
     }
 
     private fun gameLoaded() {
-        saveGameBtn.isDisabled = false
-        pauseBtn.isDisabled = false
+        for (btn in disabledButtons) btn.isDisabled = false
         gbWindow.refresh()
     }
 
