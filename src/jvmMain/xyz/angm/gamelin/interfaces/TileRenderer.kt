@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 7:32 PM.
+ * This file was last modified at 3/26/21, 8:58 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,14 +17,13 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.config
 import xyz.angm.gamelin.gb
-import xyz.angm.gamelin.system.io.MMU
 import xyz.angm.gamelin.system.io.ppu.PPU
 
 /** TileRenderer using 2 pixmaps for buffering the image, as well as a texture
  * that contains the last finished pixmap.
  * Each time a frame is finished, the current pixmap is swapped.
  * This causes a 2-3 frame lag, but prevents the user from seeing mid-frame display states. */
-internal actual class TileRenderer actual constructor(mmu: MMU, private val tileWidth: Int, private val tileHeight: Int) : Actor() {
+internal actual class TileRenderer actual constructor(private val tileWidth: Int, private val tileHeight: Int) : Actor() {
 
     private val pixmapA = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
     private val pixmapB = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
@@ -32,7 +31,7 @@ internal actual class TileRenderer actual constructor(mmu: MMU, private val tile
     private var texture: Texture? = null
     private var hqx = getHqx()
 
-    constructor(mmu: MMU, width: Int, height: Int, scale: Float) : this(mmu, width, height) {
+    constructor(width: Int, height: Int, scale: Float) : this(width, height) {
         setGBScale(scale)
     }
 

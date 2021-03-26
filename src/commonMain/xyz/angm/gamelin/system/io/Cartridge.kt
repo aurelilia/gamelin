@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 10:32 PM.
+ * This file was last modified at 3/26/21, 8:33 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,12 +13,13 @@ import xyz.angm.gamelin.interfaces.DateTime
 import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
+import kotlin.jvm.Transient
 import kotlin.math.max
 import kotlin.math.min
 
 /** A game that the system is playing.
  * @property rom The raw ROM file of this game. */
-abstract class Cartridge(protected val rom: ByteArray) : IODevice() {
+abstract class Cartridge(@Transient var rom: ByteArray) : IODevice() {
 
     internal val romBankCount = (2 shl rom[ROM_BANKS].int())
     internal val ramBankCount = when (rom[RAM_BANKS].int()) {

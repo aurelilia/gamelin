@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 5:19 PM.
+ * This file was last modified at 3/26/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,6 +13,7 @@ import xyz.angm.gamelin.int
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.system.io.MMU
+import kotlin.jvm.Transient
 import kotlin.math.min
 
 /** The GameBoy Color's PPU. */
@@ -28,7 +29,7 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
     // All pixels where either:
     // - BG bit 7 is set - making all objs render below it
     // - An obj has already rendered, not allowing other objs to render
-    private val unavailablePixels = Array(160 * 144) { false }
+    @Transient private var unavailablePixels = Array(160 * 144) { false }
 
     override fun read(addr: Int): Int {
         return when (addr) {
@@ -150,6 +151,11 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
      * don't set occupied pixels if LCDC.0 == 0. */
     override fun setPixelOccupied(x: Int, y: Int) {
         bgOccupiedPixels[(x * 144) + y] = bgEnable
+    }
+
+    override fun restore() {
+        super.restore()
+        unavailablePixels = Array(160 * 144) { false }
     }
 }
 

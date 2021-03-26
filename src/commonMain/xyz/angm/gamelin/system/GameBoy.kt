@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 3:51 PM.
+ * This file was last modified at 3/26/21, 8:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,12 +13,13 @@ import xyz.angm.gamelin.interfaces.Debugger
 import xyz.angm.gamelin.system.cpu.*
 import xyz.angm.gamelin.system.io.MMU
 import kotlin.experimental.and
+import kotlin.jvm.Transient
 
 /** The entire GB system.
  * @property gameLoaded If a game has been loaded and the system is ready to be emulated/used
  * @property disposed If the system is disposed and should cease all activities.
  * @property cgbMode If the system is running in CGB mode instead of DMG */
-class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
+class GameBoy(@Transient var debugger: Debugger = Debugger()) : Disposable {
 
     internal val cpu = CPU(this)
     val mmu = MMU(this)
@@ -290,9 +291,6 @@ class GameBoy(val debugger: Debugger = Debugger()) : Disposable {
         return true
     }
 
-    // -----------------------------------
-    // Interrupts
-    // -----------------------------------
     override fun dispose() {
         disposed = true
         mmu.dispose()

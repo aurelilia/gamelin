@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 5:42 PM.
+ * This file was last modified at 3/26/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -50,7 +50,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     private var objPalette2 = 0b11100100
 
     // All pixels in the current render cycle that have a non-zero BG color (objects render under it)
-    protected val bgOccupiedPixels = Array(160 * 144) { false }
+    @Transient protected var bgOccupiedPixels = Array(160 * 144) { false }
 
     override fun read(addr: Int): Int {
         return when (addr) {
@@ -280,6 +280,11 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
         bgPalette = 0b11100100
         objPalette1 = 0b11100100
         objPalette2 = 0b11100100
+    }
+
+    /** Called on save state restore to recreate transient temporary data */
+    open fun restore() {
+        bgOccupiedPixels = Array(160 * 144) { false }
     }
 
     override fun dispose() = renderer.dispose()

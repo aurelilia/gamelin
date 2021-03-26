@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 1:24 PM.
+ * This file was last modified at 3/26/21, 8:40 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,8 +14,8 @@ import xyz.angm.gamelin.interfaces.TileRenderer
  * Does not consider CGB banks, shows currently selected bank. */
 class VRAMViewer : Window("VRAM Viewer") {
 
-    private val renderer = TileRenderer(gb.mmu, 16, 24, 4f)
-    private val rendererCGB = TileRenderer(gb.mmu, 16, 24, 4f)
+    private val renderer = TileRenderer(16, 24, 4f)
+    private val rendererCGB = TileRenderer(16, 24, 4f)
 
     init {
         add(renderer)

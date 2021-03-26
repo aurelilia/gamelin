@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 7:28 PM.
+ * This file was last modified at 3/26/21, 8:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -43,6 +43,7 @@ class Gamelin : ApplicationAdapter() {
     private val windows = HashMap<String, Window>()
     private val hotkeyHandler = HotkeyHandler()
     private lateinit var gbWindow: GameBoyWindow
+    private lateinit var pauseBtn: MenuItem
     private lateinit var saveGameBtn: MenuItem
 
     override fun create() {
@@ -82,7 +83,8 @@ class Gamelin : ApplicationAdapter() {
             stage.addActor(chooser)
             chooser.fadeIn()
         }
-        file.item("Pause", Input.Keys.P) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
+        pauseBtn = file.item("Pause", Input.Keys.P) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
+        pauseBtn.isDisabled = true
         file.item("Reset", Input.Keys.R) { gb.reset() }
         saveGameBtn = file.item("Save Game to disk", Input.Keys.S) { gb.mmu.cart.save() }
         saveGameBtn.isDisabled = true
@@ -100,9 +102,9 @@ class Gamelin : ApplicationAdapter() {
         windowItem("Extended InstSet", null) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
 
         windowItem("Options", Input.Keys.F10, options) { OptionsWindow(this) }
-        options.item("Save State", Input.Keys.NUM_0) { saveGb() }
+        options.item("Save State", Input.Keys.NUM_0) { FileSystem.saveState("0") }
         options.item("Load State", Input.Keys.NUM_1) {
-            loadGb()
+            FileSystem.loadState("0")
             gameLoaded()
         }
 
@@ -160,6 +162,7 @@ class Gamelin : ApplicationAdapter() {
 
     private fun gameLoaded() {
         saveGameBtn.isDisabled = false
+        pauseBtn.isDisabled = false
         gbWindow.refresh()
     }
 

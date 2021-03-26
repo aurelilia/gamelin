@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 1:52 PM.
+ * This file was last modified at 3/26/21, 8:45 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -67,7 +67,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
         ppu = if (gb.cgbMode) CgbPPU(this, ppu.renderer) else DmgPPU(this, ppu.renderer)
         vram = ByteArray(8_192 * if (gb.cgbMode) 2 else 1)
         vramBank = 0
-        wram = ByteArray(8_192 * if (gb.cgbMode) 8 else 1)
+        wram = ByteArray(4_096 * if (gb.cgbMode) 8 else 2)
         wramBank = 1
         oam.fill(0xFF.toByte())
         zram.fill(0)

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 10:16 PM.
+ * This file was last modified at 3/26/21, 8:58 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,12 +8,25 @@
 package xyz.angm.gamelin.interfaces
 
 import com.badlogic.gdx.files.FileHandle
+import com.esotericsoftware.kryo.Kryo
+import com.esotericsoftware.kryo.io.Input
+import com.esotericsoftware.kryo.io.Output
+import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy
+import org.objenesis.strategy.StdInstantiatorStrategy
+import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.interfaces.FileSystem.gamePath
+import xyz.angm.gamelin.system.GameBoy
 
-/** FileSystem that saves game RAM next to the game in a .sav file.
+/** FileSystem that saves game RAM next to the game in a .sav file, RTC in .rtc,
+ * and save states in .state files.
  * [gamePath] needs to be set to the location of the current game. */
 actual object FileSystem {
 
+    private val kryo = Kryo().apply {
+        references = true
+        isRegistrationRequired = false
+        instantiatorStrategy = DefaultInstantiatorStrategy(StdInstantiatorStrategy())
+    }
     var gamePath: FileHandle? = null
 
     actual fun saveRAM(game: String, ram: ByteArray) {
@@ -32,6 +45,38 @@ actual object FileSystem {
     actual fun loadRTC(game: String): DateTime? {
         val file = saveFileHandle("rtc")
         return if (file?.exists() == true) DateTime(file.readString().toLong()) else null
+    }
+
+    fun saveState(slot: String) {
+        val prevHalt = gb.debugger.emuHalt
+        gb.debugger.emuHalt = true
+        Thread.sleep(1) // Wait for gb to come to a stop to prevent saving mid-cycle state
+
+        val out = Output(saveFileHandle("$slot.state")?.write(false) ?: return)
+        kryo.writeObject(out, gb)
+        gb.debugger.emuHalt = prevHalt
+
+        out.flush()
+        out.close()
+    }
+
+    fun loadState(slot: String) {
+        val file = saveFileHandle("$slot.state")
+        if (file?.exists() != true) return
+        val input = Input(file.read())
+        val oldGb = gb
+        saveState("last")
+
+        val newGb = kryo.readObject(input, GameBoy::class.java)
+        newGb.mmu.ppu.renderer = oldGb.mmu.ppu.renderer
+        newGb.mmu.ppu.restore()
+        newGb.mmu.cart.rom = oldGb.mmu.cart.rom
+        newGb.debugger = oldGb.debugger
+        gb = newGb
+
+        // Don't actually call the dispose() method, all of the
+        // native resources are carried to the new GB so it's fine
+        oldGb.disposed = true
     }
 
     private fun saveFileHandle(ext: String = "sav"): FileHandle? {

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:35 PM.
+ * This file was last modified at 3/26/21, 8:40 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,8 +14,8 @@ import xyz.angm.gamelin.interfaces.TileRenderer
 /** Window that shows the current BG and window maps .*/
 class BGMapViewer : Window("BG Map Viewer") {
 
-    private val bgRender = TileRenderer(gb.mmu, 32, 32, 2f)
-    private val windowRender = TileRenderer(gb.mmu, 32, 32, 2f)
+    private val bgRender = TileRenderer(32, 32, 2f)
+    private val windowRender = TileRenderer(32, 32, 2f)
 
     init {
         add(VisLabel("Background"))
