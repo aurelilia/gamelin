@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 6:52 PM.
+ * This file was last modified at 3/26/21, 4:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,7 +18,7 @@ import java.io.FileFilter
 
 /** The amount of time to run the system for before considering a test to have timeouted/failed. */
 private const val TEST_TIMEOUT_SECONDS = 10
-private val gb = GameBoy(preferCGB = false)
+private val gb = GameBoy()
 
 /** Test runner for all mooneye-gb tests at assets/roms/test/mooneye. */
 class MooneyeTest : FunSpec({

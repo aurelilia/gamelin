@@ -13,7 +13,7 @@ the speed requirements needed to make it work in the browser.
 The emulator is in an early, but usable state. Both DMG and CGB emulation is complete and 
 quite accurate, enough to make most commercial games run perfectly.
 The emulator itself still does not have many comfort features like cheats or save states though
-and configuration cannot be changed in-GUI yet.
+and some configuration cannot be changed in-GUI yet.
 
 ##### Missing console features
 - Some MBC3 controllers have a built-in RTC for keeping track of time; Gamelin implements it,
