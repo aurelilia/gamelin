@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 9:40 PM.
+ * This file was last modified at 3/26/21, 9:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -46,6 +46,20 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
             )
 
             selectBox(
+                "Fast-forward speed multiplier", arrayOf("2x", "3x", "4x", "6x", "8x"),
+                { "${config.fastForwardSpeed + 1}x" },
+                { config.fastForwardSpeed = it[0] - '1' }
+            )
+        }
+
+        tab("Graphics") {
+            checkBox(
+                "GBC Color correction",
+                "Filter colors to be closer to how they look on a real GBC screen.",
+                { configuration.cgbColorCorrection }, { configuration.cgbColorCorrection = it }
+            )
+
+            selectBox(
                 "GameBoy display scale", arrayOf("1x", "2x", "3x", "4x", "6x", "8x"),
                 { "${config.gbScale}x" },
                 {
@@ -62,12 +76,6 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                     config.hqxLevel = upscalers.indexOf(it) + 1
                     gb.mmu.ppu.renderer.hqxLevelChanged()
                 }
-            )
-
-            selectBox(
-                "Fast-forward speed multiplier", arrayOf("2x", "3x", "4x", "6x", "8x"),
-                { "${config.fastForwardSpeed + 1}x" },
-                { config.fastForwardSpeed = it[0] - '1' }
             )
         }
 
