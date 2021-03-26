@@ -12,25 +12,26 @@ the speed requirements needed to make it work in the browser.
 ## Status
 The emulator is in an early, but usable state. Both DMG and CGB emulation is complete and 
 quite accurate, enough to make most commercial games run perfectly.
-The emulator itself still does not have many comfort features like fast-forward or save states though.
+The emulator itself still does not have many comfort features like cheats or save states though
+and configuration cannot be changed in-GUI yet.
 
 ##### Missing console features
 - Some MBC3 controllers have a built-in RTC for keeping track of time; Gamelin implements it,
 but in a very simple format incompatible with other emulators that has a high chance of
 not working with most games (it was tested with Pokemon Crystal and successfully kept time
-after turning the game off for 8 minutes - needs more testing).
+after turning the game off overnight - needs more testing).
 
 ##### Desktop Version
-- Reset and ROM changing support
 - Basic save states (save/load entire console state at any point)
-- Instruction Set Viewer
-- Tileset and BG Map Viewers
-- Cartridge Info Viewer
-- Debugger with support for:
+- Fast-forwarding at any integer multiplier by holding a configurable key
+- Debugger with:
+    - Tileset and BG Map Viewers
+    - Cartridge Info Viewer
     - PC and write breakpoints
     - Memory, register and stack view
     - Emulator halting / Line-by-line debugging
     - Per-instruction CPU/register state logging
+    - Instruction Set Viewer
 
 ##### Web Version
 - Underlying emulator works fully in browser
