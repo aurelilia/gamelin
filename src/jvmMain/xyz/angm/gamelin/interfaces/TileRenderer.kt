@@ -1,20 +1,21 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 5:03 PM.
+ * This file was last modified at 3/26/21, 7:32 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.interfaces
 
+import HqnxEffect
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import xyz.angm.gamelin.bit
+import xyz.angm.gamelin.config
 import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.system.io.MMU
 import xyz.angm.gamelin.system.io.ppu.PPU
@@ -29,6 +30,7 @@ internal actual class TileRenderer actual constructor(mmu: MMU, private val tile
     private val pixmapB = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
     private var current = pixmapA
     private var texture: Texture? = null
+    private var hqx = getHqx()
 
     constructor(mmu: MMU, width: Int, height: Int, scale: Float) : this(mmu, width, height) {
         setGBScale(scale)
@@ -85,17 +87,24 @@ internal actual class TileRenderer actual constructor(mmu: MMU, private val tile
         return true
     }
 
-    override fun draw(batch: Batch, parentAlpha: Float) {
-        batch.draw(texture ?: return, x, y, width, height)
+    fun beforeRender() {
+        hqx?.renderToBuffer(texture ?: return)
     }
+
+    override fun draw(batch: Batch, parentAlpha: Float) {
+        batch.draw(hqx?.dstBuffer?.colorBufferTexture ?: texture ?: return, x, y, width, height)
+    }
+
+    fun hqxLevelChanged() {
+        hqx = getHqx()
+    }
+
+    private fun getHqx() = if (config.hqxLevel in 2..4) HqnxEffect(config.hqxLevel) else null
 
     actual fun dispose() {
         pixmapA.dispose()
         pixmapB.dispose()
         texture?.dispose()
-    }
-
-    companion object {
-        private val colors = arrayOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY, Color.BLACK)
+        hqx?.dispose()
     }
 }

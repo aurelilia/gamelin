@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 5:18 PM.
+ * This file was last modified at 3/26/21, 7:28 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -172,6 +172,7 @@ class Gamelin : ApplicationAdapter() {
     override fun render() {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+        gb.mmu.ppu.renderer.beforeRender()
         stage.act(Gdx.graphics.deltaTime)
         stage.draw()
     }

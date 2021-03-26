@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 5:26 PM.
+ * This file was last modified at 3/26/21, 7:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,10 +17,7 @@ import ktx.actors.*
 import ktx.collections.*
 import ktx.scene2d.defaultStyle
 import ktx.scene2d.vis.*
-import xyz.angm.gamelin.Gamelin
-import xyz.angm.gamelin.config
-import xyz.angm.gamelin.configuration
-import xyz.angm.gamelin.saveConfiguration
+import xyz.angm.gamelin.*
 import xyz.angm.gamelin.system.io.Button
 
 class OptionsWindow(private val game: Gamelin) : Window("Options") {
@@ -54,6 +51,16 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                 {
                     config.gbScale = it[0] - '0'
                     game.reloadGameWindow()
+                }
+            )
+
+            val upscalers = arrayOf("None", "hq2x", "hq3x", "hq4x")
+            selectBox(
+                "Upscaling method", upscalers,
+                { upscalers[config.hqxLevel - 1] },
+                {
+                    config.hqxLevel = upscalers.indexOf(it) + 1
+                    gb.mmu.ppu.renderer.hqxLevelChanged()
                 }
             )
 
@@ -165,7 +172,7 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
         box.items = GdxArray(items)
         box.selected = get()
         box.onChange { set(selected) }
-        add(box).uniform().row()
+        add(box).uniform().width(75f).row()
         return box
     }
 

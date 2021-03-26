@@ -12,8 +12,7 @@ the speed requirements needed to make it work in the browser.
 ## Status
 The emulator is in an early, but usable state. Both DMG and CGB emulation is complete and 
 quite accurate, enough to make most commercial games run perfectly.
-The emulator itself still does not have many comfort features like cheats or save states though
-and some configuration cannot be changed in-GUI yet.
+The emulator itself still does not have many comfort features like cheats or save states though.
 
 ##### Missing console features
 - Some MBC3 controllers have a built-in RTC for keeping track of time; Gamelin implements it,
@@ -22,6 +21,7 @@ not working with most games (it was tested with Pokemon Crystal and successfully
 after turning the game off overnight - needs more testing).
 
 ##### Desktop Version
+- Upscaling with HQ2X, HQ3X and HQ4X
 - Basic save states (save/load entire console state at any point)
 - Fast-forwarding at any integer multiplier by holding a configurable key
 - Debugger with:
@@ -126,5 +126,6 @@ Thank you to [@mattcurrie](https://github.com/mattcurrie) for creating them!
 - [stan-roelofs, for their emulator, which I abridged the sound implementation from](https://github.com/stan-roelofs/Kotlin-Gameboy-Emulator)
 - [Megan Sullivan, for her list of GB opcodes](https://meganesulli.com/blog/game-boy-opcodes)
 - [gbdev.io for a list of useful resources](https://gbdev.io)
+- [metaphore, who made the hqx filter implementation Gamelin uses](https://gist.github.com/metaphore/b4750be45289109b3d49c97b5c300db6)
 - blargg, Gekkio and mattcurie for their test ROMs and retrio for hosting blargg's ROMs
 - You, for reading this :)
