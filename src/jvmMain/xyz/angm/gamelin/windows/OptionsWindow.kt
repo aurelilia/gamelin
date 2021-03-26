@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 5:18 PM.
+ * This file was last modified at 3/26/21, 5:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,9 +13,7 @@ import com.kotcrab.vis.ui.widget.*
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter
-import ktx.actors.alpha
-import ktx.actors.onChange
-import ktx.actors.onClick
+import ktx.actors.*
 import ktx.collections.*
 import ktx.scene2d.defaultStyle
 import ktx.scene2d.vis.*
@@ -109,6 +107,25 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                         true
                     } else false
                 }
+            }
+        }
+
+        tab("Hotkeys") {
+            visLabel("Fast-forward") { it.uniform() }
+
+            val button = visTextButton(Input.Keys.toString(config.fastForwardKey)) {
+                onClick {
+                    setText("...")
+                    alpha = 0.7f
+                    stage.keyboardFocus = this@tab
+                }
+                it.width(75f).height(35f).uniform()
+            }
+
+            onKeyDown(true) {
+                config.fastForwardKey = it
+                button.setText(Input.Keys.toString(it))
+                button.alpha = 1f
             }
         }
     }
