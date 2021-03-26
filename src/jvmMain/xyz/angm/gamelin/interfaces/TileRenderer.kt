@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 10:43 PM.
+ * This file was last modified at 3/26/21, 5:03 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,15 +23,15 @@ import xyz.angm.gamelin.system.io.ppu.PPU
  * that contains the last finished pixmap.
  * Each time a frame is finished, the current pixmap is swapped.
  * This causes a 2-3 frame lag, but prevents the user from seeing mid-frame display states. */
-internal actual class TileRenderer actual constructor(mmu: MMU, width: Int, height: Int, scale: Float) : Actor() {
+internal actual class TileRenderer actual constructor(mmu: MMU, private val tileWidth: Int, private val tileHeight: Int) : Actor() {
 
-    private val pixmapA = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
-    private val pixmapB = Pixmap(width * 8, height * 8, Pixmap.Format.RGBA8888)
+    private val pixmapA = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
+    private val pixmapB = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
     private var current = pixmapA
     private var texture: Texture? = null
 
-    init {
-        setSize(TILE_SIZE * width * scale, TILE_SIZE * height * scale)
+    constructor(mmu: MMU, width: Int, height: Int, scale: Float) : this(mmu, width, height) {
+        setGBScale(scale)
     }
 
     inline fun drawTile(posX: Int, posY: Int, tilePtr: Int, colorMap: (Int) -> Int) {
@@ -62,6 +62,11 @@ internal actual class TileRenderer actual constructor(mmu: MMU, width: Int, heig
             texture?.dispose()
             texture = tex
         }
+    }
+
+    /** Set the scale of this actor to the given value. 1x is regular pixel-perfect tiles. */
+    fun setGBScale(scale: Float) {
+        setSize(TILE_SIZE * tileWidth * scale, TILE_SIZE * tileHeight * scale)
     }
 
     /** Compares the current screen contents to the given PNG file.

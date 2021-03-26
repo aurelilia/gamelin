@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 4:49 PM.
+ * This file was last modified at 3/26/21, 5:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,12 +19,13 @@ import ktx.actors.onClick
 import ktx.collections.*
 import ktx.scene2d.defaultStyle
 import ktx.scene2d.vis.*
+import xyz.angm.gamelin.Gamelin
 import xyz.angm.gamelin.config
 import xyz.angm.gamelin.configuration
 import xyz.angm.gamelin.saveConfiguration
 import xyz.angm.gamelin.system.io.Button
 
-class OptionsWindow : Window("Options") {
+class OptionsWindow(private val game: Gamelin) : Window("Options") {
 
     private val pane = TabbedPane()
     private val container = VisTable()
@@ -46,7 +47,16 @@ class OptionsWindow : Window("Options") {
             checkBox(
                 "Prefer GameBoy Color Mode",
                 "Run games that support both GB and GBC in GBC mode.",
-                { configuration.preferCGB }, { configuration.preferCGB = it}
+                { configuration.preferCGB }, { configuration.preferCGB = it }
+            )
+
+            selectBox(
+                "GameBoy display scale", arrayOf("1x", "2x", "3x", "4x", "6x", "8x"),
+                { "${config.gbScale}x" },
+                {
+                    config.gbScale = it[0] - '0'
+                    game.reloadGameWindow()
+                }
             )
 
             selectBox(

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 3:07 PM.
+ * This file was last modified at 3/26/21, 5:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,7 +17,8 @@ val config = loadDesktopConfiguration()
  * @property fastForwardKey Key to be held to fast-forward.
  * @property fastForwardSpeed Fast-forward speed - 1. (1 = 2x, 2 = 3x, ...)
  * @property volume Volume of audio output
- * @property fastForwardVolume Volume while fast-forwarding */
+ * @property fastForwardVolume Volume while fast-forwarding
+ * @property gbScale Scale of the GameBoy window */
 class DesktopConfiguration {
     val keymap = arrayOf(Input.Keys.Z, Input.Keys.X, Input.Keys.ENTER, Input.Keys.SPACE, Input.Keys.RIGHT, Input.Keys.LEFT, Input.Keys.UP, Input.Keys.DOWN)
 
@@ -26,4 +27,6 @@ class DesktopConfiguration {
 
     var volume = 0.5f
     var fastForwardVolume = 0.3f
+
+    var gbScale = 4
 }

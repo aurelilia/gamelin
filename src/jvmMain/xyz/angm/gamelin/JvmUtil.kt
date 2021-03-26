@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 1:43 PM.
+ * This file was last modified at 3/26/21, 4:59 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -62,6 +62,6 @@ fun loadGb() {
     val input = Input(FileInputStream("gb.bin"))
     val oldGb = gb
     gb = kryo.readObject(input, GameBoy::class.java)
-    gb.mmu.ppu.renderer = TileRenderer(gb.mmu, 20, 18, 4f)
+    gb.mmu.ppu.renderer = TileRenderer(gb.mmu, 20, 18)
     oldGb.dispose()
 }

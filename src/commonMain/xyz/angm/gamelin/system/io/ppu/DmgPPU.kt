@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 5:38 PM.
+ * This file was last modified at 3/26/21, 4:57 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,7 @@ import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.system.io.MMU
 
 /** PPU of the original DMG GameBoy. */
-internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(mmu, 20, 18, 4f)) : PPU(mmu, renderer) {
+internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(mmu, 20, 18)) : PPU(mmu, renderer) {
 
     override fun renderLine() {
         if (!displayEnable) return

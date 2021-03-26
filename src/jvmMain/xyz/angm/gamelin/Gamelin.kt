@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 4:54 PM.
+ * This file was last modified at 3/26/21, 5:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -99,7 +99,7 @@ class Gamelin : ApplicationAdapter() {
         windowItem("Instruction Set", null) { InstructionSetWindow("Instruction Set", InstSet.op) }
         windowItem("Extended InstSet", null) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
 
-        windowItem("Options", Input.Keys.F10, options) { OptionsWindow() }
+        windowItem("Options", Input.Keys.F10, options) { OptionsWindow(this) }
         options.item("Save State", Input.Keys.NUM_0) { saveGb() }
         options.item("Load State", Input.Keys.NUM_1) {
             loadGb()
@@ -161,6 +161,12 @@ class Gamelin : ApplicationAdapter() {
     private fun gameLoaded() {
         saveGameBtn.isDisabled = false
         gbWindow.refresh()
+    }
+
+    internal fun reloadGameWindow() {
+        gbWindow.fadeOut()
+        gbWindow = GameBoyWindow()
+        stage.addActor(gbWindow)
     }
 
     override fun render() {
