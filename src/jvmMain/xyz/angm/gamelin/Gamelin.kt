@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 9:02 PM.
+ * This file was last modified at 3/26/21, 9:35 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,10 @@ import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
+import ktx.actors.onChange
 import ktx.collections.*
+import ktx.scene2d.vis.menuItem
+import ktx.scene2d.vis.subMenu
 import xyz.angm.gamelin.interfaces.DesktopDebugger
 import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.interfaces.Keyboard
@@ -83,9 +86,11 @@ class Gamelin : ApplicationAdapter() {
             stage.addActor(chooser)
             chooser.fadeIn()
         }
+        file.addSeparator()
         file.item("Pause", Input.Keys.P, disable = true) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
         file.item("Reset", Input.Keys.R, disable = true) { gb.reset() }
         file.item("Save Game to disk", Input.Keys.S, disable = true) { gb.mmu.cart.save() }
+        file.addSeparator()
         file.item("Exit", Input.Keys.F4) { Gdx.app.exit() }
 
         fun windowItem(name: String, shortcut: Int?, menu: Menu = debugger, disable: Boolean = false, create: () -> Window) {
@@ -100,9 +105,30 @@ class Gamelin : ApplicationAdapter() {
         windowItem("Extended InstSet", null) { InstructionSetWindow("Extended InstSet", InstSet.ep) }
 
         windowItem("Options", Input.Keys.F10, options) { OptionsWindow(this) }
-        options.item("Save State", Input.Keys.NUM_0, disable = true) { FileSystem.saveState("0") }
-        options.item("Load State", Input.Keys.NUM_1, disable = true) {
-            FileSystem.loadState("0")
+        options.addSeparator()
+        val saveState = MenuItem("Save State")
+        options.addItem(saveState)
+        saveState.subMenu {
+            for (i in 0 until 10) menuItem("Slot $i") {
+                disabledButtons.add(this)
+                isDisabled = true
+                onChange { FileSystem.saveState(i.toString()) }
+            }
+        }
+        val loadState = MenuItem("Load State")
+        options.addItem(loadState)
+        loadState.subMenu {
+            for (i in 0 until 10) menuItem("Slot $i") {
+                disabledButtons.add(this)
+                isDisabled = true
+                onChange {
+                    FileSystem.loadState(i.toString())
+                    gameLoaded()
+                }
+            }
+        }
+        options.item("Undo last load", null, disable = true) {
+            FileSystem.loadState("last")
             gameLoaded()
         }
 
