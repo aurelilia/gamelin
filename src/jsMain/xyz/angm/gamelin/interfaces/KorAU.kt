@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 11:27 PM.
+ * This file was last modified at 3/27/21, 11:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,20 +9,13 @@
 package xyz.angm.gamelin.interfaces
 
 import com.soywiz.kds.FloatArrayDeque
-import com.soywiz.korau.internal.SampleConvert
 import com.soywiz.korau.sound.*
 import com.soywiz.korio.lang.Cancellable
 import com.soywiz.korio.lang.cancel
 import kotlinx.browser.document
 
-private val temp = FloatArray(1)
-
-internal fun FloatArrayDeque.write(value: Float) {
-    temp[0] = value
-    write(temp, 0, 1)
-}
-
 val nativeSoundProvider: NativeSoundProvider by lazy { HtmlNativeSoundProvider() }
+var gotSamples = false
 
 class JsPlatformAudioOutput {
 
@@ -57,7 +50,6 @@ class JsPlatformAudioOutput {
 
     private fun ensureInit() = run { node }
 
-
     fun start() {
         if (nodeRunning) return
         startPromise = HtmlSimpleSound.callOnUnlocked {
@@ -83,15 +75,10 @@ class JsPlatformAudioOutput {
         }
     }
 
-    fun add(samples: AudioSamples, offset: Int, size: Int) {
+    fun add(samplesL: FloatArray, samplesR: FloatArray) {
         ensureRunning()
-        val schannels = samples.channels
-        for (channel in 0 until nchannels) {
-            val sample = samples[channel % schannels]
-            val deque = deques[channel]
-            for (n in 0 until size) {
-                deque.write(SampleConvert.shortToFloat(sample[offset + n]))
-            }
-        }
+        deques[0].write(samplesL, 0, samplesL.size)
+        deques[1].write(samplesR, 0, samplesR.size)
+        gotSamples = deques[0].availableRead > samplesL.size * 3
     }
 }

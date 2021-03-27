@@ -1,13 +1,12 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:28 PM.
+ * This file was last modified at 3/27/21, 11:12 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.interfaces
 
-import com.soywiz.korau.sound.AudioSamples
 import kotlinx.browser.document
 import org.w3c.dom.HTMLInputElement
 
@@ -19,7 +18,8 @@ private val soundEnable = document.getElementById("sound-enable") as HTMLInputEl
 actual class AudioOutput actual constructor() {
 
     private val device = JsPlatformAudioOutput()
-    private var buffer = AudioSamples(2, BUFFER_SIZE)
+    private var bufferL = FloatArray(BUFFER_SIZE)
+    private var bufferR = FloatArray(BUFFER_SIZE)
     private var bufferIndex = 0
     private var enabled = soundEnable.checked
 
@@ -31,20 +31,27 @@ actual class AudioOutput actual constructor() {
     }
 
     actual fun reset() {
-        buffer = AudioSamples(2, BUFFER_SIZE)
         bufferIndex = 0
     }
 
     actual fun play(left: Byte, right: Byte) {
-        if (!enabled) return
         // For some reason, the output just ignores the given sample rate and forces 44100hz.
         // Just double it manually to emulate 22050hz
-        buffer[0, bufferIndex] = (left * 32).toShort()
-        buffer[1, bufferIndex++] = (right * 32).toShort()
-        buffer[0, bufferIndex] = (left * 32).toShort()
-        buffer[1, bufferIndex++] = (right * 32).toShort()
+        if (enabled) {
+            val lf = left / 2048f
+            val rf = right / 2048f
+            bufferL[bufferIndex] = lf
+            bufferR[bufferIndex++] = rf
+            bufferL[bufferIndex] = lf
+            bufferR[bufferIndex++] = rf
+        } else {
+            bufferL[bufferIndex] = 0f
+            bufferR[bufferIndex++] = 0f
+            bufferL[bufferIndex] = 0f
+            bufferR[bufferIndex++] = 0f
+        }
         if (bufferIndex >= BUFFER_SIZE) {
-            device.add(buffer, 0, buffer.totalSamples)
+            device.add(bufferL, bufferR)
             bufferIndex = 0
         }
     }

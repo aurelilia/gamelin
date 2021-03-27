@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 7:15 PM.
+ * This file was last modified at 3/27/21, 10:55 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,7 +35,6 @@ actual class AudioOutput actual constructor() {
 
     actual fun reset() {
         bufferIndex = 0
-        buffer.fill(0)
         skip = 0
         skipIndex = 0
     }

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:31 PM.
+ * This file was last modified at 3/27/21, 10:08 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -28,6 +28,4 @@ actual fun saveConfiguration() {
     localStorage.setItem("config", JSON.stringify(configuration))
 }
 
-actual fun loadConfiguration(): Configuration {
-    return JSON.parse(localStorage.getItem("config") ?: return Configuration()) as Configuration
-}
+actual fun loadConfiguration() = Configuration()

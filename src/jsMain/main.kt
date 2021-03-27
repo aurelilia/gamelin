@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:31 PM.
+ * This file was last modified at 3/27/21, 11:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,11 +12,13 @@ import com.soywiz.korge.view.Views
 import com.soywiz.korim.color.Colors
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.html.currentTimeMillis
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.ImageData
 import org.w3c.files.FileReader
+import xyz.angm.gamelin.interfaces.gotSamples
 import xyz.angm.gamelin.saveConfiguration
 import xyz.angm.gamelin.stringToBytes
 import xyz.angm.gamelin.system.GameBoy
@@ -51,8 +53,9 @@ suspend fun main() = Korge(width = 512, height = 512, bgcolor = Colors["#2b2b2b"
     }
 
     while (!gb.gameLoaded) delay(100.milliseconds)
-    // TODO: Any better method of syncing this?
-    window.setInterval({
-        gb.advanceDelta(1 / 30f)
-    }, 33)
+    while (true) {
+        val time = currentTimeMillis()
+        gb.advanceDelta(0.033f)
+        if (gotSamples) delay((currentTimeMillis() - time - 1).milliseconds)
+    }
 }
