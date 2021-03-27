@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 11:33 PM.
+ * This file was last modified at 3/27/21, 7:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,8 +13,10 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.IntMap
+import com.badlogic.gdx.utils.ObjectMap
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.Menu
 import com.kotcrab.vis.ui.widget.MenuBar
@@ -44,15 +46,17 @@ var gb = GameBoy(DesktopDebugger())
 class Gamelin : ApplicationAdapter() {
 
     private lateinit var stage: Stage
+    private lateinit var root: VisTable
+    private lateinit var menuBarCell: Cell<Actor>
     private val windows = HashMap<String, Window>()
-    private val hotkeyHandler = HotkeyHandler()
+    internal val hotkeyHandler = HotkeyHandler()
     private lateinit var gbWindow: GameBoyWindow
     private val disabledButtons = GdxArray<MenuItem>()
 
     override fun create() {
         VisUI.load()
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
-        val root = VisTable()
+        root = VisTable()
 
         val multi = InputMultiplexer()
         multi.addProcessor(Keyboard)
@@ -66,8 +70,13 @@ class Gamelin : ApplicationAdapter() {
         stage.addActor(root)
 
         root.setFillParent(true)
-        createMenus(root)
+        menuBarCell = root.add().expandX().fillX()
+        root.row()
+        recreateMenus()
         root.add().expand().fill()
+
+        createHotKey("Fast Forward", Input.Keys.C, { gb.mmu.sound.output.skip = config.fastForwardSpeed }) { gb.mmu.sound.output.skip = 0 }
+        hotkeyHandler.update()
 
         Thread {
             while (!gb.disposed) {
@@ -76,7 +85,7 @@ class Gamelin : ApplicationAdapter() {
         }.start()
     }
 
-    private fun createMenus(root: VisTable) {
+    fun recreateMenus() {
         val menuBar = MenuBar()
         val file = Menu("File")
         val debugger = Menu("Debugger")
@@ -138,23 +147,33 @@ class Gamelin : ApplicationAdapter() {
         menuBar.addMenu(file)
         menuBar.addMenu(debugger)
         menuBar.addMenu(options)
-        root.add(menuBar.table).expandX().fillX().row()
+        menuBarCell.setActor(menuBar.table)
     }
 
-    private inline fun Menu.item(name: String, shortcut: Int?, disable: Boolean = false, crossinline click: () -> Unit): MenuItem {
+    private inline fun Menu.item(name: String, defaultShortcut: Int?, disable: Boolean = false, crossinline click: () -> Unit): MenuItem {
         val item = MenuItem(name, object : ChangeListener() {
             override fun changed(event: ChangeEvent?, actor: Actor?) = click()
         })
-        if (shortcut != null) {
-            item.setShortcut(shortcut)
-            hotkeyHandler.register(shortcut) { if (!item.isDisabled) click() }
-        }
+        val shortcut = createHotKey(name, defaultShortcut ?: -1, { if (!item.isDisabled) click() })
+        if (shortcut != -1) item.setShortcut(shortcut)
+
         if (disable) {
             disabledButtons.add(item)
             item.isDisabled = true
         }
         addItem(item)
         return item
+    }
+
+    private fun createHotKey(name: String, default: Int, exec: () -> Unit, up: (() -> Unit)? = null): Int {
+        val key = config.hotkeys[name]
+        val shortcut = if (key == null) {
+            config.hotkeys[name] = default
+            default
+        } else key
+
+        hotkeyHandler.register(name, Action(exec, up))
+        return shortcut
     }
 
     private fun createFileChooser(): FileChooser {
@@ -223,17 +242,35 @@ class Gamelin : ApplicationAdapter() {
         stage.dispose()
     }
 
-    class HotkeyHandler : InputAdapter() {
+    internal class HotkeyHandler : InputAdapter() {
 
-        private val actions = IntMap<() -> Unit>(10)
+        private val actions = ObjectMap<String, Action>(10)
+        private val keyToActions = IntMap<Action>(10)
 
-        fun register(key: Int, click: () -> Unit) {
-            actions[key] = click
+        internal fun register(name: String, click: Action) {
+            actions[name] = click
+        }
+
+        fun update() {
+            keyToActions.clear()
+            for (action in actions) {
+                val key = config.hotkeys[action.key] ?: continue
+                keyToActions[key] = action.value
+            }
         }
 
         override fun keyDown(keycode: Int): Boolean {
-            actions[keycode]?.invoke()
-            return true
+            val action = keyToActions[keycode]
+            action?.keyDown?.invoke()
+            return action != null
+        }
+
+        override fun keyUp(keycode: Int): Boolean {
+            val action = keyToActions[keycode]
+            action?.keyUp?.invoke()
+            return action != null
         }
     }
+
+    internal class Action(val keyDown: () -> Unit, val keyUp: (() -> Unit)?)
 }

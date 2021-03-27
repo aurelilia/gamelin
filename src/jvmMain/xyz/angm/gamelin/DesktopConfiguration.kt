@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 11:30 PM.
+ * This file was last modified at 3/27/21, 7:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,6 +8,7 @@
 package xyz.angm.gamelin
 
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.utils.OrderedMap
 import xyz.angm.gamelin.system.io.Button
 
 val config = loadDesktopConfiguration()
@@ -15,8 +16,9 @@ val config = loadDesktopConfiguration()
 /** Additional configuration only applicable to desktop.
  * @property keymap The keys mapping to the GB joypad. Order is same as [Button].
  * @property buttonMap Same as [keymap] but for controller buttons
- * @property axisMap
- * @property fastForwardKey Key to be held to fast-forward.
+ * @property axisMap Map of controller axes for the dpad, first is horizontal, second is vertical
+ * @property hotkeys Map of hotkeys to their mapped key.
+ * @property fastForwardButton Controller button to be held to fast-forward.
  * @property fastForwardSpeed Fast-forward speed - 1. (1 = 2x, 2 = 3x, ...)
  * @property volume Volume of audio output
  * @property fastForwardVolume Volume while fast-forwarding
@@ -27,7 +29,7 @@ class DesktopConfiguration {
     val buttonMap = arrayOf(0, 1, 9, 8, 14, 13, 11, 12)
     val axisMap = arrayOf(0, 1)
 
-    var fastForwardKey = Input.Keys.C
+    val hotkeys = OrderedMap<String, Int>()
     var fastForwardButton = 3
     var fastForwardSpeed = 3
 

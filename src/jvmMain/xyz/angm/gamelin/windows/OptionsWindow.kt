@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 11:33 PM.
+ * This file was last modified at 3/27/21, 7:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -18,6 +18,7 @@ import ktx.collections.*
 import ktx.scene2d.defaultStyle
 import ktx.scene2d.vis.*
 import xyz.angm.gamelin.*
+import xyz.angm.gamelin.interfaces.device
 import xyz.angm.gamelin.system.io.Button
 
 class OptionsWindow(private val game: Gamelin) : Window("Options") {
@@ -26,7 +27,7 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
     private val container = VisTable()
 
     init {
-        setSize(500f, 300f)
+        setSize(700f, 450f)
         isResizable = true
         pane.addListener(object: TabbedPaneAdapter() {
             override fun switchedTab(tab: Tab) {
@@ -80,7 +81,10 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
         }
 
         tab("Audio") {
-            slider("Volume", 0f, 1f, 0.01f, { config.volume }, { config.volume = it })
+            slider("Volume", 0f, 1f, 0.01f, { config.volume }, {
+                config.volume = it
+                device.setVolume(it)
+            })
             slider("Volume while fast-forwarding", 0f, 1f, 0.01f, { config.fastForwardVolume }, { config.fastForwardVolume = it })
         }
 
@@ -126,21 +130,48 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
         }
 
         tab("Hotkeys") {
-            visLabel("Fast-forward") { it.uniform() }
+            var current: String? = null
+            var button: VisTextButton? = null
 
-            val button = visTextButton(Input.Keys.toString(config.fastForwardKey)) {
-                onClick {
-                    setText("...")
-                    alpha = 0.7f
-                    stage.keyboardFocus = this@tab
-                }
-                it.width(75f).height(35f).uniform()
+            fun resetCurrent(btn: VisTextButton?, key: Int) {
+                if (current == null || btn == null) return
+                if (key != -1) config.hotkeys[current!!] = if (key == Input.Keys.ESCAPE) -1 else key
+                val cur = config.hotkeys[current!!]!!
+                btn.setText(if (cur == -1) "None" else Input.Keys.toString(cur))
+                btn.alpha = 1f
+                current = null
+                button = null
+                game.hotkeyHandler.update()
+                game.recreateMenus()
             }
 
-            onKeyDown(true) {
-                config.fastForwardKey = it
-                button.setText(Input.Keys.toString(it))
-                button.alpha = 1f
+            for ((i, bind) in config.hotkeys.withIndex()) {
+                val name = bind.key
+                val key = bind.value
+                val keyName = if (key == -1) "None" else Input.Keys.toString(key)
+                leftLabel(name)
+
+                visTextButton(keyName) {
+                    onClick {
+                        setText("...")
+                        alpha = 0.7f
+                        resetCurrent(button, -1)
+                        current = name
+                        button = this@visTextButton
+                        stage.keyboardFocus = this@tab
+                    }
+                    it.width(75f).height(35f).uniform()
+                }
+
+                if (i % 2 == 1) row()
+                else add().width(50f)
+            }
+
+            addListener { event ->
+                if (event is InputEvent && event.type === InputEvent.Type.keyDown && current != null) {
+                    resetCurrent(button, event.keyCode)
+                    true
+                } else false
             }
         }
 

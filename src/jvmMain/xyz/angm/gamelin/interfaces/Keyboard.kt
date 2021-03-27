@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 11:31 PM.
+ * This file was last modified at 3/27/21, 7:08 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -45,14 +45,8 @@ actual object Keyboard : InputAdapter(), ControllerListener {
     }
 
     override fun keyDown(keycode: Int): Boolean {
-        if (keycode == config.fastForwardKey) gb.mmu.sound.output.skip = config.fastForwardSpeed
         buttonPressed(keyToBtn[keycode] ?: return false)
         return false
-    }
-
-    override fun keyUp(keycode: Int): Boolean {
-        if (keycode == config.fastForwardKey) gb.mmu.sound.output.skip = 0
-        return super.keyUp(keycode)
     }
 
     override fun buttonDown(controller: Controller, buttonCode: Int): Boolean {
