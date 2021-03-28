@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 7:19 PM.
+ * This file was last modified at 3/28/21, 7:08 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -33,4 +33,13 @@ private fun loadFullConfig(): FullConfiguration? {
     val file = Gdx.files.local("gamelin.config.json")
     return if (file.exists()) json.fromJson(FullConfiguration::class.java, file)
     else null
+}
+
+/** Run the given runnable in the GB thread if the GB is running.
+ * If not, it'll be executed on the current thread immediately
+ * (this is fine since it's run on the GB thread to solve synchronization issues,
+ * which cannot happen while it isn't running). */
+fun runInGbThread(run: () -> Unit) {
+    if (gb.debugger.emuHalt) run()
+    else gb.mmu.ppu.renderer.queueRunnable(run)
 }

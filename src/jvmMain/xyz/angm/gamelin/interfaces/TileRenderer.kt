@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:58 PM.
+ * This file was last modified at 3/28/21, 7:09 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,15 +14,23 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
+import ktx.collections.*
 import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.config
 import xyz.angm.gamelin.gb
+import xyz.angm.gamelin.runInGbThread
 import xyz.angm.gamelin.system.io.ppu.PPU
 
 /** TileRenderer using 2 pixmaps for buffering the image, as well as a texture
  * that contains the last finished pixmap.
  * Each time a frame is finished, the current pixmap is swapped.
- * This causes a 2-3 frame lag, but prevents the user from seeing mid-frame display states. */
+ * This causes a 2-3 frame lag, but prevents the user from seeing mid-frame display states.
+ *
+ * Additionally, since the GB is running in a separate thread to the GUI,
+ * the renderer's [finishFrame] is also used to execute any runnables that the GUI
+ * thread queued (@see [runInGbThread]).
+ * This is to prevent race conditions that can happen when the GUI thread directly tries
+ * to access the gb. */
 internal actual class TileRenderer actual constructor(private val tileWidth: Int, private val tileHeight: Int) : Actor() {
 
     private val pixmapA = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
@@ -30,6 +38,8 @@ internal actual class TileRenderer actual constructor(private val tileWidth: Int
     private var current = pixmapA
     private var texture: Texture? = null
     private var hqx = getHqx()
+
+    private val queuedRunnables = GdxArray<() -> Unit>()
 
     constructor(width: Int, height: Int, scale: Float) : this(width, height) {
         setGBScale(scale)
@@ -63,7 +73,12 @@ internal actual class TileRenderer actual constructor(private val tileWidth: Int
             texture?.dispose()
             texture = tex
         }
+        queuedRunnables.forEach { it() }
+        queuedRunnables.clear()
     }
+
+    /** Queue the given runnable to be executed when the next frame has finished. */
+    fun queueRunnable(run: () -> Unit) = queuedRunnables.add(run)
 
     /** Set the scale of this actor to the given value. 1x is regular pixel-perfect tiles. */
     fun setGBScale(scale: Float) {

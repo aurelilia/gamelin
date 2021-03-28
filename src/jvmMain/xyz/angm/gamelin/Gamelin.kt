@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 6:50 PM.
+ * This file was last modified at 3/28/21, 7:09 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -105,7 +105,7 @@ class Gamelin : ApplicationAdapter() {
         file.item("Pause", Input.Keys.P, disable = true) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
         file.item("Reset", Input.Keys.R, disable = true) { resetButton() }
         file.item("Save Game to disk", Input.Keys.S, disable = true) {
-            gb.mmu.cart.save()
+            runInGbThread { gb.mmu.cart.save() }
             toast("Game saved.")
         }
         file.addSeparator()
@@ -147,14 +147,12 @@ class Gamelin : ApplicationAdapter() {
                 onChange {
                     FileSystem.loadState(i.toString())
                     toast("Loaded slot $i.")
-                    gameLoaded()
                 }
             }
         }
         options.item("Undo last load", null, disable = true) {
             FileSystem.loadState("last")
             toast("Undid loading save state.")
-            gameLoaded()
         }
         options.addSeparator()
         windowItem("About", null, options) { AboutWindow() }
@@ -203,8 +201,11 @@ class Gamelin : ApplicationAdapter() {
             override fun selected(file: FileHandle) {
                 FileSystem.gamePath = file
                 toast("Loaded '${file.name()}'.")
-                gb.loadGame(file.readBytes())
-                gameLoaded()
+                runInGbThread {
+                    gb.loadGame(file.readBytes())
+                    for (btn in disabledButtons) btn.isDisabled = false
+                    gbWindow.refresh()
+                }
             }
         })
         return chooser
@@ -212,8 +213,8 @@ class Gamelin : ApplicationAdapter() {
 
     private fun resetButton() {
         if (!config.confirmResets) {
-            gb.reset()
-            toasts.show("Reset console.")
+            runInGbThread { gb.reset() }
+            toast("Reset console.")
             return
         }
 
@@ -221,8 +222,8 @@ class Gamelin : ApplicationAdapter() {
         toast.add("Are you sure you want to reset?").colspan(2).row()
         toast.add(VisTextButton("Yes").apply {
             onClick {
-                gb.reset()
-                toasts.show("Reset console.")
+                runInGbThread { gb.reset() }
+                toast("Reset console.")
                 toast.fadeOut()
             }
         }).pad(5f).width(40f)
@@ -253,11 +254,6 @@ class Gamelin : ApplicationAdapter() {
                 toggleWindow(name, create)
             }
         }
-    }
-
-    private fun gameLoaded() {
-        for (btn in disabledButtons) btn.isDisabled = false
-        gbWindow.refresh()
     }
 
     internal fun reloadGameWindow() {

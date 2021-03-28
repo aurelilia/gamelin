@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:58 PM.
+ * This file was last modified at 3/28/21, 7:02 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,6 +15,7 @@ import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy
 import org.objenesis.strategy.StdInstantiatorStrategy
 import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.interfaces.FileSystem.gamePath
+import xyz.angm.gamelin.runInGbThread
 import xyz.angm.gamelin.system.GameBoy
 
 /** FileSystem that saves game RAM next to the game in a .sav file, RTC in .rtc,
@@ -47,17 +48,14 @@ actual object FileSystem {
         return if (file?.exists() == true) DateTime(file.readString().toLong()) else null
     }
 
-    fun saveState(slot: String) {
-        val prevHalt = gb.debugger.emuHalt
-        gb.debugger.emuHalt = true
-        Thread.sleep(1) // Wait for gb to come to a stop to prevent saving mid-cycle state
+    fun saveState(slot: String, console: GameBoy = gb) {
+        runInGbThread {
+            val out = Output(saveFileHandle("$slot.state")?.write(false) ?: return@runInGbThread)
+            kryo.writeObject(out, console)
 
-        val out = Output(saveFileHandle("$slot.state")?.write(false) ?: return)
-        kryo.writeObject(out, gb)
-        gb.debugger.emuHalt = prevHalt
-
-        out.flush()
-        out.close()
+            out.flush()
+            out.close()
+        }
     }
 
     fun loadState(slot: String) {
@@ -65,7 +63,7 @@ actual object FileSystem {
         if (file?.exists() != true) return
         val input = Input(file.read())
         val oldGb = gb
-        saveState("last")
+        saveState("last", oldGb)
 
         val newGb = kryo.readObject(input, GameBoy::class.java)
         newGb.mmu.ppu.renderer = oldGb.mmu.ppu.renderer
