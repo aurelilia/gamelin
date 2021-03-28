@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 10:42 PM.
+ * This file was last modified at 3/28/21, 11:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -28,7 +28,7 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(20, 18)) :
         }
     }
 
-    override fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean) {
+    override fun renderBGOrWindow(scrollX: Int, startX: Int, endX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean) {
         var tileX = scrollX and 7
         val tileY = mapLine and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
@@ -36,7 +36,7 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(20, 18)) :
         var high = mmu.vram[tileDataAddr + 1]
         var low = mmu.vram[tileDataAddr]
 
-        for (tileIdxAddr in startX until 160) {
+        for (tileIdxAddr in startX until endX) {
             val colorIdx = (high.bit(7 - tileX) shl 1) + low.bit(7 - tileX)
             if (colorIdx != 0) setPixelOccupied(tileIdxAddr, line)
             renderer.drawPixel(tileIdxAddr, line, getBGColor(colorIdx))

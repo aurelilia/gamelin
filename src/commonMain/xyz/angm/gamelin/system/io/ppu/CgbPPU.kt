@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 10:42 PM.
+ * This file was last modified at 3/28/21, 11:00 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -90,7 +90,7 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
         if (objEnable) renderObjs()
     }
 
-    override fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean) {
+    override fun renderBGOrWindow(scrollX: Int, startX: Int, endX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean) {
         var tileX = scrollX and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
         var attributes = mmu.vram[0x2000 + (tileAddr and 0x1FFF)].int()
@@ -100,7 +100,7 @@ internal class CgbPPU(mmu: MMU, renderer: TileRenderer) : PPU(mmu, renderer) {
         var high = mmu.vram[tileDataAddr + 1]
         var low = mmu.vram[tileDataAddr]
 
-        for (tileIdxAddr in startX until 160) {
+        for (tileIdxAddr in startX until endX) {
             val x = if (attributes.isBit(5)) tileX else 7 - tileX
             val colorIdx = (high.bit(x) shl 1) + low.bit(x)
             if (colorIdx != 0) {

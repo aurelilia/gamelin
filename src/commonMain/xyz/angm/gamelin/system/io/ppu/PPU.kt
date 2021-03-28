@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 10:46 PM.
+ * This file was last modified at 3/28/21, 11:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -161,15 +161,17 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     protected abstract fun renderLine()
 
     protected fun renderBG() {
-        renderBGOrWindow(scrollX, 0, bgMapAddr, (scrollY + line) and 0xFF, true)
+        // Only render until the point where the window starts, should it be active
+        val endX = if (windowEnable && windowX in 0..159 && windowY <= line) windowX else 160
+        renderBGOrWindow(scrollX, 0, endX, bgMapAddr, (scrollY + line) and 0xFF, true)
     }
 
     protected fun renderWindow() {
         if (windowX !in 0..159 || windowY > line) return
-        renderBGOrWindow(0, windowX, windowMapAddr, windowLine++, false)
+        renderBGOrWindow(0, windowX, 160, windowMapAddr, windowLine++, false)
     }
 
-    protected abstract fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean)
+    protected abstract fun renderBGOrWindow(scrollX: Int, startX: Int, endX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean)
 
     /** Returns the amount the BG map tile data pointer should be adjusted by, based
      * on the tile pointer. Used on CGB to implement bit 3 of the BG map attributes (tile bank selector) */
