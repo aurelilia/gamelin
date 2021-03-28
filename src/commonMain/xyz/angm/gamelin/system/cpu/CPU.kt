@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 4:08 PM.
+ * This file was last modified at 3/28/21, 10:51 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,6 +9,7 @@ package xyz.angm.gamelin.system.cpu
 
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.isBit
+import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.io.MMU
 import kotlin.experimental.and
@@ -19,6 +20,8 @@ internal class CPU(private val gb: GameBoy) {
     var pc: Short = 0
     var sp: Short = 0
     var ime = false
+    var regIE = 0
+    var regIF = 0
     var halt = false
     var haltBug = false
     var prepareSpeedSwitch = false
@@ -64,14 +67,15 @@ internal class CPU(private val gb: GameBoy) {
     /** Checks for interrupts and returns true if one has been fired,
      * to allow the CPU to step the system 5 more M-Cycles forward (SM83 takes 5 cycles to handle interrupts). */
     private fun checkInterrupts(ime: Boolean): Boolean {
-        if (!ime) return false
-        for (interrupt in Interrupt.values()) {
-            if (interrupt.isSet(gb.read(MMU.IE)) && interrupt.isSet(gb.read(MMU.IF))) {
+        val bits = regIE and regIF
+        if (!ime || (bits == 0)) return false
+        for (bit in 0 until 5) {
+            if (bits.isBit(bit)) {
                 halt = false
-                gb.write(MMU.IF, gb.read(MMU.IF) xor (1 shl interrupt.ordinal))
+                regIF = regIF.setBit(bit, 0)
                 this.ime = false
                 gb.pushS(pc.int())
-                pc = interrupt.handlerAddr
+                pc = Interrupt.addresses[bit]
                 return true
             }
         }
@@ -101,6 +105,8 @@ internal class CPU(private val gb: GameBoy) {
         pc = 0
         sp = 0
         ime = false
+        regIE = 0
+        regIF = 0
         halt = false
         prepareSpeedSwitch = false
     }
@@ -144,4 +150,8 @@ internal enum class Interrupt(val handlerAddr: Short) {
     Joypad(0x0060);
 
     fun isSet(reg: Int) = reg.isBit(ordinal)
+
+    companion object {
+        val addresses = values().map { it.handlerAddr }.toShortArray()
+    }
 }

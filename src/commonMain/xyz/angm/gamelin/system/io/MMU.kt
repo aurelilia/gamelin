@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 3:29 AM.
+ * This file was last modified at 3/28/21, 10:33 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -29,7 +29,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
     private var wram = ByteArray(8_192) // C000-DFFF
     private var wramBank = 1
     private val oam = ByteArray(160) // FE00-FE9F
-    private val zram = ByteArray(128) // FF80-FFFF
+    private val zram = ByteArray(127) // FF80-FFFE
     internal var bootromOn = true
 
     internal lateinit var cart: Cartridge
@@ -39,7 +39,6 @@ class MMU(internal val gb: GameBoy) : Disposable {
     private val timer = Timer(this)
     private val dma = DMA(this)
     internal val hdma = HDMA(this)
-    private var regIF = 0
 
     fun load(game: ByteArray) {
         if (this::cart.isInitialized) cart.save()
@@ -63,7 +62,6 @@ class MMU(internal val gb: GameBoy) : Disposable {
         sound.reset()
         dma.reset()
         hdma.reset()
-        regIF = 0
 
         ppu = if (gb.cgbMode) CgbPPU(this, ppu.renderer) else DmgPPU(this, ppu.renderer)
         vram = ByteArray(8_192 * if (gb.cgbMode) 2 else 1)
@@ -90,6 +88,10 @@ class MMU(internal val gb: GameBoy) : Disposable {
             VRAM_SELECT -> (vramBank or 0xFE).toByte()
             WRAM_SELECT -> (wramBank or 0xF8).toByte()
 
+            // Interrupt registers
+            IF -> gb.cpu.regIF.toByte()
+            IE -> gb.cpu.regIE.toByte()
+
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> {
                 if (bootromOn && !gb.cgbMode && addr < 0x0100) bootix[a]
@@ -113,8 +115,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
             in 0xFE00..0xFE9F -> oam[a and 0xFF]
             SB -> 0
             SC -> 0x7E
-            IF -> regIF.toByte()
-            in 0xFF80..0xFFFF -> zram[a and 0x7F]
+            in 0xFF80..0xFFFE -> zram[a and 0x7F]
             else -> INVALID_READ.toByte()
         }
     }
@@ -135,8 +136,8 @@ class MMU(internal val gb: GameBoy) : Disposable {
             WRAM_SELECT -> if (gb.cgbMode) wramBank = max(value.int() and 7, 1)
 
             // Special behavior
-            IF -> regIF = value.int() or 0b11100000
-            IE -> zram[a and 0x7F] = (value.int() or 0b11100000).toByte()
+            IF -> gb.cpu.regIF = value.int() or 0b11100000
+            IE -> gb.cpu.regIE = value.int() or 0b11100000
             BOOTROM_DISABLE -> bootromOn = false
             KEY1 -> gb.cpu.prepareSpeedSwitch = value.isBit(0)
 
@@ -154,7 +155,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
             in 0xC000..0xCFFF -> wram[(a and 0x0FFF)] = value
             in 0xD000..0xDFFF -> wram[(a and 0x0FFF) + (wramBank * 0x1000)] = value
             in 0xFE00..0xFE9F -> oam[a and 0xFF] = value
-            in 0xFF80..0xFFFF -> zram[a and 0x7F] = value
+            in 0xFF80..0xFFFE -> zram[a and 0x7F] = value
         }
     }
 

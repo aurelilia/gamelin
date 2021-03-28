@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:49 PM.
+ * This file was last modified at 3/28/21, 10:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -161,15 +161,15 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     protected abstract fun renderLine()
 
     protected fun renderBG() {
-        renderBGOrWindow(scrollX, 0, bgMapAddr, (scrollY + line) and 0xFF) { if ((it and 0x1F) == 0x1F) it - 0x20 else it }
+        renderBGOrWindow(scrollX, 0, bgMapAddr, (scrollY + line) and 0xFF, true)
     }
 
     protected fun renderWindow() {
         if (windowX !in 0..159 || windowY > line) return
-        renderBGOrWindow(0, windowX, windowMapAddr, windowLine++) { it }
+        renderBGOrWindow(0, windowX, windowMapAddr, windowLine++, false)
     }
 
-    protected abstract fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int)
+    protected abstract fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean)
 
     /** Returns the amount the BG map tile data pointer should be adjusted by, based
      * on the tile pointer. Used on CGB to implement bit 3 of the BG map attributes (tile bank selector) */
@@ -183,7 +183,8 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
 
     protected fun renderObjs() {
         var objCount = 0
-        sprites@ for (loc in 0xFE00 until 0xFEA0 step 4) {
+        sprites@ for (idx in 0 until 40) {
+            val loc = 0xFE00 + (idx * 4)
             Sprite.dat = mmu.read16(loc) + (mmu.read16(loc + 2) shl 16)
             if (Sprite.y <= line && (Sprite.y + if (bigObjMode) 16 else 8) > line && allowObj(objCount)) { // If on this line and allowed
                 renderObj()

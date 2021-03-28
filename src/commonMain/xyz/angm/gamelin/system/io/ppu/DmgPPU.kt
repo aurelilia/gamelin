@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:41 PM.
+ * This file was last modified at 3/28/21, 10:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -28,7 +28,7 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(20, 18)) :
         }
     }
 
-    override fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, tileAddrCorrect: (Int) -> Int) {
+    override fun renderBGOrWindow(scrollX: Int, startX: Int, mapAddr: Int, mapLine: Int, correctTileAddr: Boolean) {
         var tileX = scrollX and 7
         val tileY = mapLine and 7
         var tileAddr = mapAddr + ((mapLine / 8) * 0x20) + (scrollX ushr 3)
@@ -43,7 +43,7 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(20, 18)) :
 
             if (++tileX == 8) {
                 tileX = 0
-                tileAddr = tileAddrCorrect(tileAddr)
+                tileAddr = if (correctTileAddr && (tileAddr and 0x1F) == 0x1F) tileAddr - 0x20 else tileAddr
                 tileAddr++
                 tileDataAddr = bgTileDataAddr(mmu.vram[tileAddr]) + (tileY * 2)
                 high = mmu.vram[tileDataAddr + 1]
