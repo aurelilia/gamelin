@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 6:44 PM.
+ * This file was last modified at 3/29/21, 12:40 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,6 +19,7 @@ import ktx.collections.*
 import ktx.scene2d.defaultStyle
 import ktx.scene2d.vis.*
 import xyz.angm.gamelin.*
+import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.interfaces.device
 import xyz.angm.gamelin.system.io.Button
 
@@ -115,6 +116,7 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
                 btn.alpha = 1f
                 current = null
                 button = null
+                Keyboard.refresh()
             }
 
             for (btn in Button.values()) {

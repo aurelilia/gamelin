@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 5:03 PM.
+ * This file was last modified at 3/29/21, 12:29 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -72,8 +72,7 @@ kotlin {
                 implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop")
                 implementation("com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop")
 
-                implementation("com.badlogicgames.gdx-controllers:gdx-controllers-core:$gdxControllersVersion")
-                implementation("com.badlogicgames.gdx-controllers:gdx-controllers-desktop:$gdxControllersVersion")
+                implementation("uk.co.electronstudio.sdl2gdx:sdl2gdx:1.0.4")
 
                 implementation("io.github.libktx:ktx-assets:$ktxVersion")
                 implementation("io.github.libktx:ktx-actors:$ktxVersion")
