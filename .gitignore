@@ -1,7 +1,5 @@
-/assets/roms/*
-!/assets/roms/test
 /assets/gamelin.cpu.log
-/assets/web/gamelin*
+/web/gamelin*
 /assets/gamelin.config.json
 
 *.sav

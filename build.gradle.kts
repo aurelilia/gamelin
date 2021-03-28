@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 4:52 PM.
+ * This file was last modified at 3/28/21, 5:03 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -150,7 +150,13 @@ tasks.register<Jar>("dist") {
     }
 }
 
+tasks.register<Copy>("distJs") {
+    dependsOn(tasks.getByName("jsBrowserWebpack"))
+    from("build/distributions/gamelin.js")
+    from("build/distributions/gamelin.js.map")
+    into("web/")
+}
+
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
-    workingDir = assetsDir
 }

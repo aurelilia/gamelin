@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 3:50 PM.
+ * This file was last modified at 3/28/21, 4:56 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,7 +19,7 @@ import java.io.FileFilter
 /** The amount of time to run the system for before considering a test to have timeouted/failed. */
 private const val TEST_TIMEOUT_SECONDS = 60
 
-/** Test runner for all blargg tests at assets/roms/test/blargg. */
+/** Test runner for all blargg tests at test/blargg. */
 class BlarggTest : FunSpec({
     // Debugger that reads serial output into a string.
     val debugger = object : Debugger() {
@@ -58,7 +58,7 @@ class BlarggTest : FunSpec({
     }
     val gb = GameBoy(debugger)
 
-    for (dir in file("roms/test/blargg").list(FileFilter { it.isDirectory && (!it.name.contains("disabled") || ProjectConfig.TEST_ALL) })) {
+    for (dir in file("test/blargg").list(FileFilter { it.isDirectory && (!it.name.contains("disabled") || ProjectConfig.TEST_ALL) })) {
         context(dir.name()) {
             for (test in dir.list(FileFilter { it.extension == "gb" && (!it.name.contains("disabled") || ProjectConfig.TEST_ALL) })) {
                 test(test.name()) {

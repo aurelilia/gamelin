@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 4:19 PM.
+ * This file was last modified at 3/28/21, 4:56 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -20,9 +20,9 @@ import java.io.FileFilter
 private const val TEST_TIMEOUT_SECONDS = 10
 private val gb = GameBoy()
 
-/** Test runner for all mooneye-gb tests at assets/roms/test/mooneye. */
+/** Test runner for all mooneye-gb tests at test/mooneye. */
 class MooneyeTest : FunSpec({
-    for (dir in file("roms/test/mooneye").list(FileFilter { it.isDirectory })) {
+    for (dir in file("test/mooneye").list(FileFilter { it.isDirectory })) {
         context(dir.name()) {
             runDir(dir)
         }

@@ -92,11 +92,8 @@ All games that support both DMG/GB and CGB/GBC were tested in GBC mode.
 # Create jarfile
 ./gradlew dist
 
-# Create web build in assets/web
-./js.sh
-# Alternatively:
-./gradlew jsBrowserWebpack
-cp build/distributions/gamelin.* assets/web/
+# Create web build in web/
+./gradlew distJs
 ```
 
 ## Testing
