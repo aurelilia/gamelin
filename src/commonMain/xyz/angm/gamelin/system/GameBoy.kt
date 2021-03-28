@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 10:46 PM.
+ * This file was last modified at 3/28/21, 4:15 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -45,7 +45,8 @@ class GameBoy(@Transient var debugger: Debugger = Debugger()) : Disposable {
     /** Advance the system by at least the given delta.
      * Might advance a few dozen T-cycles more due to the non-deterministic nature of the CPU */
     fun advanceDelta(delta: Float) {
-        val target = clock + (T_CLOCK_HZ * delta)
+        clock = 0
+        val target = (T_CLOCK_HZ * delta)
         while (clock < target) advance()
     }
 
