@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 9:25 PM.
+ * This file was last modified at 3/28/21, 9:55 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -205,6 +205,7 @@ class Gamelin : ApplicationAdapter() {
         FileChooser.setDefaultPrefsName("gamelin")
         FileChooser.setSaveLastDirectory(true)
         val chooser = FileChooser("Choose ROM", FileChooser.Mode.OPEN)
+        Window.padCloseButton(chooser)
         chooser.selectionMode = FileChooser.SelectionMode.FILES
         val filter = FileTypeFilter(true)
         filter.addRule("GameBoy ROMs (.gb, .gbc)", "gb", "gbc")
