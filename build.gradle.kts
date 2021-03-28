@@ -1,11 +1,9 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 10:51 PM.
+ * This file was last modified at 3/28/21, 4:52 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
-
-import com.soywiz.korge.gradle.*
 
 buildscript {
     repositories {
@@ -14,9 +12,6 @@ buildscript {
         maven { url = uri("https://plugins.gradle.org/m2/") }
         mavenCentral()
         google()
-    }
-    dependencies {
-        classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:2.0.9.1")
     }
 }
 
@@ -33,17 +28,6 @@ repositories {
     mavenCentral()
     maven { url = uri("https://dl.bintray.com/kotlin/kotlinx") }
 }
-
-// JS / KORGE
-/* Uncomment if you want to produce a JS build... todo
-apply<KorgeGradlePlugin>()
-korge {
-    id = "xyz.angm.gamelin"
-    version = "0.0.1"
-    name = "gamelin"
-    entryPoint = "main"
-    targetJs()
-}*/
 
 kotlin {
     jvm {
@@ -117,6 +101,7 @@ kotlin {
             kotlin.srcDir("src/jsMain")
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
+                implementation("com.soywiz.korlibs.korau:korau:2.0.10")
             }
         }
         val jsTest by getting {

@@ -1,23 +1,41 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:29 PM.
+ * This file was last modified at 3/28/21, 4:37 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.interfaces
 
-import com.soywiz.korev.Key
-import view
+import kotlinx.browser.window
 import xyz.angm.gamelin.system.io.Button
 
-private val btnToKey = arrayOf(Key.Z, Key.X, Key.ENTER, Key.SPACE, Key.RIGHT, Key.LEFT, Key.UP, Key.DOWN)
+private val btnToKey = arrayOf(90, 88, 13, 32, 39, 37, 38, 40)
 
 actual object Keyboard {
-    // JS doesn't implement joypad interrupts as KORGE doesn't seem to have easy support for it,
-    // shouldn't affect most games anyway as it almost always goes unused.
+
+    private val pressed = BooleanArray(btnToKey.size)
+    private val keyToIdx = HashMap<Int, Int>()
+
+    init {
+        for ((i, key) in btnToKey.withIndex()) {
+            keyToIdx[key] = i
+        }
+
+        window.onkeydown = {
+            val btn = keyToIdx[it.keyCode]
+            if (btn != null) {
+                pressed[btn] = true
+                buttonPressed(Button.values()[btn])
+            }
+        }
+        window.onkeyup = {
+            val btn = keyToIdx[it.keyCode]
+            if (btn != null) pressed[btn] = false
+        }
+    }
+
     actual var buttonPressed: (Button) -> Unit = {}
 
-    // Be a bit more lenient by also accepting justReleased, JS lagging can often cause dropped input
-    actual fun isPressed(btn: Button) = view.keys[btnToKey[btn.ordinal]] || view.keys.justReleased(btnToKey[btn.ordinal])
+    actual fun isPressed(btn: Button) = pressed[btn.ordinal]
 }
