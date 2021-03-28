@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 1:19 PM.
+ * This file was last modified at 3/29/21, 12:58 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,8 +35,8 @@ class APU(private val gb: GameBoy) : IODevice() {
     private var vinRight = false
     private var volumeLeft = 0b111
     private var volumeRight = 0b111
-    private var leftEnables = Array(4) { false }
-    private var rightEnables = Array(4) { it < 2 }
+    private var leftEnables = BooleanArray(4) { false }
+    private var rightEnables = BooleanArray(4) { it < 2 }
 
     fun reset() {
         vinLeft = false

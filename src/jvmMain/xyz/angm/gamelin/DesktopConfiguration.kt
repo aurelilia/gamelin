@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 7:49 PM.
+ * This file was last modified at 3/28/21, 10:26 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -35,6 +35,7 @@ class DesktopConfiguration {
     val hotkeys = OrderedMap<String, Int>()
     var fastForwardButton = 3
     var fastForwardSpeed = 3
+    var rewindBufferSec = 10
 
     var volume = 0.5f
     var fastForwardVolume = 0.3f
