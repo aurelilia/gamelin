@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 7:09 PM.
+ * This file was last modified at 3/28/21, 8:10 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -101,6 +101,18 @@ class Gamelin : ApplicationAdapter() {
             stage.addActor(chooser)
             chooser.fadeIn()
         }
+        val lastFiles = MenuItem("Last Opened ROMs")
+        file.addItem(lastFiles)
+        lastFiles.subMenu {
+            for (path in config.lastOpened.reversed()) menuItem(path) {
+                onChange {
+                    val file = Gdx.files.absolute(path)
+                    if (file.exists()) loadGame(file)
+                    else toast("File has been moved or deleted.")
+                }
+            }
+        }
+
         file.addSeparator()
         file.item("Pause", Input.Keys.P, disable = true) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
         file.item("Reset", Input.Keys.R, disable = true) { resetButton() }
@@ -198,17 +210,25 @@ class Gamelin : ApplicationAdapter() {
         filter.addRule("GameBoy ROMs (.gb, .gbc)", "gb", "gbc")
         chooser.setFileTypeFilter(filter)
         chooser.setListener(object : StreamingFileChooserListener() {
-            override fun selected(file: FileHandle) {
-                FileSystem.gamePath = file
-                toast("Loaded '${file.name()}'.")
-                runInGbThread {
-                    gb.loadGame(file.readBytes())
-                    for (btn in disabledButtons) btn.isDisabled = false
-                    gbWindow.refresh()
-                }
-            }
+            override fun selected(file: FileHandle) = loadGame(file)
         })
         return chooser
+    }
+
+    private fun loadGame(file: FileHandle) {
+        val absolutePath = file.file().absolutePath
+        config.lastOpened.remove(absolutePath)
+        config.lastOpened.add(absolutePath)
+        if (config.lastOpened.size > 10) config.lastOpened.removeIndex(0)
+        recreateMenus()
+
+        FileSystem.gamePath = file
+        toast("Loaded '${file.name()}'.")
+        runInGbThread {
+            gb.loadGame(file.readBytes())
+            for (btn in disabledButtons) btn.isDisabled = false
+            gbWindow.refresh()
+        }
     }
 
     private fun resetButton() {
