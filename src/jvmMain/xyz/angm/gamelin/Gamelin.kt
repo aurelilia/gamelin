@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 8:10 PM.
+ * This file was last modified at 3/28/21, 9:25 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -296,11 +296,15 @@ class Gamelin : ApplicationAdapter() {
         toasts.resize()
     }
 
-    override fun dispose() {
+    /** Stops the GB emulator and saves configuration.
+     * See [Application.cleanupWindows] for an explaination of why this is needed. */
+    internal fun beforeExit() {
+        gb.debugger.emuHalt = true
         saveConfiguration()
+    }
+
+    override fun dispose() {
         gb.dispose()
-        Thread.sleep(20)
-        Controllers.clearListeners()
         stage.dispose()
     }
 

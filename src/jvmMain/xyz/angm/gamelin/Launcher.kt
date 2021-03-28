@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/21/21, 7:40 PM.
+ * This file was last modified at 3/28/21, 9:24 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,7 +23,21 @@ fun main() {
     configuration.setIdleFPS(15)
     configuration.useVsync(true)
     configuration.setTitle("Gamelin")
-    Lwjgl3Application(emu, configuration)
+    Application(configuration)
+}
+
+class Application(config: Lwjgl3ApplicationConfiguration) : Lwjgl3Application(emu, config) {
+    /** Usually, cleanupWindows is called when Gdx.app.exit() is and will dispose
+     * the application. However, it'll call lifecycle hooks before calling dispose
+     * on the application listener, which included the Jamepad lifecycle hook -
+     * because the GameBoy emulator is running on another thread, it was possible for it
+     * to poll Jamepad in the very short span between it getting disposed and the GB getting stopped
+     * by the application listener, leading to a segfault.
+     * We stop the GB before handing back control to libGDX to prevent this. */
+    override fun cleanupWindows() {
+        emu.beforeExit()
+        super.cleanupWindows()
+    }
 }
 
 /** Handle exceptions */
