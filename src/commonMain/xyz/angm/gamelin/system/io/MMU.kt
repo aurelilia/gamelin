@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:45 PM.
+ * This file was last modified at 3/28/21, 3:29 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -42,6 +42,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
     private var regIF = 0
 
     fun load(game: ByteArray) {
+        if (this::cart.isInitialized) cart.save()
         cart = Cartridge.ofRom(game)
         bootromOn = true
     }

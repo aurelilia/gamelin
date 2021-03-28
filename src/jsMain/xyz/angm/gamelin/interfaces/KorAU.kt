@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 11:18 PM.
+ * This file was last modified at 3/28/21, 3:41 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,13 +9,15 @@
 package xyz.angm.gamelin.interfaces
 
 import com.soywiz.kds.FloatArrayDeque
+import com.soywiz.klock.milliseconds
 import com.soywiz.korau.sound.*
+import com.soywiz.korio.async.delay
 import com.soywiz.korio.lang.Cancellable
 import com.soywiz.korio.lang.cancel
 import kotlinx.browser.document
+import xyz.angm.gamelin.interfaces.AudioOutput.Companion.BUFFER_SIZE
 
 val nativeSoundProvider: NativeSoundProvider by lazy { HtmlNativeSoundProvider() }
-var gotSamples = false
 
 class JsPlatformAudioOutput {
 
@@ -79,6 +81,11 @@ class JsPlatformAudioOutput {
         ensureRunning()
         deques[0].write(samplesL, 0, samplesL.size)
         deques[1].write(samplesR, 0, samplesR.size)
-        gotSamples = deques[0].availableRead > samplesL.size * 3
+    }
+
+    suspend fun sleepUntilEmpty() {
+        while (deques[0].availableRead > BUFFER_SIZE * 4) {
+            delay(10.milliseconds)
+        }
     }
 }

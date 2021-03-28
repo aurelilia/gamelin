@@ -1,123 +1,25 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/19/21, 4:08 AM.
+ * This file was last modified at 3/28/21, 1:49 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-html, body {
-    touch-action: auto;
-    position: fixed;
-}
-
-html, body, canvas {
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-    touch-action: none;
-}
-
-.flex {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-.container {
-    z-index: 9999;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #2B2B2B;
-    justify-content: flex-start;
-}
-
-.preloader_container {
-    z-index: 99999;
-    justify-content: center;
-}
-
-.preloader_container.preloader_container_hidden {
-    display: none;
-}
-
-.preloader_spinner {
-    border: 16px solid #776bc7;
-    border-top: 16px solid #2e0090;
-    border-radius: 50%;
-    max-width: 50vh;
-    max-height: 50vh;
-    width: 64px;
-    height: 64px;
-    animation: spin 2s linear infinite;
-}
-
-.preloader_text {
-    color: #776bc7;
-    margin-top: 0.5em;
-    font: 14px Arial;
-}
-
-h2, .sound-checkbox, .desktop-msg {
-    color: #afafaf;
-    text-shadow: 2px 2px 0 rgb(73, 73, 73);
-}
-
-h2 {
-    margin-top: 3%;
-}
-
-#screen, .file-div {
-    box-shadow: 3px 3px 0 rgb(73, 73, 73);
-    background: #fcfeff;
-    border-radius: .5em;
-    border: 3px solid #8f8f8f;
+canvas {
+    display: none
 }
 
 #screen {
+    background: #fcfeff;
     width: 640px;
     image-rendering: crisp-edges;
-}
-
-.file-div {
-    color: #202020;
-    margin-top: 10px;
-}
-
-.file-div {
-    overflow: hidden;
-    width: 300px;
-}
-
-.fileinput {
-    overflow: hidden;
-    position: relative;
-}
-
-#filetext {
-    text-align: center;
-}
-
-.fileinput [type=file] {
+    image-rendering: pixelated;
     display: block;
-    font-size: 999px;
-    min-height: 100%;
-    min-width: 100%;
-    opacity: 0;
-    position: absolute;
-    right: 0;
-    text-align: right;
-    top: 0;
 }
 
-.sound-checkbox, .desktop-msg {
-    margin-top: 1%;
-}
-
-a {
-    color: #776bc7;
-    text-shadow: none;
+.bottom-container {
+    margin-top: 20px;
+    text-align: center;
 }
 
 @keyframes spin {

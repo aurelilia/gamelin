@@ -1,13 +1,13 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:58 PM.
+ * This file was last modified at 3/28/21, 1:44 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.interfaces
 
-import org.khronos.webgl.Uint16Array
+import org.khronos.webgl.Uint32Array
 import org.khronos.webgl.set
 import screenCtx
 import screenData
@@ -16,13 +16,12 @@ import screenData
  * Ignores width/height. */
 internal actual class TileRenderer actual constructor(tileWidth: Int, tileHeight: Int) {
 
+    private val pixels = Uint32Array(screenData.data.buffer)
+
     actual fun drawPixel(x: Int, y: Int, r: Int, g: Int, b: Int) {
-        var idx = (x + (y * 160)) * 4
-        val dat = screenData.data.unsafeCast<Uint16Array>()
-        dat[idx++] = r.toShort()
-        dat[idx++] = g.toShort()
-        dat[idx++] = b.toShort()
-        dat[idx] = 255
+        val idx = (x + (y * 160))
+        val color = r or (g shl 8) or (b shl 16) or (255 shl 24) // RGBA8888 but reversed for some reason
+        pixels[idx] = color
     }
 
     actual fun finishFrame() {

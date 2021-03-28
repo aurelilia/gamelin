@@ -1,5 +1,6 @@
 # Gamelin
-A Gameboy (Color) emulator written in Kotlin, able to run on desktop (LibGDX + VisUI) and in browser (KORGE).
+A Gameboy (Color) emulator written in Kotlin, able to run on desktop/JVM (with LibGDX + VisUI) 
+and [in browser](https://gamelin.angm.xyz) (with KORGE).
 
 ## Goals
 The main goals of this emulator is to both learn more about emulation of real-world hardware
@@ -21,6 +22,7 @@ after turning the game off overnight - needs more testing).
 
 ##### Desktop Version
 - Upscaling with HQ2X, HQ3X and HQ4X
+- `.sav` game saving compatible with most other emulators (BGB, VBA, ...)
 - Save states with "undo last load" function
 - Fast-forwarding at any integer multiplier by holding a configurable key
 - Basic controller support
@@ -34,8 +36,9 @@ after turning the game off overnight - needs more testing).
     - Instruction Set Viewer
 
 ##### Web Version
-- Underlying emulator works fully in browser
-- Entire emulator working fully, sound is choppy due to slow performance
+- Entire emulator working fully, many games do not run at full speed
+due to JS performance
+- Full game saving and RTC support (into browser local storage)
 
 ### Tested games
 Here's a non-exhaustive list of games I've tested. Results might sometimes be outdated.
@@ -127,5 +130,6 @@ Thank you to [@mattcurrie](https://github.com/mattcurrie) for creating them!
 - [Megan Sullivan, for her list of GB opcodes](https://meganesulli.com/blog/game-boy-opcodes)
 - [gbdev.io for a list of useful resources](https://gbdev.io)
 - [metaphore, who made the hqx filter implementation Gamelin uses](https://gist.github.com/metaphore/b4750be45289109b3d49c97b5c300db6)
+- [danwsong, whose gemuboi-js emulator inspired gamelin.kjs's design](https://github.com/danwsong/gemuboi-js)
 - blargg, Gekkio and mattcurie for their test ROMs and retrio for hosting blargg's ROMs
 - You, for reading this :)

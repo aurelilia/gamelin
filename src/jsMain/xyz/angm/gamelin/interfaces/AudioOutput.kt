@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 11:12 PM.
+ * This file was last modified at 3/28/21, 3:41 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,18 +12,18 @@ import org.w3c.dom.HTMLInputElement
 
 /** Sound enable checkbox. */
 private val soundEnable = document.getElementById("sound-enable") as HTMLInputElement
+lateinit var device: JsPlatformAudioOutput
 
-/** Audio output using KORGE audio.
- * TODO: Not great: Buffer underruns crackle and happen often due to JS being slow */
+/** Audio output using KORGE audio. */
 actual class AudioOutput actual constructor() {
 
-    private val device = JsPlatformAudioOutput()
     private var bufferL = FloatArray(BUFFER_SIZE)
     private var bufferR = FloatArray(BUFFER_SIZE)
     private var bufferIndex = 0
     private var enabled = soundEnable.checked
 
     init {
+        device = JsPlatformAudioOutput()
         device.start()
         soundEnable.addEventListener("change", {
             enabled = soundEnable.checked
@@ -58,6 +58,6 @@ actual class AudioOutput actual constructor() {
 
     actual companion object {
         actual val SAMPLE_RATE = 22050
-        private const val BUFFER_SIZE = 2048
+        const val BUFFER_SIZE = 2048
     }
 }
