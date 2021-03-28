@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 7:10 PM.
+ * This file was last modified at 3/28/21, 5:48 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -26,6 +26,7 @@ import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
 import ktx.actors.onChange
+import ktx.assets.file
 import ktx.collections.*
 import ktx.scene2d.vis.menuItem
 import ktx.scene2d.vis.subMenu
@@ -54,7 +55,7 @@ class Gamelin : ApplicationAdapter() {
     private val disabledButtons = GdxArray<MenuItem>()
 
     override fun create() {
-        VisUI.load()
+        if (config.skin.path != null) VisUI.load(file(config.skin.path!!)) else VisUI.load()
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
         root = VisTable()
 

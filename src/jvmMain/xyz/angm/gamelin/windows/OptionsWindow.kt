@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 7:17 PM.
+ * This file was last modified at 3/28/21, 5:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -50,6 +50,12 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                 "Fast-forward speed multiplier", arrayOf("2x", "3x", "4x", "6x", "8x"),
                 { "${config.fastForwardSpeed + 1}x" },
                 { config.fastForwardSpeed = it[0] - '1' }
+            )
+
+            selectBox(
+                "Gamelin UI Theme", UiSkin.values().map { it.toString() }.toTypedArray(),
+                { config.skin.toString() },
+                { config.skin = UiSkin.valueOf(it) }
             )
         }
 

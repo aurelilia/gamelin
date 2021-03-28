@@ -123,6 +123,7 @@ Thank you to [@mattcurrie](https://github.com/mattcurrie) for creating them!
 - [Imran Nazar, for their series of blog posts on GB emulation](http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU)
 - [Michael Steil, for The Ultimate Game Boy Talk](https://media.ccc.de/v/33c3-8029-the_ultimate_game_boy_talk)
 - [kotcrab, for creating the xgbc emulator I often used to confirm/understand fine behavior as well as VisUI](https://github.com/kotcrab/xgbc)
+- [czyzby, for making the VisUI Tinted skin](https://github.com/kotcrab/vis-ui-contrib/tree/master/skins/tinted)
 - [stan-roelofs, for their emulator, which I abridged the sound implementation from](https://github.com/stan-roelofs/Kotlin-Gameboy-Emulator)
 - [Megan Sullivan, for her list of GB opcodes](https://meganesulli.com/blog/game-boy-opcodes)
 - [gbdev.io for a list of useful resources](https://gbdev.io)
