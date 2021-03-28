@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 6:02 PM.
+ * This file was last modified at 3/28/21, 6:44 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,7 @@ import xyz.angm.gamelin.*
 import xyz.angm.gamelin.interfaces.device
 import xyz.angm.gamelin.system.io.Button
 
-class OptionsWindow(private val game: Gamelin) : Window("Options") {
+class OptionsWindow(private val emu: Gamelin) : Window("Options") {
 
     private val pane = TabbedPane()
     private val container = VisTable()
@@ -47,6 +47,12 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                 { configuration.preferCGB }, { configuration.preferCGB = it }
             )
 
+            checkBox(
+                "Confirm resets",
+                "Require confirming you want to reset when hitting the reset button or hotkey.",
+                { config.confirmResets }, { config.confirmResets = it }
+            )
+
             selectBox(
                 "Fast-forward speed multiplier", arrayOf("2x", "3x", "4x", "6x", "8x"),
                 { "${config.fastForwardSpeed + 1}x" },
@@ -56,7 +62,10 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
             selectBox(
                 "Gamelin UI Theme", UiSkin.values().map { it.toString() }.toTypedArray(),
                 { config.skin.toString() },
-                { config.skin = UiSkin.valueOf(it) }
+                {
+                    config.skin = UiSkin.valueOf(it)
+                    emu.toast("Please restart the emulator to apply the theme.")
+                }
             )
         }
 
@@ -72,7 +81,7 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                 { "${config.gbScale}x" },
                 {
                     config.gbScale = it[0] - '0'
-                    game.reloadGameWindow()
+                    emu.reloadGameWindow()
                 }
             )
 
@@ -148,8 +157,8 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
                 btn.alpha = 1f
                 current = null
                 button = null
-                game.hotkeyHandler.update()
-                game.recreateMenus()
+                emu.hotkeyHandler.update()
+                emu.recreateMenus()
             }
 
             for ((i, bind) in config.hotkeys.withIndex()) {

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 6:11 PM.
+ * This file was last modified at 3/28/21, 6:50 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,17 +15,18 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
 import com.badlogic.gdx.utils.ObjectMap
 import com.kotcrab.vis.ui.VisUI
-import com.kotcrab.vis.ui.widget.Menu
-import com.kotcrab.vis.ui.widget.MenuBar
-import com.kotcrab.vis.ui.widget.MenuItem
-import com.kotcrab.vis.ui.widget.VisTable
+import com.kotcrab.vis.ui.util.ToastManager
+import com.kotcrab.vis.ui.widget.*
 import com.kotcrab.vis.ui.widget.file.FileChooser
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter
 import com.kotcrab.vis.ui.widget.file.StreamingFileChooserListener
+import com.kotcrab.vis.ui.widget.toast.ToastTable
 import ktx.actors.onChange
+import ktx.actors.onClick
 import ktx.assets.file
 import ktx.collections.*
 import ktx.scene2d.vis.menuItem
@@ -49,6 +50,7 @@ class Gamelin : ApplicationAdapter() {
     private lateinit var stage: Stage
     private lateinit var root: VisTable
     private lateinit var menuBarCell: Cell<Actor>
+    private lateinit var toasts: ToastManager
     private val windows = HashMap<String, Window>()
     internal val hotkeyHandler = HotkeyHandler()
     private lateinit var gbWindow: GameBoyWindow
@@ -58,6 +60,8 @@ class Gamelin : ApplicationAdapter() {
         if (config.skin.path != null) VisUI.load(file(config.skin.path!!)) else VisUI.load()
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
         root = VisTable()
+        toasts = ToastManager(stage)
+        toasts.alignment = Align.bottomRight
 
         val multi = InputMultiplexer()
         multi.addProcessor(Keyboard)
@@ -99,8 +103,11 @@ class Gamelin : ApplicationAdapter() {
         }
         file.addSeparator()
         file.item("Pause", Input.Keys.P, disable = true) { gb.debugger.emuHalt = !gb.debugger.emuHalt }
-        file.item("Reset", Input.Keys.R, disable = true) { gb.reset() }
-        file.item("Save Game to disk", Input.Keys.S, disable = true) { gb.mmu.cart.save() }
+        file.item("Reset", Input.Keys.R, disable = true) { resetButton() }
+        file.item("Save Game to disk", Input.Keys.S, disable = true) {
+            gb.mmu.cart.save()
+            toast("Game saved.")
+        }
         file.addSeparator()
         file.item("Exit", Input.Keys.F4) { Gdx.app.exit() }
 
@@ -125,7 +132,10 @@ class Gamelin : ApplicationAdapter() {
             for (i in 0 until 10) menuItem("Slot $i") {
                 disabledButtons.add(this)
                 isDisabled = true
-                onChange { FileSystem.saveState(i.toString()) }
+                onChange {
+                    FileSystem.saveState(i.toString())
+                    toast("Saved to slot $i.")
+                }
             }
         }
         val loadState = MenuItem("Load State")
@@ -136,12 +146,14 @@ class Gamelin : ApplicationAdapter() {
                 isDisabled = true
                 onChange {
                     FileSystem.loadState(i.toString())
+                    toast("Loaded slot $i.")
                     gameLoaded()
                 }
             }
         }
         options.item("Undo last load", null, disable = true) {
             FileSystem.loadState("last")
+            toast("Undid loading save state.")
             gameLoaded()
         }
         options.addSeparator()
@@ -190,11 +202,41 @@ class Gamelin : ApplicationAdapter() {
         chooser.setListener(object : StreamingFileChooserListener() {
             override fun selected(file: FileHandle) {
                 FileSystem.gamePath = file
+                toast("Loaded '${file.name()}'.")
                 gb.loadGame(file.readBytes())
                 gameLoaded()
             }
         })
         return chooser
+    }
+
+    private fun resetButton() {
+        if (!config.confirmResets) {
+            gb.reset()
+            toasts.show("Reset console.")
+            return
+        }
+
+        val toast = ToastTable()
+        toast.add("Are you sure you want to reset?").colspan(2).row()
+        toast.add(VisTextButton("Yes").apply {
+            onClick {
+                gb.reset()
+                toasts.show("Reset console.")
+                toast.fadeOut()
+            }
+        }).pad(5f).width(40f)
+        toast.add(VisTextButton("No").apply {
+            onClick { toast.fadeOut() }
+        }).pad(5f).width(40f)
+        toast.pad(10f)
+        toasts.show(toast, 10f)
+    }
+
+    internal fun toast(msg: String) {
+        val table = VisTable()
+        table.add(msg).pad(10f)
+        toasts.show(table, 3f)
     }
 
     private fun toggleWindow(name: String, create: () -> Window) {
@@ -235,6 +277,7 @@ class Gamelin : ApplicationAdapter() {
     override fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
         gbWindow.centerWindow()
+        toasts.resize()
     }
 
     override fun dispose() {

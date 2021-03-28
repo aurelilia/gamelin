@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 5:47 PM.
+ * This file was last modified at 3/28/21, 6:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,7 +23,8 @@ val config = loadDesktopConfiguration()
  * @property volume Volume of audio output
  * @property fastForwardVolume Volume while fast-forwarding
  * @property gbScale Scale of the GameBoy window
- * @property hqxLevel Which type of hqx scaling to apply. Values 1-4; 1 is linear scaling. */
+ * @property hqxLevel Which type of hqx scaling to apply. Values 1-4; 1 is linear scaling.
+ * @property confirmResets If pressing the reset button or hotkey requires confirmation */
 class DesktopConfiguration {
     val keymap = arrayOf(Input.Keys.Z, Input.Keys.X, Input.Keys.ENTER, Input.Keys.SPACE, Input.Keys.RIGHT, Input.Keys.LEFT, Input.Keys.UP, Input.Keys.DOWN)
     val buttonMap = arrayOf(0, 1, 9, 8, 14, 13, 11, 12)
@@ -39,6 +40,8 @@ class DesktopConfiguration {
     var gbScale = 4
     var hqxLevel = 1
     var skin = UiSkin.Tinted
+
+    var confirmResets = true
 }
 
 enum class UiSkin(val path: String?) {
