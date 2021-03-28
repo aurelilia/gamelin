@@ -24,7 +24,7 @@ after turning the game off overnight - needs more testing).
 - Upscaling with HQ2X, HQ3X and HQ4X
 - `.sav` game saving compatible with most other emulators (BGB, VBA, ...)
 - Save states with "undo last load" function
-- Fast-forwarding at any integer multiplier by holding a configurable key
+- Fast-forwarding at any integer multiplier (with hold and toggle hotkeys)
 - Basic controller support
 - Debugger with:
     - Tileset and BG Map Viewers

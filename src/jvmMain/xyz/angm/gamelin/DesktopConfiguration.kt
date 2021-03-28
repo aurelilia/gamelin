@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 10:26 PM.
+ * This file was last modified at 3/29/21, 1:15 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -20,7 +20,8 @@ val config = loadDesktopConfiguration()
  * @property axisMap Map of controller axes for the dpad, first is horizontal, second is vertical
  * @property hotkeys Map of hotkeys to their mapped key.
  * @property fastForwardButton Controller button to be held to fast-forward.
- * @property fastForwardSpeed Fast-forward speed - 1. (1 = 2x, 2 = 3x, ...)
+ * @property fastForwardHoldSpeed Fast-forward speed - 1 while holding a hotkey. (1 = 2x, 2 = 3x, ...)
+ * @property fastForwardToggleSpeed Fast-forward speed - 1 toggled with a hotkey. (1 = 2x, 2 = 3x, ...)
  * @property volume Volume of audio output
  * @property fastForwardVolume Volume while fast-forwarding
  * @property gbScale Scale of the GameBoy window
@@ -34,7 +35,9 @@ class DesktopConfiguration {
 
     val hotkeys = OrderedMap<String, Int>()
     var fastForwardButton = 3
-    var fastForwardSpeed = 3
+    var fastForwardHoldSpeed = 3
+    var fastForwardToggleSpeed = 3
+    var enableRewind = false
     var rewindBufferSec = 10
 
     var volume = 0.5f

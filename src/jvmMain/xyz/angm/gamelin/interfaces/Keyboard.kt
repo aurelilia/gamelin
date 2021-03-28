@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 12:40 AM.
+ * This file was last modified at 3/29/21, 1:10 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -62,7 +62,7 @@ actual object Keyboard : InputProcessor by InputAdapter(), ControllerListener by
     }
 
     override fun buttonDown(controller: Controller, buttonCode: Int): Boolean {
-        if (buttonCode == config.fastForwardButton) gb.mmu.sound.output.skip = config.fastForwardSpeed
+        if (buttonCode == config.fastForwardButton) gb.mmu.sound.output.skip += config.fastForwardHoldSpeed
         val button = controllerToBtn[buttonCode]
         buttonPressed(button ?: return false)
         controllerPressed[button.ordinal] = true
@@ -70,7 +70,7 @@ actual object Keyboard : InputProcessor by InputAdapter(), ControllerListener by
     }
 
     override fun buttonUp(controller: Controller, buttonCode: Int): Boolean {
-        if (buttonCode == config.fastForwardButton) gb.mmu.sound.output.skip = 0
+        if (buttonCode == config.fastForwardButton) gb.mmu.sound.output.skip -= config.fastForwardHoldSpeed
         val button = controllerToBtn[buttonCode] ?: return false
         controllerPressed[button.ordinal] = false
         return false

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 12:40 AM.
+ * This file was last modified at 3/29/21, 1:06 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -55,9 +55,14 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
             )
 
             selectBox(
-                "Fast-forward speed multiplier", arrayOf("2x", "3x", "4x", "6x", "8x"),
-                { "${config.fastForwardSpeed + 1}x" },
-                { config.fastForwardSpeed = it[0] - '1' }
+                "Fast-forward speed multiplier (Hold)", arrayOf("2x", "3x", "4x", "6x", "8x"),
+                { "${config.fastForwardHoldSpeed + 1}x" },
+                { config.fastForwardHoldSpeed = it[0] - '1' }
+            )
+            selectBox(
+                "Fast-forward speed multiplier (Toggle)", arrayOf("2x", "3x", "4x", "6x", "8x"),
+                { "${config.fastForwardToggleSpeed + 1}x" },
+                { config.fastForwardToggleSpeed = it[0] - '1' }
             )
 
             selectBox(

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 9:55 PM.
+ * This file was last modified at 3/29/21, 1:10 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -80,7 +80,20 @@ class Gamelin : ApplicationAdapter() {
         recreateMenus()
         root.add().expand().fill()
 
-        createHotKey("Fast Forward", Input.Keys.C, { gb.mmu.sound.output.skip = config.fastForwardSpeed }) { gb.mmu.sound.output.skip = 0 }
+        createHotKey(
+            "Fast Forward (Hold)", Input.Keys.C,
+            { gb.mmu.sound.output.skip += config.fastForwardHoldSpeed },
+            { gb.mmu.sound.output.skip -= config.fastForwardHoldSpeed }
+        )
+        var ffToggled = false
+        createHotKey(
+            "Fast Forward (Toggle)", Input.Keys.TAB,
+            {
+                if (ffToggled) gb.mmu.sound.output.skip -= config.fastForwardHoldSpeed
+                else gb.mmu.sound.output.skip += config.fastForwardHoldSpeed
+                ffToggled = !ffToggled
+            },
+        )
         hotkeyHandler.update()
 
         Thread {
