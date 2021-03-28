@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:03 AM.
+ * This file was last modified at 3/29/21, 1:44 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,6 +14,7 @@ import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy
 import org.objenesis.strategy.StdInstantiatorStrategy
 import xyz.angm.gamelin.config
 import xyz.angm.gamelin.gb
+import xyz.angm.gamelin.rewinding
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.CPU
 import xyz.angm.gamelin.system.io.*
@@ -28,11 +29,26 @@ object SaveState {
     private val rewindBuffers = Array(config.rewindBufferSec * 30) { ByteArray(85_000) }
     private var bufferIdx = 0
     private val rewindOutput = Output()
+    private val rewindInput = Input()
+    private var rewindStopBuffer = 0
 
     fun rewindPoint() {
         if (bufferIdx == rewindBuffers.size) bufferIdx = 0
         rewindOutput.buffer = rewindBuffers[bufferIdx++]
         kryo.writeObject(rewindOutput, gb)
+    }
+
+    fun rewindNext() {
+        if (rewindStopBuffer == bufferIdx) endRewind()
+        if (--bufferIdx < 0) bufferIdx = rewindBuffers.size - 1
+        rewindInput.buffer = rewindBuffers[bufferIdx]
+        loadState(rewindInput)
+    }
+
+    fun endRewind() {
+        rewinding = false
+        rewindStopBuffer = bufferIdx
+        gb.debugger.emuHalt = false
     }
 
     fun saveState(out: Output, console: GameBoy) {

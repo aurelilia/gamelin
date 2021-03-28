@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:10 AM.
+ * This file was last modified at 3/29/21, 1:51 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -34,6 +34,7 @@ import ktx.scene2d.vis.subMenu
 import xyz.angm.gamelin.interfaces.DesktopDebugger
 import xyz.angm.gamelin.interfaces.FileSystem
 import xyz.angm.gamelin.interfaces.Keyboard
+import xyz.angm.gamelin.interfaces.SaveState
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.windows.*
@@ -42,6 +43,9 @@ import xyz.angm.gamelin.windows.*
  * This was decided to be implmeneted as global state to allow switching out the
  * GB at any point, for features like save states. */
 var gb = GameBoy(DesktopDebugger())
+@Volatile
+var rewinding = false
+    @Synchronized set
 
 /** The libGDX application driving the desktop emulator.
  * @property disabledButtons Buttons that are only enabled once a game is loaded. */
@@ -94,11 +98,16 @@ class Gamelin : ApplicationAdapter() {
                 ffToggled = !ffToggled
             },
         )
+        createHotKey(
+            "Rewind", Input.Keys.H,
+            { rewinding = true }, { Gdx.app.postRunnable { SaveState.endRewind() } }
+        )
         hotkeyHandler.update()
 
         Thread {
             while (!gb.disposed) {
-                gb.advanceIndefinitely { Thread.sleep(16) }
+                if (rewinding) Thread.sleep(16)
+                else gb.advanceIndefinitely { Thread.sleep(16) }
             }
         }.start()
     }
@@ -296,9 +305,19 @@ class Gamelin : ApplicationAdapter() {
         stage.addActor(gbWindow)
     }
 
+    private var rewindFrame = false
+
     override fun render() {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
+
+        rewindFrame = !rewindFrame
+        if (rewinding && rewindFrame) {
+            gb.advanceUntilDebugHalt()
+            gb.debugger.emuHalt = false
+            SaveState.rewindNext()
+        }
+
         gb.mmu.ppu.renderer.beforeRender()
         stage.act(Gdx.graphics.deltaTime)
         stage.draw()

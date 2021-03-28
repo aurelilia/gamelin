@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 10:55 PM.
+ * This file was last modified at 3/29/21, 1:55 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,6 +9,7 @@ package xyz.angm.gamelin.interfaces
 
 import com.badlogic.gdx.Gdx
 import xyz.angm.gamelin.config
+import xyz.angm.gamelin.rewinding
 
 internal var device = Gdx.audio.newAudioDevice(AudioOutput.SAMPLE_RATE, false).apply {
     setVolume(config.volume)
@@ -40,14 +41,15 @@ actual class AudioOutput actual constructor() {
     }
 
     actual fun play(left: Byte, right: Byte) {
+        if (rewinding) return
         if (skip == 0 || skipIndex++ == skip) {
-            skipIndex = 0
-            buffer[bufferIndex++] = (left * 64).toShort()
-            buffer[bufferIndex++] = (right * 64).toShort()
             if (bufferIndex >= BUFFER_SIZE) {
                 device.writeSamples(buffer, 0, BUFFER_SIZE)
                 bufferIndex = 0
             }
+            skipIndex = 0
+            buffer[bufferIndex++] = (left * 64).toShort()
+            buffer[bufferIndex++] = (right * 64).toShort()
         }
     }
 

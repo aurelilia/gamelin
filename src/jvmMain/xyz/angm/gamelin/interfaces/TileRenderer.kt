@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:04 AM.
+ * This file was last modified at 3/29/21, 1:20 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,10 +15,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import ktx.collections.*
-import xyz.angm.gamelin.bit
-import xyz.angm.gamelin.config
-import xyz.angm.gamelin.gb
-import xyz.angm.gamelin.runInGbThread
+import xyz.angm.gamelin.*
 import xyz.angm.gamelin.system.io.ppu.PPU
 
 /** TileRenderer using 2 pixmaps for buffering the image, as well as a texture
@@ -68,7 +65,7 @@ internal actual class TileRenderer actual constructor(private val tileWidth: Int
     actual fun finishFrame() {
         val map = current
         current = if (current === pixmapA) pixmapB else {
-            if (config.enableRewind) SaveState.rewindPoint()
+            if (config.enableRewind && !rewinding) SaveState.rewindPoint()
             pixmapA
         }
         Gdx.app.postRunnable {
@@ -78,6 +75,8 @@ internal actual class TileRenderer actual constructor(private val tileWidth: Int
         }
         queuedRunnables.forEach { it() }
         queuedRunnables.clear()
+
+        if (rewinding) gb.debugger.emuHalt = true
     }
 
     /** Queue the given runnable to be executed when the next frame has finished. */

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 4:15 AM.
+ * This file was last modified at 3/29/21, 1:22 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -60,6 +60,10 @@ class GameBoy(@Transient var debugger: Debugger = Debugger()) : Disposable {
             if (debugger.emuHalt) sleep()
             else advance()
         }
+    }
+
+    fun advanceUntilDebugHalt() {
+        while (!debugger.emuHalt) advance()
     }
 
     /** Advance the system by a single CPU instruction. */
