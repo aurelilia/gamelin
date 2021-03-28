@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 5:49 PM.
+ * This file was last modified at 3/28/21, 6:02 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -9,6 +9,7 @@ package xyz.angm.gamelin.windows
 
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.utils.Align
 import com.kotcrab.vis.ui.widget.*
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane
@@ -218,6 +219,8 @@ class OptionsWindow(private val game: Gamelin) : Window("Options") {
         val box = KVisSelectBox<String>(defaultStyle)
         box.items = GdxArray(items)
         box.selected = get()
+        box.setAlignment(Align.center)
+        box.list.setAlignment(Align.center)
         box.onChange { set(selected) }
         add(box).uniform().width(75f).row()
         return box
