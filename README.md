@@ -1,31 +1,19 @@
 # Gamelin
 A Gameboy (Color) emulator written in Kotlin, able to run on desktop/JVM (with LibGDX + VisUI) 
-and [in browser](https://gamelin.angm.xyz) (with KORGE).
-
-## Goals
-The main goals of this emulator is to both learn more about emulation of real-world hardware
-as well as creating a nice-to-use emulator with many comfort features that should be able
-to run well in the browser. Accuracy is only a goal when it fixes issues encountered
-by actual games; implementing complex but ultimately useless hardware details that aren't used by games
-(like the OAM bug or MBC1 multicarts) is not a goal of this emulator, particularly considering
-the speed requirements needed to make it work in the browser.
+and [in browser](https://gamelin.angm.xyz) (with Bootstrap and KorAU).
 
 ## Status
 The emulator is in a good and usable state. Both DMG and CGB emulation is complete and 
 quite accurate, enough to make most commercial games run perfectly.
 
-##### Missing console features
-- Some MBC3 controllers have a built-in RTC for keeping track of time; Gamelin implements it,
-but in a very simple format incompatible with other emulators that has a high chance of
-not working with most games (it was tested with Pokemon Crystal and successfully kept time
-after turning the game off overnight - needs more testing).
-
-##### Desktop Version
+### Desktop Version
+##### Features
 - Upscaling with HQ2X, HQ3X and HQ4X
 - `.sav` game saving compatible with most other emulators (BGB, VBA, ...)
 - Save states with "undo last load" function
+- Live rewinding of games for up to 60 seconds
 - Fast-forwarding at any integer multiplier (with hold and toggle hotkeys)
-- Basic controller support
+- Basic gamepad/controller support
 - Debugger with:
     - Tileset and BG Map Viewers
     - Cartridge Info Viewer
@@ -35,10 +23,20 @@ after turning the game off overnight - needs more testing).
     - Per-instruction CPU/register state logging
     - Instruction Set Viewer
 
-##### Web Version
-- Entire emulator working fully, many games do not run at full speed
-due to JS performance
+##### Playing Pokemon Silver with HQ4X upscaling
+![Desktop version playing Pokemon Silver](img/desktop1.png)
+##### TLoZ: Oracle of Ages with some debugging tools open
+![Desktop version playing Oracle of Ages](img/desktop2.png)
+
+##### Web Version - [gamelin.kjs](https://gamelin.angm.xyz)
+- Entire emulator working fully
 - Full game saving and RTC support (into browser local storage)
+
+#### Missing console features
+- Some MBC3 controllers have a built-in RTC for keeping track of time; Gamelin implements it,
+but in a very simple format incompatible with other emulators that has a high chance of
+not working with most games (it was tested with Pokemon Crystal and successfully kept time
+after turning the game off overnight - needs more testing).
 
 ### Tested games
 Here's a non-exhaustive list of games I've tested. Results might sometimes be outdated.
@@ -83,6 +81,14 @@ All games that support both DMG/GB and CGB/GBC were tested in GBC mode.
 - Pokemon Yellow (Global, Game Freak)
     - None of the Pikachu sound effects actually play (they're just low volume noise)
     - Played until first rival fight
+
+## Goals
+The main goals of this emulator is to both learn more about emulation of real-world hardware
+as well as creating a nice-to-use emulator with many comfort features that should be able
+to run well in the browser. Accuracy is only a goal when it fixes issues encountered
+by actual games; implementing complex but ultimately useless hardware details that aren't used by games
+(like the OAM bug or MBC1 multicarts) is not a goal of this emulator, particularly considering
+the speed requirements needed to make it work in the browser.
 
 ## Build
 ``` bash
