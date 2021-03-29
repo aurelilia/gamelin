@@ -72,6 +72,7 @@ kotlin {
                 implementation("com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop")
                 implementation("com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop")
 
+ 				implementation("com.badlogicgames.gdx:gdx-jnigen:1.9.10")
                 implementation("uk.co.electronstudio.sdl2gdx:sdl2gdx:1.0.4")
 
                 implementation("io.github.libktx:ktx-assets:$ktxVersion")
