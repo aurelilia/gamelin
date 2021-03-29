@@ -1,29 +1,28 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 2:14 AM.
+ * This file was last modified at 3/29/21, 6:27 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.windows
 
-import com.badlogic.gdx.Input
-import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.utils.Align
-import com.kotcrab.vis.ui.widget.*
+import com.kotcrab.vis.ui.widget.Separator
+import com.kotcrab.vis.ui.widget.VisLabel
+import com.kotcrab.vis.ui.widget.VisSlider
+import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.spinner.IntSpinnerModel
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter
-import ktx.actors.*
+import ktx.actors.onChange
 import ktx.collections.*
 import ktx.scene2d.defaultStyle
 import ktx.scene2d.vis.*
 import xyz.angm.gamelin.*
-import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.interfaces.SaveState
 import xyz.angm.gamelin.interfaces.device
-import xyz.angm.gamelin.system.io.Button
 
 class OptionsWindow(private val emu: Gamelin) : Window("Options") {
 
@@ -134,93 +133,8 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
             slider("Volume while fast-forwarding", 0f, 1f, 0.01f, { config.fastForwardVolume }, { config.fastForwardVolume = it })
         }
 
-        tab("Input") {
-            var current: Int? = null
-            var button: VisTextButton? = null
-
-            fun resetCurrent(btn: VisTextButton?, key: Int = config.keymap[current ?: 0]) {
-                if (current == null || btn == null) return
-                config.keymap[current ?: 0] = key
-                btn.setText(Input.Keys.toString(key))
-                btn.alpha = 1f
-                current = null
-                button = null
-                Keyboard.refresh()
-            }
-
-            for (btn in Button.values()) {
-                leftLabel(btn.name)
-
-                val key = config.keymap[btn.ordinal]
-                visTextButton(Input.Keys.toString(key)) {
-                    onClick {
-                        setText("...")
-                        alpha = 0.7f
-                        resetCurrent(button)
-                        current = btn.ordinal
-                        button = this@visTextButton
-                        stage.keyboardFocus = this@tab
-                    }
-                    it.width(75f).height(35f).uniform()
-                }
-
-                if (btn.ordinal % 2 == 1) row()
-                else add().width(50f)
-            }
-
-            addListener { event ->
-                if (event is InputEvent && event.type === InputEvent.Type.keyDown && current != null) {
-                    resetCurrent(button, event.keyCode)
-                    true
-                } else false
-            }
-        }
-
-        tab("Hotkeys") {
-            var current: String? = null
-            var button: VisTextButton? = null
-
-            fun resetCurrent(btn: VisTextButton?, key: Int) {
-                if (current == null || btn == null) return
-                if (key != -1) config.hotkeys[current!!] = if (key == Input.Keys.ESCAPE) -1 else key
-                val cur = config.hotkeys[current!!]!!
-                btn.setText(if (cur == -1) "None" else Input.Keys.toString(cur))
-                btn.alpha = 1f
-                current = null
-                button = null
-                emu.hotkeyHandler.update()
-                emu.recreateMenus()
-            }
-
-            for ((i, bind) in config.hotkeys.withIndex()) {
-                val name = bind.key
-                val key = bind.value
-                val keyName = if (key == -1) "None" else Input.Keys.toString(key)
-                leftLabel(name)
-
-                visTextButton(keyName) {
-                    onClick {
-                        setText("...")
-                        alpha = 0.7f
-                        resetCurrent(button, -1)
-                        current = name
-                        button = this@visTextButton
-                        stage.keyboardFocus = this@tab
-                    }
-                    it.width(75f).height(35f).uniform()
-                }
-
-                if (i % 2 == 1) row()
-                else add().width(50f)
-            }
-
-            addListener { event ->
-                if (event is InputEvent && event.type === InputEvent.Type.keyDown && current != null) {
-                    resetCurrent(button, event.keyCode)
-                    true
-                } else false
-            }
-        }
+        keyTab("Input", KeyboardInputPane())
+        keyTab("Hotkeys", KeyboardHotkeyPane())
 
         pane.switchTab(0)
     }
@@ -232,6 +146,10 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
 
     private inline fun tab(name: String, init: KVisTable.() -> Unit) {
         pane.add(OptTab(name).apply { init(table) })
+    }
+
+    private fun keyTab(name: String, table: VisTable) {
+        pane.add(NoKTXTab(name, table))
     }
 
     private inline fun KVisTable.checkBox(
@@ -301,11 +219,12 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
         }
     }
 
-    private fun KVisTable.leftLabel(text: String) {
-        visLabel(text) { it.uniform().left() }
+    private class OptTab(val title: String, val table: KVisTable = KVisTable(true)) : Tab(false, false) {
+        override fun getContentTable() = table
+        override fun getTabTitle() = title
     }
 
-    private class OptTab(val title: String, val table: KVisTable = KVisTable(true)) : Tab(false, false) {
+    private class NoKTXTab(val title: String, val table: VisTable) : Tab(false, false) {
         override fun getContentTable() = table
         override fun getTabTitle() = title
     }
