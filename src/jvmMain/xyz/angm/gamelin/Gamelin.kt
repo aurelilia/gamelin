@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:57 AM.
+ * This file was last modified at 3/29/21, 7:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -8,6 +8,9 @@
 package xyz.angm.gamelin
 
 import com.badlogic.gdx.*
+import com.badlogic.gdx.controllers.Controller
+import com.badlogic.gdx.controllers.ControllerAdapter
+import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.GL20
@@ -37,7 +40,15 @@ import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.interfaces.SaveState
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
-import xyz.angm.gamelin.windows.*
+import xyz.angm.gamelin.windows.AboutWindow
+import xyz.angm.gamelin.windows.CartInfoWindow
+import xyz.angm.gamelin.windows.GameBoyWindow
+import xyz.angm.gamelin.windows.Window
+import xyz.angm.gamelin.windows.debugger.BGMapViewer
+import xyz.angm.gamelin.windows.debugger.DebuggerWindow
+import xyz.angm.gamelin.windows.debugger.InstructionSetWindow
+import xyz.angm.gamelin.windows.debugger.VRAMViewer
+import xyz.angm.gamelin.windows.options.OptionsWindow
 
 /** The global GameBoy instance the program is currently operating on.
  * This was decided to be implmeneted as global state to allow switching out the
@@ -75,6 +86,7 @@ class Gamelin : ApplicationAdapter() {
         multi.addProcessor(hotkeyHandler)
         Gdx.input.inputProcessor = multi
         Controllers.addListener(Keyboard)
+        Controllers.addListener(hotkeyHandler)
 
         gbWindow = GameBoyWindow()
         stage.addActor(gbWindow)
@@ -220,6 +232,7 @@ class Gamelin : ApplicationAdapter() {
             config.hotkeys[name] = default
             default
         } else key
+        if (config.hotkeyButtons[name] == null) config.hotkeyButtons[name] = -1
 
         hotkeyHandler.register(name, Action(exec, up))
         return shortcut
@@ -343,10 +356,11 @@ class Gamelin : ApplicationAdapter() {
         stage.dispose()
     }
 
-    internal class HotkeyHandler : InputAdapter() {
+    internal class HotkeyHandler : InputProcessor by InputAdapter(), ControllerListener by ControllerAdapter() {
 
         private val actions = ObjectMap<String, Action>(10)
         private val keyToActions = IntMap<Action>(10)
+        private val buttonToActions = IntMap<Action>(10)
 
         internal fun register(name: String, click: Action) {
             actions[name] = click
@@ -355,8 +369,11 @@ class Gamelin : ApplicationAdapter() {
         fun update() {
             keyToActions.clear()
             for (action in actions) {
-                val key = config.hotkeys[action.key] ?: continue
-                keyToActions[key] = action.value
+                val key = config.hotkeys[action.key]
+                if (key != null) keyToActions[key] = action.value
+
+                val button = config.hotkeyButtons[action.key]
+                if (button != null) buttonToActions[button] = action.value
             }
         }
 
@@ -368,6 +385,18 @@ class Gamelin : ApplicationAdapter() {
 
         override fun keyUp(keycode: Int): Boolean {
             val action = keyToActions[keycode]
+            action?.keyUp?.invoke()
+            return action != null
+        }
+
+        override fun buttonDown(controller: Controller?, buttonCode: Int): Boolean {
+            val action = buttonToActions[buttonCode]
+            action?.keyDown?.invoke()
+            return action != null
+        }
+
+        override fun buttonUp(controller: Controller?, buttonCode: Int): Boolean {
+            val action = buttonToActions[buttonCode]
             action?.keyUp?.invoke()
             return action != null
         }

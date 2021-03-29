@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:10 AM.
+ * This file was last modified at 3/29/21, 7:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,7 +16,6 @@ import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.utils.IntMap
 import ktx.collections.*
 import xyz.angm.gamelin.config
-import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.system.io.Button
 
 /** Simple keyboard impl using libGDX input, will never
@@ -62,7 +61,6 @@ actual object Keyboard : InputProcessor by InputAdapter(), ControllerListener by
     }
 
     override fun buttonDown(controller: Controller, buttonCode: Int): Boolean {
-        if (buttonCode == config.fastForwardButton) gb.mmu.sound.output.skip += config.fastForwardHoldSpeed
         val button = controllerToBtn[buttonCode]
         buttonPressed(button ?: return false)
         controllerPressed[button.ordinal] = true
@@ -70,7 +68,6 @@ actual object Keyboard : InputProcessor by InputAdapter(), ControllerListener by
     }
 
     override fun buttonUp(controller: Controller, buttonCode: Int): Boolean {
-        if (buttonCode == config.fastForwardButton) gb.mmu.sound.output.skip -= config.fastForwardHoldSpeed
         val button = controllerToBtn[buttonCode] ?: return false
         controllerPressed[button.ordinal] = false
         return false

@@ -1,11 +1,11 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 6:27 PM.
+ * This file was last modified at 3/29/21, 7:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.windows
+package xyz.angm.gamelin.windows.options
 
 import com.badlogic.gdx.utils.Align
 import com.kotcrab.vis.ui.widget.Separator
@@ -14,8 +14,6 @@ import com.kotcrab.vis.ui.widget.VisSlider
 import com.kotcrab.vis.ui.widget.VisTable
 import com.kotcrab.vis.ui.widget.spinner.IntSpinnerModel
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab
-import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane
-import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter
 import ktx.actors.onChange
 import ktx.collections.*
 import ktx.scene2d.defaultStyle
@@ -23,22 +21,17 @@ import ktx.scene2d.vis.*
 import xyz.angm.gamelin.*
 import xyz.angm.gamelin.interfaces.SaveState
 import xyz.angm.gamelin.interfaces.device
+import xyz.angm.gamelin.windows.Window
+import xyz.angm.gamelin.windows.leftLabel
 
 class OptionsWindow(private val emu: Gamelin) : Window("Options") {
 
-    private val pane = TabbedPane()
     private val container = VisTable()
+    private val pane = Pane(container)
 
     init {
         setSize(700f, 450f)
         isResizable = true
-        pane.addListener(object: TabbedPaneAdapter() {
-            override fun switchedTab(tab: Tab) {
-                container.clearChildren()
-                container.add(tab.contentTable).expand().fill()
-            }
-        })
-
         add(pane.table).expandX().fillX().row()
         add(container).expand().fill()
 
@@ -133,8 +126,19 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
             slider("Volume while fast-forwarding", 0f, 1f, 0.01f, { config.fastForwardVolume }, { config.fastForwardVolume = it })
         }
 
-        keyTab("Input", KeyboardInputPane())
-        keyTab("Hotkeys", KeyboardHotkeyPane())
+        tab("Input") {
+            val cont = VisTable()
+            val inputPane = Pane(cont)
+
+            add(inputPane.table).expandX().fillX().row()
+            add(cont).expand().fill()
+
+            inputPane.add(InputTab("Keyboard Input", KeyboardInputPane()))
+            inputPane.add(InputTab("Controller Input", ControllerInputPane()))
+            inputPane.add(InputTab("Keyboard Hotkeys", KeyboardHotkeyPane(emu)))
+            inputPane.add(InputTab("Controller Hotkeys", ControllerHotkeyPane(emu)))
+            inputPane.switchTab(0)
+        }
 
         pane.switchTab(0)
     }
@@ -146,10 +150,6 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
 
     private inline fun tab(name: String, init: KVisTable.() -> Unit) {
         pane.add(OptTab(name).apply { init(table) })
-    }
-
-    private fun keyTab(name: String, table: VisTable) {
-        pane.add(NoKTXTab(name, table))
     }
 
     private inline fun KVisTable.checkBox(
@@ -224,8 +224,10 @@ class OptionsWindow(private val emu: Gamelin) : Window("Options") {
         override fun getTabTitle() = title
     }
 
-    private class NoKTXTab(val title: String, val table: VisTable) : Tab(false, false) {
+    private class InputTab(val title: String, val table: InputPane<*>) : Tab(false, false) {
         override fun getContentTable() = table
         override fun getTabTitle() = title
+        override fun onShow() = table.onShow()
+        override fun onHide() = table.onHide()
     }
 }

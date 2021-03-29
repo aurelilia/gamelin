@@ -1,16 +1,17 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 1:11 AM.
+ * This file was last modified at 3/29/21, 7:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.windows
+package xyz.angm.gamelin.windows.debugger
 
 import com.badlogic.gdx.graphics.Color
 import com.kotcrab.vis.ui.widget.VisTextButton
 import xyz.angm.gamelin.system.cpu.BrInst
 import xyz.angm.gamelin.system.cpu.Inst
+import xyz.angm.gamelin.windows.Window
 
 /** Table displaying the given instruction set in a 16x16 table. */
 class InstructionSetWindow(name: String, set: Array<Inst?>) : Window(name) {

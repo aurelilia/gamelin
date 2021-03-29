@@ -1,11 +1,11 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 3:51 PM.
+ * This file was last modified at 3/29/21, 7:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.windows
+package xyz.angm.gamelin.windows.debugger
 
 import com.badlogic.gdx.graphics.Color
 import com.kotcrab.vis.ui.widget.VisTextField
@@ -22,6 +22,7 @@ import xyz.angm.gamelin.system.cpu.Flag
 import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.system.cpu.Reg
 import xyz.angm.gamelin.system.io.MMU
+import xyz.angm.gamelin.windows.DelayedUpdateWindow
 
 /** Debugger window that shows a bunch of current system state. */
 class DebuggerWindow : DelayedUpdateWindow("Debugger", 0.5f) {

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 2:12 AM.
+ * This file was last modified at 3/29/21, 7:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,7 +19,6 @@ val config = loadDesktopConfiguration()
  * @property buttonMap Same as [keymap] but for controller buttons
  * @property axisMap Map of controller axes for the dpad, first is horizontal, second is vertical
  * @property hotkeys Map of hotkeys to their mapped key.
- * @property fastForwardButton Controller button to be held to fast-forward.
  * @property fastForwardHoldSpeed Fast-forward speed - 1 while holding a hotkey. (1 = 2x, 2 = 3x, ...)
  * @property fastForwardToggleSpeed Fast-forward speed - 1 toggled with a hotkey. (1 = 2x, 2 = 3x, ...)
  * @property volume Volume of audio output
@@ -32,9 +31,9 @@ class DesktopConfiguration {
     val keymap = arrayOf(Input.Keys.Z, Input.Keys.X, Input.Keys.ENTER, Input.Keys.SPACE, Input.Keys.RIGHT, Input.Keys.LEFT, Input.Keys.UP, Input.Keys.DOWN)
     val buttonMap = arrayOf(0, 1, 9, 8, 14, 13, 11, 12)
     val axisMap = arrayOf(0, 1)
-
     val hotkeys = OrderedMap<String, Int>()
-    var fastForwardButton = 3
+    val hotkeyButtons = OrderedMap<String, Int>()
+
     var fastForwardHoldSpeed = 3
     var fastForwardToggleSpeed = 1
     var enableRewind = false
@@ -46,9 +45,7 @@ class DesktopConfiguration {
     var gbScale = 4
     var hqxLevel = 1
     var skin = UiSkin.Tinted
-
     var confirmResets = true
-
     val lastOpened = OrderedSet<String>()
 }
 

@@ -1,14 +1,15 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:40 PM.
+ * This file was last modified at 3/29/21, 7:17 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
-package xyz.angm.gamelin.windows
+package xyz.angm.gamelin.windows.debugger
 
 import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.interfaces.TileRenderer
+import xyz.angm.gamelin.windows.Window
 
 /** Shows the current VRAM contents at 0x8000-0x9800.
  * Does not consider CGB banks, shows currently selected bank. */
