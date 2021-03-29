@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Gamelin
-          path: build/libs/gamelin-jvm.jar
+          path: build/libs/gamelin-*.jar
       - name: Run tests
         run: ./gradlew jvmTest
       - name: Cleanup Gradle Cache

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 12:29 AM.
+ * This file was last modified at 3/29/21, 7:20 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -21,7 +21,7 @@ plugins {
 }
 
 group = "xyz.angm.gamelin"
-version = "1.0-SNAPSHOT"
+version = "1.2"
 
 repositories {
     jcenter()
@@ -143,7 +143,7 @@ tasks.register<Jar>("dist") {
     // see Laurent1967's comment on https://github.com/libgdx/libgdx/issues/5491
     from({ configurations.compileClasspath.get().resolve().map { if (it.isDirectory) it else zipTree(it) } })
     from(files(assetsDir))
-    archiveFileName.set("gamelin-jvm.jar")
+    archiveFileName.set("gamelin-$version.jar")
 
     manifest {
         attributes(mapOf("Main-Class" to mainClassName))
