@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:44 AM.
+ * This file was last modified at 3/29/21, 2:14 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -26,7 +26,12 @@ import xyz.angm.gamelin.system.io.sound.*
 
 object SaveState {
 
-    private val rewindBuffers = Array(config.rewindBufferSec * 30) { ByteArray(85_000) }
+    private const val BUFFER_SIZE = 85_000
+    private const val BUFFER_PER_SEC = 30
+    private const val MEGABYTES_PER_SEC = (BUFFER_PER_SEC * BUFFER_SIZE) / 1_000_000f
+    val bufferSizeInMb get() = MEGABYTES_PER_SEC * config.rewindBufferSec
+
+    private var rewindBuffers = Array(getBufferSize()) { ByteArray(BUFFER_SIZE) }
     private var bufferIdx = 0
     private val rewindOutput = Output()
     private val rewindInput = Input()
@@ -71,6 +76,13 @@ object SaveState {
         // native resources are carried to the new GB so it's fine
         oldGb.disposed = true
     }
+
+    fun recreateBuffers() {
+        rewindBuffers = Array(getBufferSize()) { ByteArray(BUFFER_SIZE) }
+        bufferIdx = 0
+    }
+
+    private fun getBufferSize() = if (config.enableRewind) config.rewindBufferSec * BUFFER_PER_SEC else 0
 
     private val kryo = Kryo().apply {
         references = true

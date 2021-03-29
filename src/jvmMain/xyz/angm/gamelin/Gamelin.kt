@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:51 AM.
+ * This file was last modified at 3/29/21, 1:57 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -45,7 +45,9 @@ import xyz.angm.gamelin.windows.*
 var gb = GameBoy(DesktopDebugger())
 @Volatile
 var rewinding = false
-    @Synchronized set
+    @Synchronized set(value) {
+        field = value && config.enableRewind
+    }
 
 /** The libGDX application driving the desktop emulator.
  * @property disabledButtons Buttons that are only enabled once a game is loaded. */
