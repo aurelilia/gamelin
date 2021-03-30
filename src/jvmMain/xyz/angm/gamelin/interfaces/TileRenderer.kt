@@ -30,8 +30,8 @@ import xyz.angm.gamelin.system.io.ppu.PPU
  * to access the gb. */
 internal actual class TileRenderer actual constructor(private val tileWidth: Int, private val tileHeight: Int) : Actor() {
 
-    private val pixmapA = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
-    private val pixmapB = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGBA8888)
+    private val pixmapA = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGB888)
+    private val pixmapB = Pixmap(tileWidth * 8, tileHeight * 8, Pixmap.Format.RGB888)
     private var current = pixmapA
     private var texture: Texture? = null
     private var hqx = getHqx()
@@ -57,9 +57,10 @@ internal actual class TileRenderer actual constructor(private val tileWidth: Int
     }
 
     actual fun drawPixel(x: Int, y: Int, r: Int, g: Int, b: Int) {
-        val color = (r shl 24) or (g shl 16) or (b shl 8) or 255 // RGBA8888
-        current.setColor(color)
-        current.drawPixel(x, y)
+        var idx = (x + (y * 160)) * 3
+        current.pixels.put(idx++, r.toByte())
+        current.pixels.put(idx++, g.toByte())
+        current.pixels.put(idx, b.toByte())
     }
 
     actual fun finishFrame() {

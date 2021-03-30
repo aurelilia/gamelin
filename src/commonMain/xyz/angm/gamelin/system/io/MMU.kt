@@ -79,7 +79,7 @@ class MMU(internal val gb: GameBoy) : Disposable {
     }
 
     internal fun requestInterrupt(interrupt: Interrupt) {
-        write(IF.toShort(), read(IF.toShort()).setBit(interrupt.ordinal, 1).toByte())
+        gb.cpu.regIF = gb.cpu.regIF.setBit(interrupt.ordinal, 1)
     }
 
     fun read(addr: Short): Byte {

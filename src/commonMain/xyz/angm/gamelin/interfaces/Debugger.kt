@@ -36,8 +36,8 @@ open class Debugger : Disposable {
 
     /** Called right before executing the next instruction. */
     fun preAdvance(gb: GameBoy) {
-        pc = gb.cpu.pc.int()
         if (loggingEnable && !gb.mmu.bootromOn) {
+            pc = gb.cpu.pc.int()
             val inst = gb.getNextInst()
 
             if (inst.name == "NOP") {
