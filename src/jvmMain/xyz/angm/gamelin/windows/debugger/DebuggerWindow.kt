@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/30/21, 11:42 PM.
+ * This file was last modified at 3/30/21, 11:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -96,9 +96,9 @@ class DebuggerWindow : DelayedUpdateWindow("Debugger", 0.5f) {
                 visTable {
                     defaults().left().pad(0f).padLeft(2f).expandX()
                     visLabel("Registers: ") { it.row() }
-                    for (reg in arrayOf(DReg.AF, DReg.BC, DReg.DE, DReg.HL)) visLabel("$reg = ${gb.read16(reg).hex16()}") { it.row() }
-                    visLabel("SP = ${gb.readSP().hex16()}") { it.row() }
-                    visLabel("PC = ${gb.cpu.pc.hex16()}") { it.row() }
+                    for (reg in arrayOf(DReg.AF, DReg.BC, DReg.DE, DReg.HL)) visLabel("$reg = ${gb.read16(reg).hex16()}", "monospace") { it.row() }
+                    visLabel("SP = ${gb.readSP().hex16()}", "monospace") { it.row() }
+                    visLabel("PC = ${gb.cpu.pc.hex16()}", "monospace") { it.row() }
                     it.width(200f)
                 }
                 it.left()
