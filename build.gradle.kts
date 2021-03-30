@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/30/21, 8:49 PM.
+ * This file was last modified at 3/30/21, 11:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -16,13 +16,13 @@ buildscript {
 }
 
 plugins {
-    kotlin("multiplatform") version "1.4.31"
+    kotlin("multiplatform") version "1.4.32"
     id("org.jetbrains.dokka") version "1.4.30"
     application
 }
 
 group = "xyz.angm.gamelin"
-version = "1.2"
+version = "1.3"
 
 repositories {
     jcenter()
@@ -62,7 +62,6 @@ kotlin {
         }
 
         val gdxVersion = "1.9.14"
-        val gdxControllersVersion = "2.2.0"
         val ktxVersion = "1.9.14-b1"
         val jvmMain by getting {
             kotlin.srcDir("src/jvmMain")

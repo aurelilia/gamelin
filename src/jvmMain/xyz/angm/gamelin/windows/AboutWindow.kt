@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 7:19 PM.
+ * This file was last modified at 3/30/21, 11:42 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -15,7 +15,7 @@ class AboutWindow : Window("About") {
 
     init {
         add(HorizontalGroup().apply {
-            addActor(VisLabel("gamelin v1.2 made by "))
+            addActor(VisLabel("gamelin v1.3 made by "))
             addActor(LinkLabel("ellie", "https://angm.xyz"))
         }).row()
         add(LinkLabel("Check out my other projects!", "https://github.com/anellie")).row()
