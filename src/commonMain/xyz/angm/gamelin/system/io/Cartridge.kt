@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/26/21, 8:33 PM.
+ * This file was last modified at 3/30/21, 9:13 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -30,8 +30,8 @@ abstract class Cartridge(@Transient var rom: ByteArray) : IODevice() {
         5 -> 8
         else -> throw UnsupportedOperationException("Unknown cartridge controller")
     }
-    internal val supportsCGB = read(CGB_FLAG).isBit(7)
-    internal val requiresCGB = read(CGB_FLAG) == CGB_ONLY
+    internal val supportsCGB = rom[CGB_FLAG].isBit(7)
+    internal val requiresCGB = rom[CGB_FLAG].int() == CGB_ONLY
 
     private val ram = loadRAM()
     protected var ramEnable = false
@@ -45,7 +45,7 @@ abstract class Cartridge(@Transient var rom: ByteArray) : IODevice() {
             in 0x0000..0x3FFF -> rom[addr]
             in 0x4000..0x7FFF -> rom[(addr and 0x3FFF) + (0x4000 * romBank)]
             in 0xA000..0xBFFF -> if (ramAvailable) ram[(addr and 0x1FFF) + (0x2000 * ramBank)] else MMU.INVALID_READ.toByte()
-            else -> throw UnsupportedOperationException("Not cartridge")
+            else -> MMU.INVALID_READ.toByte()
         }.int()
     }
 

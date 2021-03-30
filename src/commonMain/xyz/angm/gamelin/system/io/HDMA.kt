@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 5:49 PM.
+ * This file was last modified at 3/30/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -11,14 +11,15 @@ import xyz.angm.gamelin.isBit
 
 /** CGB-only GDMA/HDMA transfer.
  * Note that "CPU stopping" during transfer is simply
- * accomplished by advancing the clock without it. */
+ * accomplished by advancing the clock without it.
+ * @property ppuInHBlank Set by the PPU once VBlank is entered. */
 class HDMA(private val mmu: MMU) : IODevice() {
 
     private var source = 0
     private var dest = 0
     private var hBlankTransferring = false
     private var transferLeft = 0
-    var gpuInHBlank = false
+    var ppuInHBlank = false
 
     fun step() {
         if (!canAdvanceHblank()) return
@@ -39,8 +40,8 @@ class HDMA(private val mmu: MMU) : IODevice() {
     /** Can another line of data be transferred?
      * True if an HDMA transfer is active and HBlank was just entered. */
     private fun canAdvanceHblank(): Boolean {
-        val possible = hBlankTransferring && (gpuInHBlank || !mmu.ppu.displayEnable)
-        gpuInHBlank = false
+        val possible = hBlankTransferring && (ppuInHBlank || !mmu.ppu.displayEnable)
+        ppuInHBlank = false
         return possible
     }
 
@@ -91,6 +92,6 @@ class HDMA(private val mmu: MMU) : IODevice() {
         dest = 0
         hBlankTransferring = false
         transferLeft = 0
-        gpuInHBlank = false
+        ppuInHBlank = false
     }
 }

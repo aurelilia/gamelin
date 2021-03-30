@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 12:58 AM.
+ * This file was last modified at 3/30/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,7 +14,7 @@ import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
 
-/** The APU of the GameBoy, containg all 4 channels and responsible for providing the output with audio.
+/** The APU of the GameBoy, containing all 4 channels and responsible for providing the output with audio.
  * This implementation is abridged from stan-roelofs's emulator: https://github.com/stan-roelofs/Kotlin-Gameboy-Emulator
  * Who probably abridged it from trekawek's coffee-gb: https://github.com/trekawek/coffee-gb
  * Thank you to both stan-roelofs and trekawek! */
@@ -28,7 +28,7 @@ class APU(private val gb: GameBoy) : IODevice() {
     private val wave = WaveChannel()
     private val noise = NoiseChannel()
 
-    private val channels: Array<SoundChannel> = arrayOf(square1, square2, wave, noise)
+    private val channels = arrayOf(square1, square2, wave, noise)
     private var enabled = true
 
     private var vinLeft = false
@@ -127,8 +127,8 @@ class APU(private val gb: GameBoy) : IODevice() {
             }
             MMU.NR51 -> {
                 for (i in 0 until 4) {
-                    this.leftEnables[i] = value.isBit(i + 4)
-                    this.rightEnables[i] = value.isBit(i)
+                    leftEnables[i] = value.isBit(i + 4)
+                    rightEnables[i] = value.isBit(i)
                 }
             }
             MMU.NR52 -> {

@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 2:14 AM.
+ * This file was last modified at 3/30/21, 9:43 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -24,6 +24,10 @@ import xyz.angm.gamelin.system.io.ppu.DmgPPU
 import xyz.angm.gamelin.system.io.ppu.GPUMode
 import xyz.angm.gamelin.system.io.sound.*
 
+/** Object responsible for creating and restoring save states, used
+ * for both user save states and rewinding.
+ * Rewinding is implemented by creating a save state into a byte buffer every other frame,
+ * then playing it back by loading the save states in reverse. */
 object SaveState {
 
     private const val BUFFER_SIZE = 85_000
@@ -37,12 +41,15 @@ object SaveState {
     private val rewindInput = Input()
     private var rewindStopBuffer = 0
 
+    /** Create a new save state for rewinding, called by [TileRenderer.finishFrame] */
     fun rewindPoint() {
         if (bufferIdx == rewindBuffers.size) bufferIdx = 0
         rewindOutput.buffer = rewindBuffers[bufferIdx++]
         kryo.writeObject(rewindOutput, gb)
     }
 
+    /** Load the next rewind point when actively rewinding, will end rewind
+     * if end of buffer is reached */
     fun rewindNext() {
         if (rewindStopBuffer == bufferIdx) endRewind()
         if (--bufferIdx < 0) bufferIdx = rewindBuffers.size - 1
@@ -50,17 +57,23 @@ object SaveState {
         loadState(rewindInput)
     }
 
+    /** Stop rewinding and restore state */
     fun endRewind() {
         rewinding = false
         rewindStopBuffer = bufferIdx
         gb.debugger.emuHalt = false
     }
 
+    /** Write a save state of the given GB to the given output. */
     fun saveState(out: Output, console: GameBoy) {
         kryo.writeObject(out, console)
         out.flush()
     }
 
+    /** Load a state from the given input into the global [gb].
+     * Since the serialized state does not contain native resources, they are
+     * simply kept fron the previous console; the old [gb] is no longer
+     * usable because of this. */
     fun loadState(input: Input) {
         val oldGb = gb
 

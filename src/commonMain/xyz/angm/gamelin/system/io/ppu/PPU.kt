@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 11:10 PM.
+ * This file was last modified at 3/30/21, 9:53 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,15 +13,13 @@ import xyz.angm.gamelin.system.cpu.Interrupt
 import xyz.angm.gamelin.system.io.IODevice
 import xyz.angm.gamelin.system.io.MMU
 import xyz.angm.gamelin.system.io.ppu.GPUMode.*
-import xyz.angm.gamelin.system.io.ppu.Sprite.dat
 import kotlin.jvm.Transient
 
 /** The Pixel Processing Unit of the system. This is an abstract class due to the different
  * PPUs of DMG and CGB. */
 internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: TileRenderer) : IODevice(), Disposable {
 
-    internal var mode = OAMScan
-        private set
+    private var mode = OAMScan
     private var modeclock = 0
 
     private var lcdc = 0
@@ -45,7 +43,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     private var windowY = 0
     private var windowLine = 0
 
-    private var bgPalette = 0b11100100
+    protected var bgPalette = 0b11100100
     private var objPalette1 = 0b11100100
     private var objPalette2 = 0b11100100
 
@@ -112,7 +110,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
 
             Upload -> {
                 mode = HBlank
-                mmu.hdma.gpuInHBlank = true
+                mmu.hdma.ppuInHBlank = true
                 renderLine()
                 statInterrupt(3)
             }
@@ -176,12 +174,6 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     /** Returns the amount the BG map tile data pointer should be adjusted by, based
      * on the tile pointer. Used on CGB to implement bit 3 of the BG map attributes (tile bank selector) */
     protected abstract fun getBGAddrAdjust(tileAddr: Int): Int
-
-    protected fun clearLine() {
-        for (tileIdxAddr in 0 until 160) {
-            renderer.drawPixel(tileIdxAddr, line, dmgColors[0])
-        }
-    }
 
     protected fun renderObjs() {
         var objCount = 0
@@ -250,40 +242,7 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
 
     private fun objTileOffset(idx: Int) = (idx * 0x10)
 
-    protected fun getBGColor(color: Int) = getColor(bgPalette, color)
-
-    protected fun getColor(palette: Int, color: Int) = dmgColors[(palette ushr (color * 2)) and 0b11]
-
     protected fun TileRenderer.drawPixel(x: Int, y: Int, c: Int) = drawPixel(x, y, c, c, c)
-
-    fun reset() {
-        mode = OAMScan
-        modeclock = 0
-
-        lcdc = 0
-        displayEnable = false
-        bgEnable = false
-        objEnable = false
-        windowEnable = false
-        bigObjMode = false
-        altBgTileData = false
-        bgMapAddr = 0x1800
-        windowMapAddr = 0x1800
-
-        line = 0
-        lineCompare = 0
-
-        stat = 0
-        scrollX = 0
-        scrollY = 0
-        windowX = -7
-        windowY = 0
-        windowLine = 0
-
-        bgPalette = 0b11100100
-        objPalette1 = 0b11100100
-        objPalette2 = 0b11100100
-    }
 
     /** Called on save state restore to recreate transient temporary data */
     open fun restore() {
@@ -291,10 +250,6 @@ internal abstract class PPU(protected val mmu: MMU, @Transient var renderer: Til
     }
 
     override fun dispose() = renderer.dispose()
-
-    companion object {
-        val dmgColors = intArrayOf(255, 191, 63, 0)
-    }
 }
 
 internal enum class GPUMode(val cycles: Int) {

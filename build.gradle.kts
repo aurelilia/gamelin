@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 7:20 PM.
+ * This file was last modified at 3/30/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,6 +17,7 @@ buildscript {
 
 plugins {
     kotlin("multiplatform") version "1.4.31"
+    id("org.jetbrains.dokka") version "1.4.30"
     application
 }
 

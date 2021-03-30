@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 7:17 PM.
+ * This file was last modified at 3/30/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -19,6 +19,7 @@ import ktx.actors.onClick
 import ktx.collections.*
 import xyz.angm.gamelin.Gamelin
 import xyz.angm.gamelin.config
+import xyz.angm.gamelin.interfaces.Keyboard
 import xyz.angm.gamelin.system.io.Button
 import xyz.angm.gamelin.windows.leftLabel
 
@@ -110,6 +111,7 @@ class KeyboardInputPane : InputPane<Int>(keyboard = true) {
 
     override fun registerKey(key: Int) {
         config.keymap[current ?: 0] = if (key == Input.Keys.ESCAPE) -1 else key
+        Keyboard.refresh()
     }
 }
 
@@ -140,11 +142,13 @@ class ControllerInputPane : InputPane<Int>(keyboard = false) {
     override fun registerButton(button: Int) {
         if (current!! > config.buttonMap.size) return
         config.buttonMap[current ?: 0] = button
+        Keyboard.refresh()
     }
 
     override fun registerAxis(axis: Int) {
         if (current!! < 100) return
         config.axisMap[(current ?: 0) - 100] = axis
+        Keyboard.refresh()
     }
 }
 

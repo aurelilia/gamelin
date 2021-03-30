@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 11:00 PM.
+ * This file was last modified at 3/30/21, 9:12 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -25,6 +25,12 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(20, 18)) :
         if (objEnable) {
             renderObjs()
             usedXObjCoords.fill(-1)
+        }
+    }
+
+    private fun clearLine() {
+        for (tileIdxAddr in 0 until 160) {
+            renderer.drawPixel(tileIdxAddr, line, dmgColors[0])
         }
     }
 
@@ -73,5 +79,13 @@ internal class DmgPPU(mmu: MMU, renderer: TileRenderer = TileRenderer(20, 18)) :
 
     override fun setPixelOccupied(x: Int, y: Int) {
         bgOccupiedPixels[(x * 144) + y] = true
+    }
+
+    private fun getBGColor(color: Int) = getColor(bgPalette, color)
+
+    private fun getColor(palette: Int, color: Int) = dmgColors[(palette ushr (color * 2)) and 0b11]
+
+    companion object {
+        val dmgColors = intArrayOf(255, 191, 63, 0)
     }
 }

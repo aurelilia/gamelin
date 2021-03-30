@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/25/21, 3:47 PM.
+ * This file was last modified at 3/30/21, 9:04 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -102,7 +102,7 @@ private fun fillSet() = InstSet.apply {
         if (!Negative.isSet(f)) {
             if (Carry.isSet(f) || a > 0x99) {
                 a += 0x60
-                cpu.flag(Carry, 1)
+                cpu.flag(Carry, true)
             }
             if (HalfCarry.isSet(f) || (a and 0x0F) > 0x09) a += 0x06
         } else {
@@ -110,8 +110,8 @@ private fun fillSet() = InstSet.apply {
             if (HalfCarry.isSet(f)) a = (a - 0x06) and 0xFF
         }
 
-        cpu.flag(Zero, if ((a and 0xFF) == 0) 1 else 0)
-        cpu.flag(HalfCarry, 0)
+        cpu.flag(Zero, (a and 0xFF) == 0)
+        cpu.flag(HalfCarry, false)
 
         write(A, a and 0xFF)
     }
@@ -144,14 +144,14 @@ private fun fillSet() = InstSet.apply {
     op[0x0F] = Inst(1, 1, "RRCA") { write(A, rrc(read(A).toByte(), false)) }
     op[0x1F] = Inst(1, 1, "RRA") { write(A, rr(read(A).toByte(), false)) }
     op[0x2F] = Inst(1, 1, "CPL") {
-        cpu.flag(Negative, 1)
-        cpu.flag(HalfCarry, 1)
+        cpu.flag(Negative, true)
+        cpu.flag(HalfCarry, true)
         write(A, read(A) xor 0xFF)
     }
     op[0x3F] = Inst(1, 1, "CCF") {
-        cpu.flag(Negative, 0)
-        cpu.flag(HalfCarry, 0)
-        cpu.flag(Carry, if (cpu.flag(Carry)) 0 else 1)
+        cpu.flag(Negative, false)
+        cpu.flag(HalfCarry, false)
+        cpu.flag(Carry, !cpu.flag(Carry))
     }
 
     // -----------------------------------

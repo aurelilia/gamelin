@@ -1,13 +1,12 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:20 AM.
+ * This file was last modified at 3/30/21, 9:47 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.interfaces
 
-import HqnxEffect
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Pixmap
@@ -16,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Actor
 import ktx.collections.*
 import xyz.angm.gamelin.*
+import xyz.angm.gamelin.system.io.ppu.DmgPPU
 import xyz.angm.gamelin.system.io.ppu.PPU
 
 /** TileRenderer using 2 pixmaps for buffering the image, as well as a texture
@@ -50,7 +50,7 @@ internal actual class TileRenderer actual constructor(private val tileWidth: Int
 
             for (pixel in 0 until TILE_SIZE) {
                 val colorIdx = (high.bit(7 - pixel) shl 1) + low.bit(7 - pixel)
-                val c = PPU.dmgColors[colorMap(colorIdx)]
+                val c = DmgPPU.dmgColors[colorMap(colorIdx)]
                 drawPixel((posX * 8) + pixel, (posY * 8) + line, c, c, c)
             }
         }
@@ -77,6 +77,9 @@ internal actual class TileRenderer actual constructor(private val tileWidth: Int
         queuedRunnables.forEach { it() }
         queuedRunnables.clear()
 
+        // If rewinding, the emu is only advanced until a frame is finished
+        // so that rewinding actually shows the display at the rewinded time.
+        // See `Gamelin.render` and `rewinding` for more info.
         if (rewinding) gb.debugger.emuHalt = true
     }
 

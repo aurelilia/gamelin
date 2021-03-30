@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/27/21, 10:08 PM.
+ * This file was last modified at 3/30/21, 9:24 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -23,9 +23,7 @@ fun bytesToString(bytes: ByteArray): String {
 /** Convert a string encoded with [bytesToString] back into a byte array */
 fun stringToBytes(str: String) = ByteArray(str.length) { str[it].toByte() }
 
-/** Saves to local storage. */
-actual fun saveConfiguration() {
-    localStorage.setItem("config", JSON.stringify(configuration))
-}
-
+/** Saving configuration on JS is not supported, saving does nothing. */
+actual fun saveConfiguration() {}
+/** Saving configuration on JS is not supported, loading creates a new config. */
 actual fun loadConfiguration() = Configuration()

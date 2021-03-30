@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 7:19 PM.
+ * This file was last modified at 3/30/21, 9:46 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -34,10 +34,8 @@ import ktx.assets.file
 import ktx.collections.*
 import ktx.scene2d.vis.menuItem
 import ktx.scene2d.vis.subMenu
-import xyz.angm.gamelin.interfaces.DesktopDebugger
-import xyz.angm.gamelin.interfaces.FileSystem
-import xyz.angm.gamelin.interfaces.Keyboard
-import xyz.angm.gamelin.interfaces.SaveState
+import xyz.angm.gamelin.interfaces.*
+import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
 import xyz.angm.gamelin.windows.AboutWindow
@@ -54,6 +52,9 @@ import xyz.angm.gamelin.windows.options.OptionsWindow
  * This was decided to be implmeneted as global state to allow switching out the
  * GB at any point, for features like save states. */
 var gb = GameBoy(DesktopDebugger())
+/** If [gb] is currently being rewinded. Will cause some behavior changes in [TileRenderer]
+ * to allow producing a frame of each rewind state, see [Gamelin.render] and [TileRenderer.finishFrame]
+ * for details. */
 @Volatile
 var rewinding = false
     @Synchronized set(value) {
@@ -126,7 +127,7 @@ class Gamelin : ApplicationAdapter() {
         }.start()
     }
 
-    fun recreateMenus() {
+    private fun recreateMenus() {
         val menuBar = MenuBar()
         val file = Menu("File")
         val debugger = Menu("Debugger")
@@ -327,6 +328,10 @@ class Gamelin : ApplicationAdapter() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
         rewindFrame = !rewindFrame
+        // If rewinding, load the next rewind state and 'advance until debug halt' -
+        // this will advance until `TileRenderer.finishFrame` halts the emu,
+        // which is required to have a frame to display to the user
+        // (otherwise rewinding would just hang display output, which would be rather useless)
         if (rewinding && rewindFrame) {
             gb.advanceUntilDebugHalt()
             gb.debugger.emuHalt = false
@@ -345,7 +350,7 @@ class Gamelin : ApplicationAdapter() {
     }
 
     /** Stops the GB emulator and saves configuration.
-     * See [Application.cleanupWindows] for an explaination of why this is needed. */
+     * See [Application.cleanupWindows] for an explanation of why this is needed. */
     internal fun beforeExit() {
         gb.debugger.emuHalt = true
         saveConfiguration()

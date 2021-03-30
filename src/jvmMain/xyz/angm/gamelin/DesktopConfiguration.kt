@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 7:18 PM.
+ * This file was last modified at 3/30/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,7 +17,7 @@ val config = loadDesktopConfiguration()
 /** Additional configuration only applicable to desktop.
  * @property keymap The keys mapping to the GB joypad. Order is same as [Button].
  * @property buttonMap Same as [keymap] but for controller buttons
- * @property axisMap Map of controller axes for the dpad, first is horizontal, second is vertical
+ * @property axisMap Map of controller axes for the GameBoy DPad, first is horizontal, second is vertical
  * @property hotkeys Map of hotkeys to their mapped key.
  * @property fastForwardHoldSpeed Fast-forward speed - 1 while holding a hotkey. (1 = 2x, 2 = 3x, ...)
  * @property fastForwardToggleSpeed Fast-forward speed - 1 toggled with a hotkey. (1 = 2x, 2 = 3x, ...)

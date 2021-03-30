@@ -1,18 +1,18 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 10:51 PM.
+ * This file was last modified at 3/30/21, 9:05 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
 
 package xyz.angm.gamelin.system.cpu
 
+import xyz.angm.gamelin.bit
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.isBit
 import xyz.angm.gamelin.setBit
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.io.MMU
-import kotlin.experimental.and
 
 /** Container for the SM83 CPU found in the GameBoy. */
 internal class CPU(private val gb: GameBoy) {
@@ -30,13 +30,13 @@ internal class CPU(private val gb: GameBoy) {
     /** Execute the next instruction, stepping the entire system forward
      * as required. Will also check interrupts after executing an instruction and possibly
      * advance the clock to account for interrupt handling; making the exact amount
-     * that this steps the internal clock by undeterministic. */
+     * that this steps the internal clock by nondeterministic. */
     fun nextInstruction() {
         val ime = this.ime
 
         if (halt) {
+            gb.advanceClock(1)
             halt = (gb.read(MMU.IF) and gb.read(MMU.IE) and 0x1F) == 0
-            if (halt) gb.advanceClock(1)
         } else {
             val inst = gb.getNextInst()
             if (inst.preCycles != 0) gb.advanceClock(inst.preCycles)
@@ -94,11 +94,11 @@ internal class CPU(private val gb: GameBoy) {
         regs[reg.ordinal] = regVal
     }
 
-    fun flag(flag: Flag) = flagVal(flag) == 1
-    fun flagVal(flag: Flag) = ((regs[Reg.F.ordinal].int() ushr flag.position) and 1)
-
-    fun flag(flag: Flag, value: Int) {
-        regs[Reg.F.ordinal] = ((regs[Reg.F.ordinal] and flag.invMask.toByte()) + flag.from(value)).toByte()
+    fun flag(flag: Flag) = regs[Reg.F.ordinal].isBit(flag.position)
+    fun flagVal(flag: Flag) = regs[Reg.F.ordinal].bit(flag.position)
+    fun flag(flag: Flag, value: Int) = flag(flag, value != 0)
+    fun flag(flag: Flag, value: Boolean) {
+        regs[Reg.F.ordinal] = regs[Reg.F.ordinal].setBit(flag.position, if (value) 1 else 0).toByte()
     }
 
     fun reset() {
@@ -108,7 +108,9 @@ internal class CPU(private val gb: GameBoy) {
         regIE = 0
         regIF = 0
         halt = false
+        haltBug = false
         prepareSpeedSwitch = false
+        regs.fill(0)
     }
 }
 
@@ -134,11 +136,8 @@ internal enum class Flag(val position: Int) {
     Carry(4);
 
     val mask get() = 1 shl position
-    val invMask get() = (1 shl position) xor 0xFF
-
-    fun get(reg: Int) = (reg and mask) ushr position
     fun isSet(reg: Int) = reg.isBit(position)
-    fun from(value: Int) = (if (value != 0) 1 else 0) shl position
+    fun from(value: Int) = if (value != 0) 1 shl position else 0
 }
 
 /** All interrupts the SM83 can process. */
@@ -148,8 +147,6 @@ internal enum class Interrupt(val handlerAddr: Short) {
     Timer(0x0050),
     Serial(0x0058),
     Joypad(0x0060);
-
-    fun isSet(reg: Int) = reg.isBit(ordinal)
 
     companion object {
         val addresses = values().map { it.handlerAddr }.toShortArray()

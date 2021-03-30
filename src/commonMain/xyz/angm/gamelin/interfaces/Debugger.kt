@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/23/21, 11:10 PM.
+ * This file was last modified at 3/30/21, 8:49 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -12,7 +12,6 @@ import xyz.angm.gamelin.hex16
 import xyz.angm.gamelin.int
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.DReg
-import xyz.angm.gamelin.system.io.MMU
 
 /** A debugger that is part of the system and able to hook into it.
  * Besides breakpoints, it also offers per-cycle CPU state logging useful for
@@ -31,13 +30,12 @@ open class Debugger : Disposable {
 
     var loggingEnable = false
     protected val logger = StringBuilder()
-    private var pc = 0
     private var nopCount = 0
 
     /** Called right before executing the next instruction. */
     fun preAdvance(gb: GameBoy) {
         if (loggingEnable && !gb.mmu.bootromOn) {
-            pc = gb.cpu.pc.int()
+            val pc = gb.cpu.pc
             val inst = gb.getNextInst()
 
             if (inst.name == "NOP") {
@@ -50,7 +48,6 @@ open class Debugger : Disposable {
             }
 
             logger.append("${pc.hex16()} ${inst.name.padEnd(20)} ${gb.read16(pc + 1).hex16()}  ")
-            logger.append("CLK = ${gb.clock} DIV = ${gb.read(MMU.DIV).hex16()} IE = ${gb.read(MMU.IE).hex16()} IF = ${gb.read(MMU.IF).hex16()} ")
             logger.append("AF = ${gb.read16(DReg.AF).hex16()} BC = ${gb.read16(DReg.BC).hex16()} ")
             logger.appendLine("DE = ${gb.read16(DReg.DE).hex16()} HL = ${gb.read16(DReg.HL).hex16()} SP = ${gb.readSP().hex16()}")
 
@@ -65,10 +62,7 @@ open class Debugger : Disposable {
     }
 
     override fun dispose() {
-        if (logger.isNotEmpty()) {
-            if (nopCount > 0) logger.appendLine("${pc.hex16()} NOP $nopCount TIMES")
-            flushLog()
-        }
+        if (logger.isNotEmpty()) flushLog()
     }
 
     protected open fun flushLog() {

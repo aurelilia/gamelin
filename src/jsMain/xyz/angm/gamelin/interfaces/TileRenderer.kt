@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/28/21, 1:44 AM.
+ * This file was last modified at 3/30/21, 9:25 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -13,7 +13,7 @@ import screenCtx
 import screenData
 
 /** TileRenderer implementation using an HTML canvas.
- * Ignores width/height. */
+ * Ignores width/height, as JS only has the screen and no debugging tools. */
 internal actual class TileRenderer actual constructor(tileWidth: Int, tileHeight: Int) {
 
     private val pixels = Uint32Array(screenData.data.buffer)
@@ -24,10 +24,7 @@ internal actual class TileRenderer actual constructor(tileWidth: Int, tileHeight
         pixels[idx] = color
     }
 
-    actual fun finishFrame() {
-        screenCtx.putImageData(screenData, 0.0, 0.0)
-    }
+    actual fun finishFrame() = screenCtx.putImageData(screenData, 0.0, 0.0)
 
-    actual fun dispose() {
-    }
+    actual fun dispose() {}
 }
