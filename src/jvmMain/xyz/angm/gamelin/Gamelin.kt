@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/30/21, 9:46 PM.
+ * This file was last modified at 3/30/21, 11:01 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,9 +14,12 @@ import com.badlogic.gdx.controllers.ControllerListener
 import com.badlogic.gdx.controllers.Controllers
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.g2d.freetype.FreeType
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Cell
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.IntMap
@@ -42,10 +45,7 @@ import xyz.angm.gamelin.windows.AboutWindow
 import xyz.angm.gamelin.windows.CartInfoWindow
 import xyz.angm.gamelin.windows.GameBoyWindow
 import xyz.angm.gamelin.windows.Window
-import xyz.angm.gamelin.windows.debugger.BGMapViewer
-import xyz.angm.gamelin.windows.debugger.DebuggerWindow
-import xyz.angm.gamelin.windows.debugger.InstructionSetWindow
-import xyz.angm.gamelin.windows.debugger.VRAMViewer
+import xyz.angm.gamelin.windows.debugger.*
 import xyz.angm.gamelin.windows.options.OptionsWindow
 
 /** The global GameBoy instance the program is currently operating on.
@@ -75,7 +75,7 @@ class Gamelin : ApplicationAdapter() {
     private val disabledButtons = GdxArray<MenuItem>()
 
     override fun create() {
-        if (config.skin.path != null) VisUI.load(file(config.skin.path!!)) else VisUI.load()
+        loadSkin()
         stage = Stage(com.badlogic.gdx.utils.viewport.ScreenViewport())
         root = VisTable()
         toasts = ToastManager(stage)
@@ -125,6 +125,18 @@ class Gamelin : ApplicationAdapter() {
                 else gb.advanceIndefinitely { Thread.sleep(16) }
             }
         }.start()
+    }
+
+    private fun loadSkin() {
+        if (config.skin.path != null) VisUI.load(file(config.skin.path!!)) else VisUI.load()
+        val monospaceGen = FreeTypeFontGenerator(file("noto-sans-mono-light.ttf"))
+        VisUI.getSkin().apply {
+            val monospace = monospaceGen.generateFont(FreeTypeFontGenerator.FreeTypeFontParameter().apply {
+                size = 15
+                mono = false
+            })
+            add("monospace", Label.LabelStyle().apply { font = monospace })
+        }
     }
 
     private fun recreateMenus() {
@@ -299,7 +311,7 @@ class Gamelin : ApplicationAdapter() {
         toasts.show(table, 3f)
     }
 
-    private fun toggleWindow(name: String, create: () -> Window) {
+    fun toggleWindow(name: String, create: () -> Window) {
         val prev = windows[name]
         when {
             prev?.stage == stage -> prev.fadeOut()

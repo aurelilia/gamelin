@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/30/21, 8:49 PM.
+ * This file was last modified at 3/30/21, 11:18 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -17,16 +17,12 @@ import xyz.angm.gamelin.system.cpu.DReg
  * Besides breakpoints, it also offers per-cycle CPU state logging useful for
  * exact emulator behavior debugging.
  *
- * @property emuHalt If the emulator is currently halted and should not continue. `true` at boot and after hitting a breakpoint.
- * @property pcBreak A breakpoint that will halt when the current PC is at this value and [pcBreakEnable] is `true`.
- * @property writeBreak A breakpoint that will halt when the system writes to this memory location and [writeBreakEnable] is `true`. */
+ * @property emuHalt If the emulator is currently halted and should not continue. `true` at boot and after hitting a breakpoint. */
 open class Debugger : Disposable {
 
     var emuHalt = true
-    var pcBreak = 0
-    var pcBreakEnable = false
-    var writeBreak = 0
-    var writeBreakEnable = false
+    var enableBreakpoints = false
+    val breakpoints = ArrayList<Breakpoint>()
 
     var loggingEnable = false
     protected val logger = StringBuilder()
@@ -58,7 +54,7 @@ open class Debugger : Disposable {
 
     /** Called after executing an instruction. */
     fun postAdvance(gb: GameBoy) {
-        if (pcBreakEnable && pcBreak == gb.cpu.pc.int()) emuHalt = true
+        if (enableBreakpoints && breakpoints.any { it.onPC && it.location == gb.cpu.pc }) emuHalt = true
     }
 
     override fun dispose() {
@@ -72,6 +68,11 @@ open class Debugger : Disposable {
 
     /** Called by MMU when the system has written a value. */
     open fun writeOccurred(addr: Short, value: Byte) {
-        if (writeBreakEnable && writeBreak == addr.int()) emuHalt = true
+        if (enableBreakpoints && breakpoints.any { it.onWrite && it.location == addr }) emuHalt = true
     }
+
+    /** @property location Location of the breakpoint
+     * @property onPC BP triggers on PC if true
+     * @property onWrite BP triggers on write if true */
+    data class Breakpoint(val location: Short, var onPC: Boolean, var onWrite: Boolean)
 }

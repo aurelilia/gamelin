@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/30/21, 8:49 PM.
+ * This file was last modified at 3/30/21, 10:14 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -94,9 +94,9 @@ class MMU(internal val gb: GameBoy) : Disposable {
 
             // Redirects
             in 0x0000..0x7FFF, in 0xA000..0xBFFF -> {
-                if (bootromOn && !gb.cgbMode && addr < 0x0100) bootix[a]
-                else if (bootromOn && gb.cgbMode && addr < 0x0100) gbcBootRom[a].toByte()
-                else if (bootromOn && gb.cgbMode && addr >= 0x0200 && addr < 0x900) gbcBootRom[a - 0x0100].toByte()
+                if (bootromOn && !gb.cgbMode && a < 0x0100) bootix[a]
+                else if (bootromOn && gb.cgbMode && a < 0x0100) gbcBootRom[a].toByte()
+                else if (bootromOn && gb.cgbMode && a >= 0x0200 && a < 0x900) gbcBootRom[a - 0x0100].toByte()
                 else cart.read(addr)
             }
             KEY1 -> gb.cpu.prepareSpeedSwitch.int().setBit(7, gb.tSpeedMultiplier == 2).toByte()

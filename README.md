@@ -15,18 +15,20 @@ quite accurate, enough to make most commercial games run perfectly.
 - Fast-forwarding at any integer multiplier (with hold and toggle hotkeys)
 - Basic gamepad/controller support
 - Debugger with:
-    - Tileset and BG Map Viewers
-    - Cartridge Info Viewer
+    - Emulator halting / Line-by-line debugging
     - PC and write breakpoints
     - Memory, register and stack view
-    - Emulator halting / Line-by-line debugging
+    - Tileset and BG Map Viewers
+    - Cartridge Info Viewer
     - Per-instruction CPU/register state logging
     - Instruction Set Viewer
 
 ##### Playing Pokemon Silver with HQ4X upscaling
 ![Desktop version playing Pokemon Silver](img/desktop1.png)
-##### TLoZ: Oracle of Ages with some debugging tools open
-![Desktop version playing Oracle of Ages](img/desktop2.png)
+##### Pokemon Pinball with running debugger and memory viewer
+![Desktop version playing Pokemon Silver](img/desktop2.png)
+##### TLoZ: Oracle of Ages with some visual debugging tools open
+![Desktop version playing Oracle of Ages](img/desktop3.png)
 
 ##### Web Version - [gamelin.kjs](https://gamelin.angm.xyz)
 - Entire emulator working fully
