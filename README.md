@@ -30,11 +30,11 @@ quite accurate, enough to make most commercial games run perfectly.
 ##### TLoZ: Oracle of Ages with some visual debugging tools open
 ![Desktop version playing Oracle of Ages](img/desktop3.png)
 
-##### Web Version - [gamelin.kjs](https://gamelin.angm.xyz)
+### Web Version - [gamelin.kjs](https://gamelin.angm.xyz)
 - Entire emulator working fully
 - Full game saving and RTC support (into browser local storage)
 
-#### Missing console features
+### Missing console features
 - Some MBC3 controllers have a built-in RTC for keeping track of time; Gamelin implements it,
 but in a very simple format incompatible with other emulators that has a high chance of
 not working with most games (it was tested with Pokemon Crystal and successfully kept time
@@ -44,9 +44,11 @@ after turning the game off overnight - needs more testing).
 Here's a non-exhaustive list of games I've tested. Results might sometimes be outdated.
 All games that support both DMG/GB and CGB/GBC were tested in GBC mode.
 
-##### Perfect with no observable issues
+#### Perfect with no observable issues
 - Pokemon Blue (Global, 1996, Game Freak)
     - Tested until Viridian Forest
+- Pokemon Yellow (Global, Game Freak)
+  - Played until reaching the end of Route 1
 - Pokemon Silver (Global, 2000, Game Freak)
     - Played until first GYM, including Bellsprout Tower
 - Pokemon Crystal (Global, 2001, Game Freak)
@@ -78,11 +80,6 @@ All games that support both DMG/GB and CGB/GBC were tested in GBC mode.
     - Played the first level
 - Yoshi (Global, 1992, Nintendo)
 - Tic-Tac-Toe (1996, Norman Nithman)
-
-##### Small issues, fully playable
-- Pokemon Yellow (Global, Game Freak)
-    - None of the Pikachu sound effects actually play (they're just low volume noise)
-    - Played until first rival fight
 
 ## Goals
 The main goals of this emulator is to both learn more about emulation of real-world hardware

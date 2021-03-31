@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/24/21, 1:46 PM.
+ * This file was last modified at 3/31/21, 7:19 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -46,10 +46,9 @@ class WaveChannel : SoundChannel() {
         if (!enabled) return 0
 
         for (i in 0 until cycles) {
-            timer--
-            if (timer == 0) {
+            if (--timer == 0) {
                 // Reset timer
-                timer = (2048 - frequency) / 2 * 4
+                timer = (2048 - frequency) * 2
 
                 // Set sample buffer
                 lastOutput = patternRam[positionCounter / 2]
@@ -68,7 +67,7 @@ class WaveChannel : SoundChannel() {
 
     override fun trigger() {
         enabled = true
-        timer = (2048 - frequency) / 2 * 4
+        timer = (2048 - frequency) * 2
         positionCounter = 0
         if (!dac) enabled = false
     }
