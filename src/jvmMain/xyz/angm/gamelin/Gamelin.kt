@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/30/21, 11:01 PM.
+ * This file was last modified at 3/31/21, 7:11 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -371,6 +371,7 @@ class Gamelin : ApplicationAdapter() {
     override fun dispose() {
         gb.dispose()
         stage.dispose()
+        device.dispose()
     }
 
     internal class HotkeyHandler : InputProcessor by InputAdapter(), ControllerListener by ControllerAdapter() {
