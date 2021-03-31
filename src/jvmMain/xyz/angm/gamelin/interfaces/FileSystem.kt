@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/29/21, 1:02 AM.
+ * This file was last modified at 3/31/21, 7:57 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -14,6 +14,7 @@ import xyz.angm.gamelin.gb
 import xyz.angm.gamelin.interfaces.FileSystem.gamePath
 import xyz.angm.gamelin.runInGbThread
 import xyz.angm.gamelin.system.GameBoy
+import java.lang.Exception
 
 /** FileSystem that saves game RAM next to the game in a .sav file, RTC in .rtc,
  * and save states in .state files.
@@ -48,12 +49,18 @@ actual object FileSystem {
         }
     }
 
-    fun loadState(slot: String) {
+    /** Load a save state slot. Returns success. */
+    fun loadState(slot: String): LoadStateStatus {
         val file = saveFileHandle("$slot.state")
-        if (file?.exists() != true) return
+        if (file?.exists() != true) return LoadStateStatus.FileNotFound
         val input = Input(file.read())
         saveState("last")
-        SaveState.loadState(input)
+        return try {
+            SaveState.loadState(input)
+            LoadStateStatus.Success
+        } catch (e: Exception) {
+            LoadStateStatus.InvalidFile
+        }
     }
 
     private fun saveFileHandle(ext: String = "sav"): FileHandle? {
@@ -61,6 +68,8 @@ actual object FileSystem {
         val directory = path.parent()
         return directory.child("${path.nameWithoutExtension()}.$ext")
     }
+
+    enum class LoadStateStatus { Success, FileNotFound, InvalidFile }
 }
 
 actual fun timeInSeconds() = System.currentTimeMillis() / 1000L

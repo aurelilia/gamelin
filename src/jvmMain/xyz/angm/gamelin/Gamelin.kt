@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/31/21, 7:11 PM.
+ * This file was last modified at 3/31/21, 7:59 PM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -38,6 +38,7 @@ import ktx.collections.*
 import ktx.scene2d.vis.menuItem
 import ktx.scene2d.vis.subMenu
 import xyz.angm.gamelin.interfaces.*
+import xyz.angm.gamelin.interfaces.FileSystem.LoadStateStatus.*
 import xyz.angm.gamelin.interfaces.TileRenderer
 import xyz.angm.gamelin.system.GameBoy
 import xyz.angm.gamelin.system.cpu.InstSet
@@ -206,14 +207,18 @@ class Gamelin : ApplicationAdapter() {
                 disabledButtons.add(this)
                 isDisabled = true
                 onChange {
-                    FileSystem.loadState(i.toString())
-                    toast("Loaded slot $i.")
+                    val msg = when (FileSystem.loadState(i.toString())) {
+                        Success -> "Loaded slot $i."
+                        FileNotFound -> "Failed to load: save state file not found."
+                        InvalidFile -> "Failed to load: File is invalid (from an old version?)"
+                    }
+                    toast(msg)
                 }
             }
         }
         options.item("Undo last load", null, disable = true) {
-            FileSystem.loadState("last")
-            toast("Undid loading save state.")
+            val status = FileSystem.loadState("last")
+            if (status == Success) toast("Undid loading save state.")
         }
         options.addSeparator()
         windowItem("About", null, options) { AboutWindow() }
