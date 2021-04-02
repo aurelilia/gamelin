@@ -1,6 +1,6 @@
 /*
  * Developed as part of the Gamelin project.
- * This file was last modified at 3/30/21, 11:43 PM.
+ * This file was last modified at 4/3/21, 1:20 AM.
  * Copyright 2021, see git repository at git.angm.xyz for authors and other info.
  * This file is under the GPL3 license. See LICENSE in the root directory of this repository for details.
  */
@@ -22,7 +22,7 @@ plugins {
 }
 
 group = "xyz.angm.gamelin"
-version = "1.3"
+version = "1.3.1"
 
 repositories {
     jcenter()
